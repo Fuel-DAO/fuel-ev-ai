@@ -38,7 +38,7 @@ k256 = { version = "0.13.4", default-features = false, features = [
 thiserror = "1.0.64"
 http = "1.1.0"
 serde_json = "1.0.110"
-# dotenv = "0.15.0"
+dotenv = "0.15.0"
 dotenv_codegen = "0.15.0"
 reqwest = "0.12.8"
 ic-auth-client = "0.2.1"
@@ -67,3 +67,10 @@ opt-level = 'z'
 lto = true
 codegen-units = 1
 panic = "abort"
+
+[package.metadata.leptos]
+output-name = "fuel-dao-frontend"
+tailwind-input-file = "style/tailwind.css"
+tailwind-config-file = "tailwind.config.js"
+
+assets-dir = "public"

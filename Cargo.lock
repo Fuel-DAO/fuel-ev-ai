@@ -1093,6 +1093,7 @@ dependencies = [
  "console_log",
  "convert_case 0.6.0",
  "derive_more",
+ "dotenv",
  "dotenv_codegen",
  "futures",
  "hex",
