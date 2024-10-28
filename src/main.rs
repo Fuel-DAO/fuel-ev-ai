@@ -6,10 +6,14 @@ use leptos_meta::*;
 use leptos_router::{Route, Router, Routes};
 use pages::{collection_detail::CollectionDetail, collections::Collections, home::HomePage};
 
+mod auth;
 mod canister;
 mod components;
+mod consts;
 mod pages;
+mod state;
 mod stores;
+mod utils;
 #[component]
 fn App() -> impl IntoView {
     view! {
@@ -46,4 +50,3 @@ fn main() {
 
     mount_to_body(|| view! { <Providers /> });
 }
-

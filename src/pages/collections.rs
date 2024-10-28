@@ -1,5 +1,8 @@
-use leptos::*;
-
+use crate::canister::provision::Provision;
+use crate::canister::token::Token;
+use crate::state::canisters::{authenticated_canisters, CanistersAuthWire};
+use leptos::*; // Adjust the path based on your project structure
+use log::{error, info};
 #[derive(Clone, PartialEq)]
 enum Tab {
     All,
@@ -11,7 +14,6 @@ enum Tab {
 pub fn Collections() -> impl IntoView {
     // Signal to track the selected tab
     let selected_tab = create_rw_signal(Tab::All);
-
     // Example data: You can replace this with your actual car data
     let cars = vec![
         (
@@ -133,4 +135,3 @@ fn Tabs(selected_tab: RwSignal<Tab>, tab: Tab, label: String) -> impl IntoView {
         </button>
     }
 }
-
