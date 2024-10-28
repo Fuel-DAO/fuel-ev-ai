@@ -1,8 +1,7 @@
-use crate::canister::provision::Provision;
-use crate::canister::token::Token;
+// use crate::canister::token::get_metadata;
+// use crate::canister::token::Token;
 use crate::state::canisters::{authenticated_canisters, CanistersAuthWire};
 use leptos::*; // Adjust the path based on your project structure
-use log::{error, info};
 #[derive(Clone, PartialEq)]
 enum Tab {
     All,
@@ -10,11 +9,25 @@ enum Tab {
     Upcoming,
 }
 
+// async fn some_function(cans: CanistersAuthWire) -> Result<(), String> {
+//     // Now you can use the metadata
+//     let metadata = get_metadata().await;
+//     println!("Car name: {}", metadata.name);
+//     println!("Car weight: {}", metadata.weight);
+//     match metadata {
+//         Ok(metadata) => Ok(metadata),
+//         Err(e) => Err(format!("Error fetching metadata: {:?}", e)),
+//     }
+//
+//     // ... and so on for other fields
+// }
 #[component]
 pub fn Collections() -> impl IntoView {
+    // let cans_res = authenticated_canisters();
     // Signal to track the selected tab
     let selected_tab = create_rw_signal(Tab::All);
     // Example data: You can replace this with your actual car data
+    /*     let cars = some_function(cans_res.wait_untracked().unwrap()); */
     let cars = vec![
         (
             "Model S Plaid - SAMPLE",
