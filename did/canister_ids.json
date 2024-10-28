@@ -4,13 +4,16 @@
     "local": "bd3sg-teaaa-aaaaa-qaaba-cai"
   },
   "asset": {
-    "ic": "6kdae-saaaa-aaaam-acnuq-cai"
+    "ic": "6kdae-saaaa-aaaam-acnuq-cai",
+    "local": "bd3sg-teaaa-aaaaa-qaaba-cai"
   },
   "asset_proxy": {
-    "ic": "6ncgq-7yaaa-aaaam-acnua-cai"
+    "ic": "6ncgq-7yaaa-aaaam-acnua-cai",
+    "local": "bd3sg-teaaa-aaaaa-qaaba-cai"
   },
   "provision": {
-    "ic": "7amc6-qqaaa-aaaam-acntq-cai"
+    "ic": "7amc6-qqaaa-aaaam-acntq-cai",
+    "local": "bd3sg-teaaa-aaaaa-qaaba-cai"
   }
 }
 
