@@ -1,34 +1,28 @@
 extern crate console_error_panic_hook;
 
-use crate::{
-    // components::account::{LoginButton, LogoutButton},
-    stores::{agent::AgentProvider, auth_client::AuthClientProvider},
-};
+use crate::stores::{agent::AgentProvider, auth_client::AuthClientProvider};
 use leptos::*;
 use leptos_meta::*;
 use leptos_router::{Route, Router, Routes};
+use pages::{collection_detail::CollectionDetail, collections::Collections, home::HomePage};
 
+mod canister;
 mod components;
-mod stores;
-mod  canister;
 mod pages;
-use pages::{collections::Collections, home::HomePage};
+mod stores;
 #[component]
 fn App() -> impl IntoView {
-   
-
     view! {
-        <Router >
+        <Router>
             <main>
                 <Routes>
-                <Route path="/" view=HomePage />
-                <Route path="/collections" view=Collections />
+                    <Route path="/" view=HomePage />
+                    <Route path="/collections" view=Collections />
+                    <Route path="/collections/:id" view=CollectionDetail />
 
                 </Routes>
             </main>
         </Router>
-       
-        
     }
 }
 
@@ -52,3 +46,4 @@ fn main() {
 
     mount_to_body(|| view! { <Providers /> });
 }
+
