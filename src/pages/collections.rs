@@ -1,7 +1,8 @@
-// use crate::canister::token::get_metadata;
-// use crate::canister::token::Token;
 use crate::state::canisters::{authenticated_canisters, CanistersAuthWire};
+use candid::{Nat, Principal};
 use leptos::*; // Adjust the path based on your project structure
+use serde::{Deserialize, Serialize}; // Import serde traits
+
 #[derive(Clone, PartialEq)]
 enum Tab {
     All,
@@ -9,25 +10,49 @@ enum Tab {
     Upcoming,
 }
 
-// async fn some_function(cans: CanistersAuthWire) -> Result<(), String> {
-//     // Now you can use the metadata
-//     let metadata = get_metadata().await;
-//     println!("Car name: {}", metadata.name);
-//     println!("Car weight: {}", metadata.weight);
-//     match metadata {
-//         Ok(metadata) => Ok(metadata),
-//         Err(e) => Err(format!("Error fetching metadata: {:?}", e)),
-//     }
-//
-//     // ... and so on for other fields
-// }
+// Define a structure for the token metadata
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+struct TokenMetadata {
+    weight: f64,
+    drive_type: String,
+    purchase_price: Nat,
+    token: Principal,
+    // Add other fields based on the metadata record
+    // ...
+}
+
+// Function to fetch metadata from the token canister
+async fn fetch_token_metadata(cans: CanistersAuthWire) -> Result<TokenMetadata, String> {
+    let backend = cans.canisters().map_err(|e| format!("Error: {:?}", e))?;
+    let token_canister = backend.token_canister().await; // Now `token()` should exist
+
+    // Call the get_metadata method
+    let metadata_result = token_canister.get_metadata().await; // Adjust call syntax as needed
+    match metadata_result {
+        Ok(metadata) => {
+            // Map the response to the TokenMetadata struct
+            Ok(TokenMetadata {
+                weight: metadata.weight,
+                drive_type: metadata.drive_type,
+                purchase_price: metadata.purchase_price,
+                token: metadata.token,
+                // Map other fields as needed
+                // ...
+            })
+        }
+        Err(e) => Err(format!("Error fetching token metadata: {:?}", e)),
+    }
+}
+
 #[component]
 pub fn Collections() -> impl IntoView {
-    // let cans_res = authenticated_canisters();
+    // Adjusted to retrieve `CanistersAuthWire` directly
+    let cans_wire = use_context::<CanistersAuthWire>().expect("CanistersAuthWire not found");
+
     // Signal to track the selected tab
     let selected_tab = create_rw_signal(Tab::All);
+
     // Example data: You can replace this with your actual car data
-    /*     let cars = some_function(cans_res.wait_untracked().unwrap()); */
     let cars = vec![
         (
             "Model S Plaid - SAMPLE",
@@ -58,6 +83,15 @@ pub fn Collections() -> impl IntoView {
             .cloned()
             .collect(),
     };
+
+    // Create a resource to fetch the token metadata
+    let token_metadata = create_resource(
+        move || (), // Dependency: none in this case
+        move |_| {
+            let cans_wire = cans_wire.clone();
+            async move { fetch_token_metadata(cans_wire).await }
+        },
+    );
 
     view! {
         <section class="p-6 bg-gray-100">
@@ -99,7 +133,6 @@ pub fn Collections() -> impl IntoView {
                         .map(|(title, description, status, _)| {
                             view! {
                                 <a href=format!("/collections/{}", title) class="block">
-
                                     <div class="bg-white rounded-lg shadow-md overflow-hidden">
                                         <div class="relative">
                                             <img
@@ -122,6 +155,54 @@ pub fn Collections() -> impl IntoView {
                         .collect::<Vec<_>>()
                 }}
             </div>
+
+            // Display Token Metadata
+            <div class="p-4 bg-white rounded-lg shadow-md mt-8">
+                <h2 class="text-xl font-semibold">"Token Metadata"</h2>
+                <Suspense fallback=move || {
+                    view! { <div>"Loading..."</div> }
+                }>
+                    {move || match token_metadata.get() {
+                        Some(Ok(metadata)) => {
+                            let metadata = metadata.clone();
+                            view! {
+                                <div>
+                                    <p>
+                                        <strong>"Weight: "</strong>
+                                        {metadata.weight}
+                                    </p>
+                                    <p>
+                                        <strong>"Drive Type: "</strong>
+                                        {metadata.drive_type.clone()}
+                                    </p>
+                                    <p>
+                                        <strong>"Purchase Price: "</strong>
+                                        {metadata.purchase_price.to_string()}
+                                    </p>
+                                    <p>
+                                        <strong>"Token: "</strong>
+                                        {metadata.token.to_text()}
+                                    </p>
+                                </div>
+                            }
+                        }
+                        Some(Err(e)) => {
+                            view! {
+                                <div>
+                                    <p>{format!("Error fetching metadata: {}", e)}</p>
+                                </div>
+                            }
+                        }
+                        None => {
+                            view! {
+                                <div>
+                                    <p>"Loading..."</p>
+                                </div>
+                            }
+                        }
+                    }}
+                </Suspense>
+            </div>
         </section>
     }
 }
@@ -135,7 +216,7 @@ fn Tabs(selected_tab: RwSignal<Tab>, tab: Tab, label: String) -> impl IntoView {
             class=move || {
                 format!(
                     "px-4 py-2 rounded-md shadow-md font-medium {}",
-                    if selected_tab.get() == current_tab.clone() {
+                    if selected_tab.get() == current_tab {
                         "bg-white text-black"
                     } else {
                         "text-gray-500"

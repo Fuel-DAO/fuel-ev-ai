@@ -11,6 +11,8 @@ use leptos::*;
 use serde::{Deserialize, Serialize};
 
 use crate::canister::backend::Backend;
+use crate::canister::provision::Provision;
+use crate::canister::token::Token;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct CanistersAuthWire {
@@ -18,7 +20,9 @@ pub struct CanistersAuthWire {
     user_principal: Principal,
     expiry: u64,
     backend_principal: Principal,
-    // profile_details: ProfileDetails,
+    provision_principal: Principal, // Add this
+    token_principal: Principal,     // Add this
+                                    // profile_details: ProfileDetails,
 }
 
 impl CanistersAuthWire {
@@ -37,7 +41,9 @@ impl CanistersAuthWire {
             user_principal: self.user_principal,
             expiry: self.expiry,
             backend_principal: BACKEND_ID,
-            // profile_details: Some(self.profile_details),
+            provision_principal: BACKEND_ID, // Replace with actual value
+            token_principal: BACKEND_ID,     // Replace with actual value
+                                             // profile_details: Some(self.profile_details),
         })
     }
 }
@@ -49,7 +55,9 @@ pub struct Canisters<const AUTH: bool> {
     user_principal: Principal,
     expiry: u64,
     backend_principal: Principal,
-    // profile_details: Option<ProfileDetails>,
+    provision_principal: Principal, // Add this
+    token_principal: Principal,     // Add this
+                                    // profile_details: Option<ProfileDetails>,
 }
 
 impl Default for Canisters<false> {
@@ -60,6 +68,8 @@ impl Default for Canisters<false> {
             user_principal: Principal::anonymous(),
             expiry: 0,
             backend_principal: BACKEND_ID,
+            provision_principal: BACKEND_ID, // Add this
+            token_principal: BACKEND_ID,
             // profile_details: None,
         }
     }
@@ -81,6 +91,8 @@ impl Canisters<true> {
             user_principal: Principal::anonymous(),
             expiry,
             backend_principal: BACKEND_ID,
+            provision_principal: BACKEND_ID, // Add this
+            token_principal: BACKEND_ID,
             // profile_details: None,
         }
     }
@@ -109,6 +121,15 @@ impl Canisters<true> {
 
     pub async fn backend_canister(&self) -> Backend<'_> {
         self.backend().await
+    }
+    pub async fn provision_canister(&self) -> Provision<'_> {
+        let agent = self.agent.get_agent().await;
+        Provision(self.provision_principal, agent)
+    }
+
+    pub async fn token_canister(&self) -> Token<'_> {
+        let agent = self.agent.get_agent().await;
+        Token(self.token_principal, agent)
     }
 }
 
@@ -158,6 +179,8 @@ pub async fn do_canister_auth(
         user_principal: canisters.user_principal,
         expiry: canisters.expiry,
         backend_principal: BACKEND_ID,
+        provision_principal: BACKEND_ID, // Add this
+        token_principal: BACKEND_ID,
     };
 
     Ok(cans_wire)
