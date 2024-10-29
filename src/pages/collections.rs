@@ -1,7 +1,7 @@
-use crate::state::canisters::{authenticated_canisters, CanistersAuthWire};
+use crate::state::canisters::{Canisters, CanistersAuthWire};
 use candid::{Nat, Principal};
-use leptos::*; // Adjust the path based on your project structure
-use serde::{Deserialize, Serialize}; // Import serde traits
+use leptos::*;
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, PartialEq)]
 enum Tab {
@@ -17,79 +17,93 @@ struct TokenMetadata {
     drive_type: String,
     purchase_price: Nat,
     token: Principal,
+    name: String,
     // Add other fields based on the metadata record
     // ...
 }
 
-// Function to fetch metadata from the token canister
-async fn fetch_token_metadata(cans: CanistersAuthWire) -> Result<TokenMetadata, String> {
-    let backend = cans.canisters().map_err(|e| format!("Error: {:?}", e))?;
-    let token_canister = backend.token_canister().await; // Now `token()` should exist
+// Structure to hold both canister IDs
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+struct CollectionId {
+    asset_canister: Principal,
+    token_canister: Principal,
+}
 
-    // Call the get_metadata method
-    let metadata_result = token_canister.get_metadata().await; // Adjust call syntax as needed
-    match metadata_result {
-        Ok(metadata) => {
-            // Map the response to the TokenMetadata struct
-            Ok(TokenMetadata {
-                weight: metadata.weight,
-                drive_type: metadata.drive_type,
-                purchase_price: metadata.purchase_price,
-                token: metadata.token,
-                // Map other fields as needed
-                // ...
-            })
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+struct CollectionData {
+    id: CollectionId,
+    name: String,
+    status: String,
+    metadata: Option<TokenMetadata>,
+}
+
+// Fetches the list of collections and populates metadata
+async fn fetch_collections_data(cans: Canisters) -> Result<Vec<CollectionData>, String> {
+    // Get provision canister actor
+    let provision_canister = cans.provision_canister().await;
+
+    // Fetch collections from provision canister
+    let collections_list = provision_canister
+        .list_collections()
+        .await
+        .map_err(|e| format!("Failed to fetch collections: {:?}", e))?;
+
+    // Fetch metadata for each collection using the token canister
+    let mut collections = vec![];
+    for collection in collections_list {
+        let collection_id = CollectionId {
+            asset_canister: collection.asset_canister,
+            token_canister: collection.token_canister,
+        };
+
+        let token_canister = cans.token_canister(collection.token_canister).await;
+
+        match token_canister.get_metadata().await {
+            Ok(metadata) => {
+                collections.push(CollectionData {
+                    id: collection_id.clone(),
+                    name: metadata.name.clone(),
+                    status: "Available".to_string(), // Adjust as needed based on actual status
+                    metadata: Some(TokenMetadata {
+                        weight: metadata.weight,
+                        drive_type: metadata.drive_type.clone(),
+                        purchase_price: metadata.purchase_price.clone(),
+                        token: metadata.token,
+                        name: metadata.name.clone(),
+                        // Map other fields as needed
+                    }),
+                });
+            }
+            Err(e) => {
+                // Handle metadata fetch failure
+                collections.push(CollectionData {
+                    id: collection_id.clone(),
+                    name: "Unknown".to_string(),
+                    status: "Unavailable".to_string(),
+                    metadata: None,
+                });
+            }
         }
-        Err(e) => Err(format!("Error fetching token metadata: {:?}", e)),
     }
+
+    Ok(collections)
 }
 
 #[component]
 pub fn Collections() -> impl IntoView {
-    // Adjusted to retrieve `CanistersAuthWire` directly
+    // Retrieve `CanistersAuthWire` context
     let cans_wire = use_context::<CanistersAuthWire>().expect("CanistersAuthWire not found");
+    let cans = cans_wire.clone().canisters();
 
     // Signal to track the selected tab
     let selected_tab = create_rw_signal(Tab::All);
 
-    // Example data: You can replace this with your actual car data
-    let cars = vec![
-        (
-            "Model S Plaid - SAMPLE",
-            "The Tesla Model S Plaid is the epitome of electric luxury and performance...",
-            "Live",
-            "Available",
-        ),
-        ("Test EV Vehicle", "asdfasdsads", "Live", "Upcoming"),
-        (
-            "Tesla Electric Sample 1",
-            "This is a test listing for Dfinity R&D Demo.",
-            "Live",
-            "Available",
-        ),
-    ];
-
-    // Filter cars based on the selected tab
-    let filtered_cars = move || match selected_tab.get() {
-        Tab::All => cars.clone(),
-        Tab::Available => cars
-            .iter()
-            .filter(|(_, _, _, status)| *status == "Available")
-            .cloned()
-            .collect(),
-        Tab::Upcoming => cars
-            .iter()
-            .filter(|(_, _, _, status)| *status == "Upcoming")
-            .cloned()
-            .collect(),
-    };
-
-    // Create a resource to fetch the token metadata
-    let token_metadata = create_resource(
+    // Create a resource to fetch collection data and token metadata
+    let collection_data = create_resource(
         move || (), // Dependency: none in this case
         move |_| {
-            let cans_wire = cans_wire.clone();
-            async move { fetch_token_metadata(cans_wire).await }
+            let cans = cans.clone();
+            async move { fetch_collections_data(cans).await }
         },
     );
 
@@ -126,90 +140,78 @@ pub fn Collections() -> impl IntoView {
             </div>
 
             // Card Grid
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {move || {
-                    filtered_cars()
-                        .into_iter()
-                        .map(|(title, description, status, _)| {
-                            view! {
-                                <a href=format!("/collections/{}", title) class="block">
-                                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                                        <div class="relative">
-                                            <img
-                                                src="/public/img/car_image.jpg"
-                                                alt=title
-                                                class="w-full h-48 object-cover"
-                                            />
-                                            <span class="absolute top-2 left-2 bg-white text-black font-semibold text-xs px-2 py-1 rounded-full">
-                                                {status}
-                                            </span>
-                                        </div>
-                                        <div class="p-4">
-                                            <h3 class="text-lg font-semibold">{title}</h3>
-                                            <p class="text-sm text-gray-600">{description}</p>
-                                        </div>
-                                    </div>
-                                </a>
-                            }
-                        })
-                        .collect::<Vec<_>>()
+            <Suspense fallback=move || {
+                view! { <div>"Loading collections..."</div> }
+            }>
+                {move || match collection_data.get() {
+                    Some(Ok(collections)) => {
+                        let filtered_cars = collections
+                            .iter()
+                            .filter(|collection| {
+                                match selected_tab.get() {
+                                    Tab::All => true,
+                                    Tab::Available => collection.status == "Available",
+                                    Tab::Upcoming => collection.status == "Upcoming",
+                                }
+                            })
+                            .collect::<Vec<_>>();
+                        view! {
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {filtered_cars
+                                    .into_iter()
+                                    .map(|collection| {
+                                        let href = format!(
+                                            "/collection/{}@{}",
+                                            collection.id.token_canister.to_text(),
+                                            collection.id.asset_canister.to_text(),
+                                        );
+                                        view! {
+                                            <a href=href class="block">
+                                                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                                                    <div class="relative">
+                                                        <img
+                                                            src="/public/img/car_image.jpg"
+                                                            alt=collection.name.clone()
+                                                            class="w-full h-48 object-cover"
+                                                        />
+                                                        <span class="absolute top-2 left-2 bg-white text-black font-semibold text-xs px-2 py-1 rounded-full">
+                                                            {collection.status.clone()}
+                                                        </span>
+                                                    </div>
+                                                    <div class="p-4">
+                                                        <h3 class="text-lg font-semibold">
+                                                            {collection.name.clone()}
+                                                        </h3>
+                                                        <p class="text-sm text-gray-600">
+                                                            {collection
+                                                                .metadata
+                                                                .as_ref()
+                                                                .map_or(
+                                                                    "No description available.".to_string(),
+                                                                    |meta| meta.drive_type.clone(),
+                                                                )}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        }
+                                    })
+                                    .collect::<Vec<_>>()}
+                            </div>
+                        }
+                    }
+                    Some(Err(e)) => {
+                        view! { <div>{format!("Error fetching collections: {}", e)}</div> }
+                    }
+                    None => view! { <div>"Loading..."</div> },
                 }}
-            </div>
-
-            // Display Token Metadata
-            <div class="p-4 bg-white rounded-lg shadow-md mt-8">
-                <h2 class="text-xl font-semibold">"Token Metadata"</h2>
-                <Suspense fallback=move || {
-                    view! { <div>"Loading..."</div> }
-                }>
-                    {move || match token_metadata.get() {
-                        Some(Ok(metadata)) => {
-                            let metadata = metadata.clone();
-                            view! {
-                                <div>
-                                    <p>
-                                        <strong>"Weight: "</strong>
-                                        {metadata.weight}
-                                    </p>
-                                    <p>
-                                        <strong>"Drive Type: "</strong>
-                                        {metadata.drive_type.clone()}
-                                    </p>
-                                    <p>
-                                        <strong>"Purchase Price: "</strong>
-                                        {metadata.purchase_price.to_string()}
-                                    </p>
-                                    <p>
-                                        <strong>"Token: "</strong>
-                                        {metadata.token.to_text()}
-                                    </p>
-                                </div>
-                            }
-                        }
-                        Some(Err(e)) => {
-                            view! {
-                                <div>
-                                    <p>{format!("Error fetching metadata: {}", e)}</p>
-                                </div>
-                            }
-                        }
-                        None => {
-                            view! {
-                                <div>
-                                    <p>"Loading..."</p>
-                                </div>
-                            }
-                        }
-                    }}
-                </Suspense>
-            </div>
+            </Suspense>
         </section>
     }
 }
 
 #[component]
 fn Tabs(selected_tab: RwSignal<Tab>, tab: Tab, label: String) -> impl IntoView {
-    let current = selected_tab.clone();
     let current_tab = tab.clone();
     view! {
         <button
@@ -223,7 +225,7 @@ fn Tabs(selected_tab: RwSignal<Tab>, tab: Tab, label: String) -> impl IntoView {
                     },
                 )
             }
-            on:click=move |_| current.set(tab.clone())
+            on:click=move |_| selected_tab.set(tab.clone())
         >
             {label}
         </button>

@@ -1,187 +1,127 @@
 use std::sync::Arc;
 
-use crate::{
-    auth::DelegatedIdentityWire,
-    canister::BACKEND_ID,
-    utils::{ic::AgentWrapper, MockPartialEq, ParentResource},
-};
 use candid::Principal;
-use ic_agent::{identity::DelegatedIdentity, Identity};
+use ic_agent::{identity::BasicIdentity, Identity};
 use leptos::*;
 use serde::{Deserialize, Serialize};
 
 use crate::canister::backend::Backend;
 use crate::canister::provision::Provision;
 use crate::canister::token::Token;
+use crate::utils::ic::AgentWrapper;
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+use crate::canister::{BACKEND_ID, PROVISION_ID, TOKEN_ID};
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CanistersAuthWire {
-    id: DelegatedIdentityWire,
     user_principal: Principal,
     expiry: u64,
     backend_principal: Principal,
-    provision_principal: Principal, // Add this
-    token_principal: Principal,     // Add this
-                                    // profile_details: ProfileDetails,
+    provision_principal: Principal,
+    token_principal: Principal,
+    // Add identity field to hold the user's identity
+    #[serde(skip)]
+    identity: Option<Arc<dyn Identity + Sync + Send>>,
+}
+
+impl std::fmt::Debug for CanistersAuthWire {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("CanistersAuthWire")
+            .field("user_principal", &self.user_principal)
+            .field("expiry", &self.expiry)
+            .field("backend_principal", &self.backend_principal)
+            .field("provision_principal", &self.provision_principal)
+            .field("token_principal", &self.token_principal)
+            .field("identity", &"<Identity omitted>")
+            .finish()
+    }
 }
 
 impl CanistersAuthWire {
-    pub fn canisters(self) -> Result<Canisters<true>, k256::elliptic_curve::Error> {
-        let unauth = unauth_canisters();
+    // Constructor to create a new instance with an optional identity
+    pub fn new(
+        user_principal: Principal,
+        expiry: u64,
+        backend_principal: Principal,
+        provision_principal: Principal,
+        token_principal: Principal,
+        identity: Option<Arc<dyn Identity + Sync + Send>>,
+    ) -> Self {
+        Self {
+            user_principal,
+            expiry,
+            backend_principal,
+            provision_principal,
+            token_principal,
+            identity,
+        }
+    }
 
-        let id: DelegatedIdentity = self.id.try_into()?;
-        let arc_id = Arc::new(id);
+    pub fn canisters(self) -> Canisters {
+        // Build the agent with the user's identity if available
+        let agent = AgentWrapper::build(|builder| {
+            if let Some(identity) = self.identity.clone() {
+                builder.with_arc_identity(identity)
+            } else {
+                builder
+            }
+        });
 
-        let mut agent = unauth.agent.clone();
-        agent.set_arc_id(arc_id.clone());
-
-        Ok(Canisters {
+        Canisters {
             agent,
-            id: Some(arc_id),
             user_principal: self.user_principal,
             expiry: self.expiry,
-            backend_principal: BACKEND_ID,
-            provision_principal: BACKEND_ID, // Replace with actual value
-            token_principal: BACKEND_ID,     // Replace with actual value
-                                             // profile_details: Some(self.profile_details),
-        })
+            backend_principal: self.backend_principal,
+            provision_principal: self.provision_principal,
+            token_principal: self.token_principal,
+        }
     }
 }
 
 #[derive(Clone)]
-pub struct Canisters<const AUTH: bool> {
+pub struct Canisters {
     agent: AgentWrapper,
-    id: Option<Arc<DelegatedIdentity>>,
     user_principal: Principal,
     expiry: u64,
     backend_principal: Principal,
-    provision_principal: Principal, // Add this
-    token_principal: Principal,     // Add this
-                                    // profile_details: Option<ProfileDetails>,
+    provision_principal: Principal,
+    token_principal: Principal,
 }
 
-impl Default for Canisters<false> {
+impl Default for Canisters {
     fn default() -> Self {
         Self {
             agent: AgentWrapper::build(|b| b),
-            id: None,
             user_principal: Principal::anonymous(),
             expiry: 0,
             backend_principal: BACKEND_ID,
-            provision_principal: BACKEND_ID, // Add this
-            token_principal: BACKEND_ID,
-            // profile_details: None,
+            provision_principal: PROVISION_ID,
+            token_principal: TOKEN_ID,
         }
     }
 }
 
-impl Canisters<true> {
-    pub fn authenticated(id: DelegatedIdentity) -> Canisters<true> {
-        let expiry = id
-            .delegation_chain()
-            .iter()
-            .fold(u64::MAX, |prev_expiry, del| {
-                del.delegation.expiration.min(prev_expiry)
-            });
-        let id = Arc::new(id);
-
-        Canisters {
-            agent: AgentWrapper::build(|b| b.with_arc_identity(id.clone())),
-            id: Some(id),
-            user_principal: Principal::anonymous(),
-            expiry,
-            backend_principal: BACKEND_ID,
-            provision_principal: BACKEND_ID, // Add this
-            token_principal: BACKEND_ID,
-            // profile_details: None,
-        }
-    }
-
-    pub fn expiry_ns(&self) -> u64 {
-        self.expiry
-    }
-
-    pub fn identity(&self) -> &DelegatedIdentity {
-        self.id
-            .as_ref()
-            .expect("Authenticated canisters must have an identity")
-    }
-
-    // pub fn profile_details(&self) -> ProfileDetails {
-    //     self.profile_details
-    //         .clone()
-    //         .expect("Authenticated canisters must have profile details")
-    // }
-
-    pub fn user_principal(&self) -> Principal {
-        self.identity()
-            .sender()
-            .expect("expect principal to be present")
-    }
-
+impl Canisters {
     pub async fn backend_canister(&self) -> Backend<'_> {
         self.backend().await
     }
+
     pub async fn provision_canister(&self) -> Provision<'_> {
         let agent = self.agent.get_agent().await;
         Provision(self.provision_principal, agent)
     }
 
-    pub async fn token_canister(&self) -> Token<'_> {
+    pub async fn token_canister(&self, canister_id: Principal) -> Token<'_> {
         let agent = self.agent.get_agent().await;
-        Token(self.token_principal, agent)
+        Token(canister_id, agent)
     }
-}
 
-pub fn unauth_canisters() -> Canisters<false> {
-    expect_context()
-}
-
-// pub struct Backend<'a>(pub Principal, pub &'a ic_agent::Agent);
-
-impl<const A: bool> Canisters<A> {
-    pub async fn backend(&self) -> Backend<'_> {
+    async fn backend(&self) -> Backend<'_> {
         let agent = self.agent.get_agent().await;
         Backend(self.backend_principal, agent)
     }
 }
 
-pub type AuthCansResource = ParentResource<
-    MockPartialEq<Option<DelegatedIdentityWire>>,
-    Result<CanistersAuthWire, ServerFnError>,
->;
-
-/// The Authenticated Canisters helper resource
-/// prefer using helpers from [crate::component::canisters_prov]
-/// instead
-pub fn authenticated_canisters() -> AuthCansResource {
-    expect_context()
-}
-
-/// The store for Authenticated canisters
-/// Do not use this for anything other than analytics
-pub fn auth_canisters_store() -> RwSignal<Option<Canisters<true>>> {
-    expect_context()
-}
-
-pub async fn do_canister_auth(
-    auth: DelegatedIdentityWire,
-) -> Result<CanistersAuthWire, ServerFnError> {
-    let id = auth.clone().try_into()?;
-    let canisters = Canisters::<true>::authenticated(id);
-
-    // let user = canisters.authenticated_user().await;
-
-    // let profile_details = user.get_profile_details().await?.into();
-
-    let cans_wire = CanistersAuthWire {
-        id: auth,
-        user_principal: canisters.user_principal,
-        expiry: canisters.expiry,
-        backend_principal: BACKEND_ID,
-        provision_principal: BACKEND_ID, // Add this
-        token_principal: BACKEND_ID,
-    };
-
-    Ok(cans_wire)
+pub fn unauth_canisters() -> Canisters {
+    Canisters::default()
 }
