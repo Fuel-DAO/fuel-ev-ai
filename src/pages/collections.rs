@@ -37,8 +37,8 @@ struct CollectionData {
     metadata: Option<TokenMetadata>,
 }
 
-// Fetches the list of collections and populates metadata
-async fn fetch_collections_data(cans: Canisters) -> Result<Vec<CollectionData>, String> {
+// Modify the fetch_collections_data function to specify that it accepts an authenticated Canisters instance
+async fn fetch_collections_data(cans: Canisters<true>) -> Result<Vec<CollectionData>, String> {
     // Get provision canister actor
     let provision_canister = cans.provision_canister().await;
 
@@ -93,7 +93,10 @@ async fn fetch_collections_data(cans: Canisters) -> Result<Vec<CollectionData>, 
 pub fn Collections() -> impl IntoView {
     // Retrieve `CanistersAuthWire` context
     let cans_wire = use_context::<CanistersAuthWire>().expect("CanistersAuthWire not found");
-    let cans = cans_wire.clone().canisters();
+    let cans = cans_wire
+        .clone()
+        .canisters()
+        .expect("Authenticated canisters required");
 
     // Signal to track the selected tab
     let selected_tab = create_rw_signal(Tab::All);

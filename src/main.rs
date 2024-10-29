@@ -1,11 +1,14 @@
 extern crate console_error_panic_hook;
 
+use crate::state::canisters::Canisters;
+use crate::state::canisters::CanistersAuthWire;
 use crate::stores::{agent::AgentProvider, auth_client::AuthClientProvider};
+use ic_agent::identity::BasicIdentity;
 use leptos::*;
 use leptos_meta::*;
 use leptos_router::{Route, Router, Routes};
 use pages::{collection_detail::CollectionDetail, collections::Collections, home::HomePage};
-
+use std::sync::Arc;
 mod auth;
 mod canister;
 mod components;
@@ -33,7 +36,9 @@ fn App() -> impl IntoView {
 #[component]
 fn Providers() -> impl IntoView {
     provide_meta_context();
+    provide_context(Canisters::default());
 
+    console_error_panic_hook::set_once();
     view! {
         <AuthClientProvider>
             <AgentProvider>
