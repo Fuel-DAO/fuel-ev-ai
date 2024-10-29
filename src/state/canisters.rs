@@ -21,7 +21,7 @@ pub struct CanistersAuthWire {
 }
 
 impl CanistersAuthWire {
-    pub fn canisters(self) -> Result<Canisters<true>, String> {
+    pub fn canisters(self) -> Result<Canisters, String> {
         let unauth = unauth_canisters();
 
         let id = self.identity.clone().ok_or("Identity not found")?;
@@ -40,7 +40,7 @@ impl CanistersAuthWire {
 }
 
 #[derive(Clone)]
-pub struct Canisters<const AUTH: bool> {
+pub struct Canisters {
     agent: AgentWrapper,
     identity: Option<Arc<BasicIdentity>>,
     expiry: u64,
@@ -49,7 +49,7 @@ pub struct Canisters<const AUTH: bool> {
     token_principal: Principal,
 }
 
-impl Default for Canisters<false> {
+impl Default for Canisters {
     fn default() -> Self {
         Self {
             agent: AgentWrapper::build(|b| b),
@@ -62,8 +62,19 @@ impl Default for Canisters<false> {
     }
 }
 
-impl Canisters<true> {
-    pub fn authenticated(id: Arc<BasicIdentity>, expiry: u64) -> Canisters<true> {
+impl Canisters {
+    fn default() -> Self {
+        Self {
+            agent: AgentWrapper::build(|b| b),
+            identity: None,
+            expiry: 0,
+            backend_principal: BACKEND_ID,
+            provision_principal: PROVISION_ID,
+            token_principal: TOKEN_ID,
+        }
+    }
+
+    pub fn authenticated(id: Arc<BasicIdentity>, expiry: u64) -> Canisters {
         Canisters {
             agent: AgentWrapper::build(|b| b.with_arc_identity(id.clone())),
             identity: Some(id),
@@ -95,7 +106,7 @@ impl Canisters<true> {
     }
 }
 
-impl<const A: bool> Canisters<A> {
+impl Canisters {
     pub async fn backend(&self) -> Backend<'_> {
         let agent = self.agent.get_agent().await;
         Backend(self.backend_principal, agent)
@@ -112,13 +123,13 @@ impl<const A: bool> Canisters<A> {
     }
 }
 
-pub fn unauth_canisters() -> Canisters<false> {
+pub fn unauth_canisters() -> Canisters {
     Canisters::default()
 }
 
 pub async fn do_canister_auth(identity: Arc<BasicIdentity>) -> Result<CanistersAuthWire, String> {
     let expiry = 1_640_000_000; // Example expiry time; replace with actual logic if needed.
-    let canisters = Canisters::<true>::authenticated(identity.clone(), expiry);
+    let canisters = Canisters::authenticated(identity.clone(), expiry);
 
     Ok(CanistersAuthWire {
         identity: Some(identity),

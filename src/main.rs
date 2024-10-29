@@ -1,7 +1,6 @@
 extern crate console_error_panic_hook;
+use crate::state::canisters::{Canisters, CanistersAuthWire};
 
-use crate::state::canisters::Canisters;
-use crate::state::canisters::CanistersAuthWire;
 use crate::stores::{agent::AgentProvider, auth_client::AuthClientProvider};
 use ic_agent::identity::BasicIdentity;
 use leptos::*;
