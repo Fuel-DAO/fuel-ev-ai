@@ -3,6 +3,8 @@ use leptos::*;
 use leptos_router::{use_params, Params};
 use std::cmp::PartialEq;
 
+use crate::components::{collection_header::CollectionHeader, header::Header, invest_info::InvestInfo, specifications::{CollectionMetadata, SpecificationComponent}};
+
 #[derive(Debug, Clone, Params)]
 pub struct CollectionParams {
     id: String,
@@ -27,6 +29,7 @@ pub fn CollectionDetail() -> impl IntoView {
         .unwrap_or_else(|_| "unknown".to_string());
 
     view! {
+        <Header />
         <div class="w-full max-w-6xl pt-32 mx-auto px-8 lg:px-0">
             <div class="w-full flex flex-col items-center justify-center  gap-4 pb-8">
 
@@ -48,9 +51,30 @@ pub fn CollectionDetail() -> impl IntoView {
 
                 </div>
 
-                <h2>{format!("Collection ID: {}", id)}</h2>
-                <p>"Details for the selected collection will be displayed here."</p>
+                // <h2>{format!("Collection ID: {}", id)}</h2>
+                // <p>"Details for the selected collection will be displayed here."</p>
+                <CarDetailPage />
             </div>
         </div>
     }
 }
+
+
+#[component]
+fn CarDetailPage() -> impl IntoView {
+
+    view! {
+        <div class="w-full flex flex-col items-center gap-4 pb-8">
+	<div class="flex flex-col lg:flex-row gap-8 pt-6 w-full max-w-6xl">
+		<CollectionHeader />
+        <div class="flex flex-col gap-8">
+			<InvestInfo />
+		</div>
+		// <div class="flex flex-col gap-8">
+        //     <SpecificationComponent />
+		// </div>
+	</div>
+</div>
+    }
+}
+

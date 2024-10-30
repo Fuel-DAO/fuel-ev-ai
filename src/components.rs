@@ -6,3 +6,8 @@ pub mod ridesharing_info;
 pub mod trip_includes;
 pub mod powered_by;
 pub mod footer;
+pub mod specifications;
+pub mod collection_header;
+pub mod collection_info_cards;
+pub mod tabs;
+pub mod invest_info;

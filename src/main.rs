@@ -10,6 +10,8 @@ mod canister;
 mod components;
 mod pages;
 mod stores;
+mod utils;
+
 #[component]
 fn App() -> impl IntoView {
     view! {

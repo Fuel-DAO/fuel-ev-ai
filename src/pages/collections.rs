@@ -83,7 +83,7 @@ pub fn Collections() -> impl IntoView {
                         .into_iter()
                         .map(|(title, description, status, _)| {
                             view! {
-                                <a href=format!("/collections/{}", title) class="block">
+                                <a href=format!("/collections/{}", "ft37p-5aaaa-aaaam-acpgq-cai") class="block">
 
                                     <div class="bg-white rounded-lg shadow-md overflow-hidden">
                                         <div class="relative">

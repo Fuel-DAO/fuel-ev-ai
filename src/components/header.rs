@@ -43,6 +43,8 @@ fn UserPrincipal() -> impl IntoView {
             })
             .flatten()
     };
+
+    
     view! {
         <Show
             when=move || principal().is_some()
