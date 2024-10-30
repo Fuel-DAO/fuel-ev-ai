@@ -1,14 +1,13 @@
 use leptos::*;
-use crate::components::specifications::CollectionMetadata;
 
-
+use crate::canister::token::CollectionMetaData;
 
 #[component]
-pub fn CollectionInfoCards( props: CollectionMetadata) -> impl IntoView {
+pub fn CollectionInfoCards( props: CollectionMetaData) -> impl IntoView {
     // Set default values for metadata fields
-    let acceleration = props.acceleration.clone().unwrap_or_else(|| "--".to_string());
-    let seating = props.seating.clone().unwrap_or_else(|| "--".to_string());
-    let range = props.range_per_charge.clone().unwrap_or_else(|| "--".to_string());
+    let acceleration = props.acceleration.clone();
+    let seating = props.seating.clone();
+    let range = props.range_per_charge.clone();
 
     view! { 
         <div class="grid col-auto lg:flex items-center gap-2 pt-8">

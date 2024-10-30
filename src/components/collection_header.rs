@@ -1,10 +1,11 @@
 use leptos::*;
-use crate::components::specifications::{CollectionMetadata, SpecificationComponent};
+use crate::components::specifications::SpecificationComponent;
 use crate::components::collection_info_cards::CollectionInfoCards;
 use crate::components::tabs::Tabs;
+use crate::canister::token::CollectionMetaData;
 use crate::utils::share::ShareButtonWithFallbackPopup;
 #[component]
-pub fn CollectionHeader() -> impl IntoView {
+pub fn CollectionHeader(metadata: CollectionMetaData) -> impl IntoView {
     let collection_id = "collection_id" /* get_collection_id() */;  // Placeholder for your collection ID function
 
     // Define tabs and selected tab state
@@ -23,7 +24,7 @@ Take a look at this car at FuelDAO!")};
         <div class="flex flex-col grow gap-4">
             <div class="flex flex-col sm:flex-row gap-4 lg:justify-between lg:items-center">
                 <div class="flex flex-col lg:flex-row gap-8 items-start lg:items-center">
-                    <div class="text-2xl lg:text-5xl font-bold">{ "Model S Plaid- SAMPLE" }</div>
+                    <div class="text-2xl lg:text-5xl font-bold">{ &metadata.name }</div>
                     <div class="py-2 px-4 text-xs bg-black rounded-full text-white font-light flex h-min items-center justify-center">
                         Open
                     </div>
@@ -50,7 +51,7 @@ Take a look at this car at FuelDAO!")};
                 // }}
             </div>
 
-            <CollectionInfoCards props=CollectionMetadata::default() />
+            <CollectionInfoCards props=metadata.clone() />
             
             <Tabs tabs=tabs.clone() selected=selected />
 
@@ -58,7 +59,7 @@ Take a look at this car at FuelDAO!")};
             {move || if selected() == "specifications" {
                 view! {  
                     <div>
-                    <SpecificationComponent  />
+                    <SpecificationComponent metadata=metadata.clone() />
                     </div>
                 }
             } /* else if selected() == "documents" {

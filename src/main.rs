@@ -1,17 +1,19 @@
 extern crate console_error_panic_hook;
+use crate::state::canisters::Canisters;
 
 use crate::stores::{agent::AgentProvider, auth_client::AuthClientProvider};
 use leptos::*;
 use leptos_meta::*;
 use leptos_router::{Route, Router, Routes};
 use pages::{collection_detail::CollectionDetail, collections::Collections, home::HomePage};
-
 mod canister;
 mod components;
+mod consts;
 mod pages;
+mod state;
 mod stores;
 mod utils;
-
+mod outbound;
 #[component]
 fn App() -> impl IntoView {
     view! {
@@ -20,7 +22,7 @@ fn App() -> impl IntoView {
                 <Routes>
                     <Route path="/" view=HomePage />
                     <Route path="/collections" view=Collections />
-                    <Route path="/collections/:id" view=CollectionDetail />
+                    <Route path="/collections/:token_id/:asset_id" view=CollectionDetail />
 
                 </Routes>
             </main>
@@ -31,7 +33,9 @@ fn App() -> impl IntoView {
 #[component]
 fn Providers() -> impl IntoView {
     provide_meta_context();
+    provide_context(Canisters::default());
 
+    console_error_panic_hook::set_once();
     view! {
         <AuthClientProvider>
             <AgentProvider>
@@ -48,4 +52,3 @@ fn main() {
 
     mount_to_body(|| view! { <Providers /> });
 }
-

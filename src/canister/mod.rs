@@ -1,5 +1,5 @@
 //! Auto generated bindings for canisters
 #[allow(clippy::all)]
-mod generated;
+pub mod generated;
 
 pub use generated::*;

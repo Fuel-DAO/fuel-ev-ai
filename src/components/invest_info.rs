@@ -1,10 +1,11 @@
+use html::meta;
 use leptos::*;
+use crate::canister::token::CollectionMetaData;
 
-use super::specifications::CollectionMetadata;
 
 #[derive(Clone, Debug)]
 pub struct InvestInfoMetaProps {
-    pub metadata: CollectionMetadata,
+    pub metadata: CollectionMetaData,
     pub booked_tokens: u64,
     pub status: Status,
 }
@@ -17,10 +18,10 @@ pub enum Status {
 }
 
 #[component]
-pub fn InvestInfo(   ) -> impl IntoView {
+pub fn InvestInfo( metadata: CollectionMetaData  ) -> impl IntoView {
 
     let props = InvestInfoMetaProps  {
-        metadata: CollectionMetadata::default(),
+        metadata: metadata,
         booked_tokens: 5,
         status: Status::Live
     };
@@ -28,16 +29,18 @@ pub fn InvestInfo(   ) -> impl IntoView {
     
     // Function to calculate invested percentage
     let invested_percentage = move || {
-        if props.booked_tokens > 0 && props.metadata.supply_cap.unwrap_or_default() > 0 {
-            ((props.booked_tokens as f64 / props.metadata.supply_cap.unwrap_or_default() as f64) * 100.0).to_string()
+        if props.booked_tokens > 0 && props.metadata.supply_cap.0.to_string().parse::<f64>().unwrap_or_default() > 0.0 {
+            ((props.booked_tokens as f64 / props.metadata.supply_cap.to_string().parse::<f64>().unwrap_or_default()) * 100.0).to_string()
         } else {
             "0".to_string()
         }
     };
 
+    let invested_percentage_clone = invested_percentage.clone();
+
     // Function to calculate invested amount in ICP
     let invested_icp = move || {
-        let price = from_e8s(props.metadata.price.unwrap_or_default());
+        let price = from_e8s(props.metadata.price.0.to_string().parse::<u64>().unwrap_or_default() );
         (props.booked_tokens as f64 * price).to_string()
     };
 
@@ -53,13 +56,13 @@ pub fn InvestInfo(   ) -> impl IntoView {
 
             <div class="w-72 bg-black/20 h-4 rounded-full relative overflow-hidden">
                 <div
-                    style=move || format!("width: {}%;", invested_percentage())
+                    style=move || format!("width: {}%;", invested_percentage().clone())
                     class="absolute transition-all bg-white rounded-full left-0 h-full"
                 />
             </div>
 
             <div class="text-md font-light">
-                "Funded " {invested_percentage()} "%" {if props.status == Status::Live { "till now" } else { "" }}
+                "Funded " { invested_percentage_clone()} "%" {if props.status == Status::Live { "till now" } else { "" }}
             </div>
 
             <button 
