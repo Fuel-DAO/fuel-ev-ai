@@ -4,7 +4,7 @@ use leptos::*;
 use leptos_router::{use_params, Params};
 use std::cmp::PartialEq;
 
-use crate::{canister::token::CollectionMetaData, components::{collection_header::CollectionHeader, header::Header, invest_info::InvestInfo,}, outbound::collection_canister_calls::get_collection_metadata_from_token_canister};
+use crate::{canister::token::CollectionMetaData, components::{collection_header::CollectionHeader, collection_images::CollectionImages, header::Header, invest_info::InvestInfo}, outbound::collection_canister_calls::get_collection_metadata_from_token_canister};
 
 #[derive(Debug, Clone, Params, PartialEq)]
 pub struct CollectionParams {
@@ -25,40 +25,27 @@ pub fn CollectionDetail() -> impl IntoView {
         .get()
         .map(|p| p.token_id.clone())
         .unwrap_or_else(|_| "unknown".to_string());
+    let asset_can_id = params
+        .get()
+        .map(|p| p.asset_id.clone())
+        .unwrap_or_else(|_| "unknown".to_string());
 
     let collection_id = id.clone();
     let collection_resource = create_resource(||(), move |_| { let token_canister_id = collection_id.clone();  async {  get_collection_metadata_from_token_canister(Principal::from_text(token_canister_id).map_err(|e|e.to_string())?).await } } );
     view! {
         <Suspense>
-        {
+        {   
+            let asset_can_id = asset_can_id.clone();
+
             move || collection_resource.get().map(|res| match res {
                 Ok(metadata) => {
+                    let asset_can_id = asset_can_id.clone();
                     view! {
                         <div>
                         <Header />
                         <div class="w-full max-w-6xl pt-32 mx-auto px-8 lg:px-0">
+                            <CollectionImages metadata=metadata.clone() asset_can_id />
                             <div class="w-full flex flex-col items-center justify-center  gap-4 pb-8">
-                
-                                <div class="flex flex-col lg:flex-row gap-2 lg:h-[40rem] w-full overflow-hidden overflow-x-auto relative">
-                                    <div class="absolute h-16 lg:h-28 top-4 shadow-md z-[2] left-4 w-16 lg:w-28 rounded-full overflow-hidden">
-                
-                                        <img
-                                            alt="Collection logo"
-                                            class="h-full w-full object-cover object-center"
-                                            src="https://fu2z3-qyaaa-aaaam-acpga-cai.icp0.io/Tesla_Model_S_2021-01@2x.jpg"
-                                        />
-                
-                                    </div>
-                                    <img
-                                        alt="Collection"
-                                        src="https://fu2z3-qyaaa-aaaam-acpga-cai.icp0.io/Tesla_Model_S_2021-03@2x.jpg"
-                                        class="rounded-xl lg:h-full lg:grow object-cover"
-                                    />
-                
-                                </div>
-                
-                                // <h2>{format!("Collection ID: {}", id)}</h2>
-                                // <p>"Details for the selected collection will be displayed here."</p>
                                 <CarDetailPage metadata/>
                             </div>
                         </div>
@@ -91,6 +78,10 @@ fn CarDetailPage(metadata: CollectionMetaData,) -> impl IntoView {
     let collection_id = params
         .get()
         .map(|p| p.token_id.clone())
+        .unwrap_or_else(|_| "unknown".to_string());
+    let asset_id = params
+        .get()
+        .map(|p| p.asset_id.clone())
         .unwrap_or_else(|_| "unknown".to_string());
 
     view! {

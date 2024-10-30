@@ -1,6 +1,6 @@
 use html::meta;
 use leptos::*;
-use crate::canister::token::CollectionMetaData;
+use crate::{canister::token::CollectionMetaData, utils::button::ButtonComponent};
 
 
 #[derive(Clone, Debug)]
@@ -62,8 +62,13 @@ pub fn InvestInfo( metadata: CollectionMetaData  ) -> impl IntoView {
             </div>
 
             <div class="text-md font-light">
-                "Funded " { invested_percentage_clone()} "%" {if props.status == Status::Live { "till now" } else { "" }}
+                "Funded " { invested_percentage_clone()} "% " {if props.status == Status::Live { "till now" } else { "" }}
             </div>
+            // <ButtonComponent secondary=true disabled={props.status != Status::Live}>    
+            // // {"Invest"}
+            // {|| view! {<div> Invest</div>}}
+            // </ButtonComponent>
+
 
             <button 
                 class="btn-secondary"

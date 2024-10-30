@@ -11,3 +11,6 @@ pub mod collection_header;
 pub mod collection_info_cards;
 pub mod tabs;
 pub mod invest_info;
+pub mod collection_images;
+pub mod collection_documents;
+pub mod info_title;

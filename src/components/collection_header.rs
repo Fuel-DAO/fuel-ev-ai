@@ -5,7 +5,7 @@ use crate::components::tabs::Tabs;
 use crate::canister::token::CollectionMetaData;
 use crate::utils::share::ShareButtonWithFallbackPopup;
 #[component]
-pub fn CollectionHeader(metadata: CollectionMetaData, collection_id: String) -> impl IntoView {
+pub fn CollectionHeader(metadata: CollectionMetaData, collection_id: String, ) -> impl IntoView {
 
     // Define tabs and selected tab state
     let tabs = vec!["specifications".to_string(), "documents".to_string()];
