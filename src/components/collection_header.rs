@@ -5,16 +5,14 @@ use crate::components::tabs::Tabs;
 use crate::canister::token::CollectionMetaData;
 use crate::utils::share::ShareButtonWithFallbackPopup;
 #[component]
-pub fn CollectionHeader(metadata: CollectionMetaData) -> impl IntoView {
-    let collection_id = "collection_id" /* get_collection_id() */;  // Placeholder for your collection ID function
+pub fn CollectionHeader(metadata: CollectionMetaData, collection_id: String) -> impl IntoView {
 
     // Define tabs and selected tab state
     let tabs = vec!["specifications".to_string(), "documents".to_string()];
     let selected = create_rw_signal( "specifications".to_string());
-    let share_link_s =|| { format!("/token/collections/id") };
-    let share_message_s = || {format!("Model S Plaid- SAMPLE
-https://fueldao.io/collection/ft37p-5aaaa-aaaam-acpgq-cai@fu2z3-qyaaa-aaaam-acpga-cai
-Take a look at this car at FuelDAO!")};
+    let share_link_s =|| { format!("/collection/{}/{}", collection_id, metadata.asset_canister.to_text()) };
+    let share_message_s = || {format!("{}
+Take a look at this car at FuelDAO!", metadata.name)};
 
 
     // Check if the user is logged in and is the collection owner

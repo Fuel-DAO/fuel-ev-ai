@@ -26,8 +26,8 @@ pub fn CollectionDetail() -> impl IntoView {
         .map(|p| p.token_id.clone())
         .unwrap_or_else(|_| "unknown".to_string());
 
-    let collection_resource = create_resource(||(), move |_| { let token_canister_id = id.clone();  async {  get_collection_metadata_from_token_canister(Principal::from_text(token_canister_id).map_err(|e|e.to_string())?).await } } );
-
+    let collection_id = id.clone();
+    let collection_resource = create_resource(||(), move |_| { let token_canister_id = collection_id.clone();  async {  get_collection_metadata_from_token_canister(Principal::from_text(token_canister_id).map_err(|e|e.to_string())?).await } } );
     view! {
         <Suspense>
         {
@@ -59,7 +59,7 @@ pub fn CollectionDetail() -> impl IntoView {
                 
                                 // <h2>{format!("Collection ID: {}", id)}</h2>
                                 // <p>"Details for the selected collection will be displayed here."</p>
-                                <CarDetailPage metadata />
+                                <CarDetailPage metadata/>
                             </div>
                         </div>
                         </div>
@@ -85,12 +85,18 @@ pub fn CollectionDetail() -> impl IntoView {
 
 
 #[component]
-fn CarDetailPage(metadata: CollectionMetaData) -> impl IntoView {
+fn CarDetailPage(metadata: CollectionMetaData,) -> impl IntoView {
+    let params = use_params::<CollectionParams>();
+
+    let collection_id = params
+        .get()
+        .map(|p| p.token_id.clone())
+        .unwrap_or_else(|_| "unknown".to_string());
 
     view! {
         <div class="w-full flex flex-col items-center gap-4 pb-8">
 	<div class="flex flex-col lg:flex-row gap-8 pt-6 w-full max-w-6xl">
-		<CollectionHeader metadata=metadata.clone() />
+		<CollectionHeader metadata=metadata.clone() collection_id />
         <div class="flex flex-col gap-8">
 			<InvestInfo metadata />
 		</div>
