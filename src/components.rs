@@ -7,4 +7,3 @@ pub mod powered_by;
 pub mod ride_sharing;
 pub mod ridesharing_info;
 pub mod trip_includes;
-

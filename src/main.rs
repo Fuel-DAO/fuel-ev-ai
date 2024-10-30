@@ -1,5 +1,6 @@
 extern crate console_error_panic_hook;
-use crate::state::canisters::{Canisters, CanistersAuthWire};
+use crate::error_template::{AppError, ErrorTemplate};
+use crate::state::canisters::Canisters;
 
 use crate::stores::{agent::AgentProvider, auth_client::AuthClientProvider};
 use ic_agent::identity::BasicIdentity;
@@ -7,11 +8,11 @@ use leptos::*;
 use leptos_meta::*;
 use leptos_router::{Route, Router, Routes};
 use pages::{collection_detail::CollectionDetail, collections::Collections, home::HomePage};
-use std::sync::Arc;
 mod auth;
 mod canister;
 mod components;
 mod consts;
+mod error_template;
 mod pages;
 mod state;
 mod stores;
@@ -19,7 +20,11 @@ mod utils;
 #[component]
 fn App() -> impl IntoView {
     view! {
-        <Router>
+        <Router fallback=|| {
+            let mut outside_errors = Errors::default();
+            outside_errors.insert_with_default_key(AppError::NotFound);
+            view! { <ErrorTemplate outside_errors /> }.into_view()
+        }>
             <main>
                 <Routes>
                     <Route path="/" view=HomePage />
