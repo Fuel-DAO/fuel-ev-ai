@@ -1,10 +1,12 @@
 use crate::state::auth::AuthService;
+use codee::string::FromToStringCodec;
+use futures::executor::block_on;
 use ic_auth_client::AuthClient;
 use leptos::*;
 use leptos_dom::logging::{console_error, console_log};
+use leptos_use::storage::use_local_storage;
 use std::cell::RefCell;
 use std::rc::Rc;
-
 #[component]
 pub fn Header() -> impl IntoView {
     view! {
@@ -42,6 +44,10 @@ fn UserPrincipal() -> impl IntoView {
     // Clone once for use in the `when` closure and once for the `fallback` closure
     let cloned_auth_service = auth_service.clone();
     let fallback_auth_service = auth_service.clone();
+    let (principal_id, set_principal_id, _) =
+        use_local_storage::<String, FromToStringCodec>("user-principal-id");
+
+    // Reactive signal to store the principal
 
     view! {
         <Show
@@ -57,7 +63,7 @@ fn UserPrincipal() -> impl IntoView {
                         on:click=move |_| {
                             let auth_service = auth_service.clone();
                             spawn_local(async move {
-                                let result = auth_service.borrow_mut().login().await;
+                                let result = block_on(auth_service.borrow_mut().login());
                                 match result {
                                     Ok(_) => log::info!("Started login process."),
                                     Err(e) => {
@@ -91,11 +97,7 @@ fn UserPrincipal() -> impl IntoView {
         >
             <div>
 
-                {auth_service
-                    .borrow()
-                    .get_principal()
-                    .map(|p| p.to_text())
-                    .unwrap_or_else(|_| "No principal available".to_string())}
+                {principal_id.get()}
             </div>
         </Show>
     }
