@@ -45,7 +45,11 @@ fn UserPrincipal() -> impl IntoView {
 
     view! {
         <Show
-            when=move || { cloned_auth_service.borrow().get_principal().is_some() }
+            when=move || {
+                let principal_opt = cloned_auth_service.borrow().get_principal();
+                log::info!(" {}", &format!("Principal fetched: {:?}", principal_opt));
+                principal_opt.is_ok()
+            }
             fallback=move || {
                 let auth_service = fallback_auth_service.clone();
                 view! {
@@ -53,14 +57,12 @@ fn UserPrincipal() -> impl IntoView {
                         on:click=move |_| {
                             let auth_service = auth_service.clone();
                             spawn_local(async move {
-                                let result = {
-                                    let mut service = auth_service.borrow_mut();
-                                    service.login().await
-                                };
+                                let result = auth_service.borrow_mut().login().await;
                                 match result {
-                                    Ok(_) => console_log("Started login process."),
+                                    Ok(_) => log::info!("Started login process."),
                                     Err(e) => {
-                                        console_error(
+                                        log::info!(
+                                            " {}",
                                             &format!("Failed to start login process: {:?}", e),
                                         )
                                     }
@@ -88,11 +90,12 @@ fn UserPrincipal() -> impl IntoView {
             }
         >
             <div>
+
                 {auth_service
                     .borrow()
                     .get_principal()
                     .map(|p| p.to_text())
-                    .unwrap_or_else(|| "No principal available".into())}
+                    .unwrap_or_else(|_| "No principal available".to_string())}
             </div>
         </Show>
     }

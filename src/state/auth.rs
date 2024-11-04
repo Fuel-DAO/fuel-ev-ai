@@ -2,6 +2,7 @@ use candid::Principal;
 use futures::executor::block_on;
 use ic_agent::{Agent, Identity};
 use ic_auth_client::{AuthClient, AuthClientLoginOptions};
+use std::error::Error;
 
 #[derive(Clone)]
 pub struct AuthService {
@@ -26,7 +27,7 @@ impl AuthService {
         let options = AuthClientLoginOptions::builder()
             .max_time_to_live(7 * 24 * 60 * 60 * 1_000_000_000) // Example: 7 days in nanoseconds
             .on_success(|auth_success| {
-                println!("Login successful: {:?}", auth_success);
+                log::info!("Login successful: {:?}", auth_success);
             })
             .build();
         // Perform login with options
@@ -52,7 +53,10 @@ impl AuthService {
     }
 
     /// Get the principal (identity's sender)
-    pub fn get_principal(&self) -> Option<Principal> {
-        self.auth_client.identity().sender().ok()
+    pub fn get_principal(&self) -> Result<Principal, Box<dyn Error>> {
+        self.auth_client
+            .identity()
+            .sender()
+            .map_err(|_| "Unable to retrieve principal.".to_string().into())
     }
 }

@@ -49,7 +49,6 @@ fn AuthServiceProvider(children: Children) -> impl IntoView {
 fn Providers() -> impl IntoView {
     provide_meta_context();
     provide_context(Canisters::default());
-
     console_error_panic_hook::set_once();
     view! {
         <AuthClientProvider>
