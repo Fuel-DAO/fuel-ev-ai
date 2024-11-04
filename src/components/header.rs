@@ -1,5 +1,5 @@
+use crate::state::auth::AuthService;
 use crate::stores::auth_client::login;
-use ic_auth_client::AuthClient;
 use leptos::*;
 use leptos_dom::logging::{console_error, console_log};
 
@@ -33,18 +33,24 @@ pub fn Header() -> impl IntoView {
 
 #[component]
 fn UserPrincipal() -> impl IntoView {
-    let auth_client = use_context::<ReadSignal<Option<AuthClient>>>().unwrap();
+    let auth_service = use_context::<ReadSignal<Option<AuthService>>>().unwrap();
     let principal = move || {
-        auth_client
+        auth_service
             .get()
-            .map(|f| match f.is_authenticated() {
-                true => f.identity().sender().ok(),
-                false => None,
-            })
-            .flatten()
+            .and_then(|service| service.get_principal())
     };
-
-    
+    // let principal = move || {
+    //     auth_service
+    //         .get()
+    //         .map(|service| {
+    //             if let Ok(agent) = service.get_agent() {
+    //                 agent.identity().sender().ok()
+    //             } else {
+    //                 None
+    //             }
+    //         })
+    //         .flatten()
+    // };
     view! {
         <Show
             when=move || principal().is_some()
@@ -85,4 +91,3 @@ fn UserPrincipal() -> impl IntoView {
         </Show>
     }
 }
-

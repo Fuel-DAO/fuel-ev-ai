@@ -1,6 +1,8 @@
+use candid::Principal;
 use ic_agent::{Agent, Identity};
 use ic_auth_client::{AuthClient, AuthClientLoginOptions};
 
+#[derive(Clone)]
 pub struct AuthService {
     auth_client: AuthClient,
     agent: Option<Agent>, // Store agent after login
@@ -31,7 +33,8 @@ impl AuthService {
         // Retrieve the identity from the auth client and create an agent with it
         let identity = self.auth_client.identity();
         let agent = Agent::builder()
-            .with_identity(identity) // Use the retrieved identity for the agent
+            .with_url("https://ic0.app") // Set the IC URL or other service URL
+            .with_identity(identity)
             .build()
             .map_err(|e| e.to_string())?;
 
@@ -45,5 +48,10 @@ impl AuthService {
         self.agent
             .as_ref()
             .ok_or("Agent not available. Please login first.".to_string())
+    }
+
+    // Get the principal (identity's sender)
+    pub fn get_principal(&self) -> Option<Principal> {
+        self.auth_client.identity().sender().ok()
     }
 }

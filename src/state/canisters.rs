@@ -4,6 +4,7 @@ use crate::canister::PROVISION_ID;
 use crate::state::auth::AuthService; // Import the AuthService
 use candid::Principal;
 
+#[derive(Clone)]
 pub struct Canisters {
     auth_service: AuthService,
     provision_principal: Principal,
@@ -26,14 +27,13 @@ impl Canisters {
 
     // Access the Provision canister, borrowing the agent from AuthService
     pub async fn provision_canister(&self) -> Result<Provision<'_>, String> {
-        let agent = self.auth_service.get_agent()?; // Borrow agent from AuthService
-        Ok(Provision(self.provision_principal, agent)) // Pass borrowed agent
+        let agent = self.auth_service.get_agent()?; // Unwraps agent or returns an error
+        Ok(Provision(self.provision_principal, agent))
     }
 
-    // Access the Token canister, borrowing the agent from AuthService
+    // Access the Token canister
     pub async fn token_canister(&self, canister_id: Principal) -> Result<Token<'_>, String> {
-        let agent = self.auth_service.get_agent()?; // Borrow agent from AuthService
-        Ok(Token(canister_id, agent)) // Pass borrowed agent
+        let agent = self.auth_service.get_agent()?; // Calls get_agent on auth_service
+        Ok(Token(canister_id, agent))
     }
 }
-

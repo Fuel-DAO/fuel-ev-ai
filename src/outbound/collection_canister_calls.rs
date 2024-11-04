@@ -1,5 +1,6 @@
 use crate::{canister::token::CollectionMetaData, state::canisters::Canisters};
 use candid::Principal;
+use ic_agent::AgentError;
 use leptos::expect_context;
 use serde::{Deserialize, Serialize};
 
@@ -76,4 +77,3 @@ pub async fn get_collection_metadata_from_token_canister(
         .await
         .map_err(|e| e.to_string())
 }
-
