@@ -1,6 +1,5 @@
 use crate::{canister::token::CollectionMetaData, state::canisters::Canisters};
 use candid::Principal;
-use ic_agent::AgentError;
 use leptos::expect_context;
 use serde::{Deserialize, Serialize};
 
@@ -18,12 +17,13 @@ pub struct CollectionData {
     pub status: String,
     pub metadata: Option<CollectionMetaData>,
 }
+
 // Modify the fetch_collections_data function to specify that it accepts an authenticated Canisters instance
 pub async fn fetch_collections_data() -> Result<Vec<CollectionData>, String> {
     // Get provision canister actor
     let cans: Canisters = expect_context();
 
-    let provision_canister = cans.provision_canister().await;
+    let provision_canister = cans.provision_canister().await?; // Unwrap the result or return an error
 
     // Fetch collections from provision canister
     let collections_list = provision_canister
@@ -51,14 +51,14 @@ pub async fn fetch_collections_data() -> Result<Vec<CollectionData>, String> {
                     metadata: Some(metadata),
                 });
             }
-            Err(e) => {
+            Err(_) => {
                 // Handle metadata fetch failure
-                // collections.push(CollectionData {
-                //     id: collection_id.clone(),
-                //     name: "Unknown".to_string(),
-                //     status: "Unavailable".to_string(),
-                //     metadata: None,
-                // });
+                collections.push(CollectionData {
+                    id: collection_id.clone(),
+                    name: "Unknown".to_string(),
+                    status: "Unavailable".to_string(),
+                    metadata: None,
+                });
             }
         }
     }
@@ -70,7 +70,7 @@ pub async fn get_collection_metadata_from_token_canister(
     token_canister_id: Principal,
 ) -> Result<CollectionMetaData, String> {
     let cans: Canisters = expect_context();
-    let token_canister = cans.token_canister(token_canister_id).await;
+    let token_canister = cans.token_canister(token_canister_id).await?; // Unwrap the result or return an error
 
     token_canister
         .get_metadata()

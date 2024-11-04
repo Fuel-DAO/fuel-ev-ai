@@ -9,11 +9,11 @@ use pages::{collection_detail::CollectionDetail, collections::Collections, home:
 mod canister;
 mod components;
 mod consts;
+mod outbound;
 mod pages;
 mod state;
 mod stores;
 mod utils;
-mod outbound;
 #[component]
 fn App() -> impl IntoView {
     view! {
@@ -33,7 +33,7 @@ fn App() -> impl IntoView {
 #[component]
 fn Providers() -> impl IntoView {
     provide_meta_context();
-    provide_context(Canisters::default());
+    provide_context(Canisters::new());
 
     console_error_panic_hook::set_once();
     view! {
