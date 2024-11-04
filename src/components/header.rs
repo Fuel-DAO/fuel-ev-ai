@@ -1,7 +1,9 @@
 use crate::state::auth::AuthService;
-use crate::stores::auth_client::login;
+use ic_auth_client::AuthClient;
 use leptos::*;
 use leptos_dom::logging::{console_error, console_log};
+use std::cell::RefCell;
+use std::rc::Rc;
 
 #[component]
 pub fn Header() -> impl IntoView {
@@ -33,39 +35,37 @@ pub fn Header() -> impl IntoView {
 
 #[component]
 fn UserPrincipal() -> impl IntoView {
-    let auth_service = use_context::<ReadSignal<Option<AuthService>>>().unwrap();
-    let principal = move || {
-        auth_service
-            .get()
-            .and_then(|service| service.get_principal())
-    };
-    // let principal = move || {
-    //     auth_service
-    //         .get()
-    //         .map(|service| {
-    //             if let Ok(agent) = service.get_agent() {
-    //                 agent.identity().sender().ok()
-    //             } else {
-    //                 None
-    //             }
-    //         })
-    //         .flatten()
-    // };
+    // Consume the AuthService context as Rc<RefCell<AuthService>>
+    let auth_service =
+        use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
+
+    // Clone once for use in the `when` closure and once for the `fallback` closure
+    let cloned_auth_service = auth_service.clone();
+    let fallback_auth_service = auth_service.clone();
+
     view! {
         <Show
-            when=move || principal().is_some()
+            when=move || { cloned_auth_service.borrow().get_principal().is_some() }
             fallback=move || {
+                let auth_service = fallback_auth_service.clone();
                 view! {
                     <button
                         on:click=move |_| {
-                            match login() {
-                                Ok(_) => console_log("Started login process."),
-                                Err(e) => {
-                                    console_error(
-                                        &format!("Failed to start login process: {:?}", e),
-                                    )
+                            let auth_service = auth_service.clone();
+                            spawn_local(async move {
+                                let result = {
+                                    let mut service = auth_service.borrow_mut();
+                                    service.login().await
+                                };
+                                match result {
+                                    Ok(_) => console_log("Started login process."),
+                                    Err(e) => {
+                                        console_error(
+                                            &format!("Failed to start login process: {:?}", e),
+                                        )
+                                    }
                                 }
-                            }
+                            });
                         }
                         class="bg-black text-white rounded-full p-2"
                     >
@@ -87,7 +87,13 @@ fn UserPrincipal() -> impl IntoView {
                 }
             }
         >
-            <div>{principal().unwrap().to_text()}</div>
+            <div>
+                {auth_service
+                    .borrow()
+                    .get_principal()
+                    .map(|p| p.to_text())
+                    .unwrap_or_else(|| "No principal available".into())}
+            </div>
         </Show>
     }
 }
