@@ -1,22 +1,21 @@
-use candid::Principal;
-use ic_agent::AgentError;
-use serde::{Deserialize, Serialize};
-use leptos::expect_context;
 use crate::{canister::token::CollectionMetaData, state::canisters::Canisters};
+use candid::Principal;
+use leptos::expect_context;
+use serde::{Deserialize, Serialize};
 
 // Structure to hold both canister IDs
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CollectionId {
-   pub asset_canister: Principal,
-   pub token_canister: Principal,
+    pub asset_canister: Principal,
+    pub token_canister: Principal,
 }
 
-#[derive(Debug, Clone,  Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CollectionData {
-   pub id: CollectionId,
-   pub name: String,
-   pub status: String,
-   pub metadata: Option<CollectionMetaData>,
+    pub id: CollectionId,
+    pub name: String,
+    pub status: String,
+    pub metadata: Option<CollectionMetaData>,
 }
 // Modify the fetch_collections_data function to specify that it accepts an authenticated Canisters instance
 pub async fn fetch_collections_data() -> Result<Vec<CollectionData>, String> {
@@ -39,7 +38,8 @@ pub async fn fetch_collections_data() -> Result<Vec<CollectionData>, String> {
             token_canister: collection.token_canister,
         };
 
-        let collection_meta_data = get_collection_metadata_from_token_canister(collection.token_canister).await;
+        let collection_meta_data =
+            get_collection_metadata_from_token_canister(collection.token_canister).await;
 
         match collection_meta_data {
             Ok(metadata) => {
@@ -65,9 +65,15 @@ pub async fn fetch_collections_data() -> Result<Vec<CollectionData>, String> {
     Ok(collections)
 }
 
-pub async fn get_collection_metadata_from_token_canister(token_canister_id: Principal) -> Result<CollectionMetaData, String> {
+pub async fn get_collection_metadata_from_token_canister(
+    token_canister_id: Principal,
+) -> Result<CollectionMetaData, String> {
     let cans: Canisters = expect_context();
     let token_canister = cans.token_canister(token_canister_id).await;
 
-         token_canister.get_metadata().await.map_err(|e| e.to_string()) 
+    token_canister
+        .get_metadata()
+        .await
+        .map_err(|e| e.to_string())
 }
+
