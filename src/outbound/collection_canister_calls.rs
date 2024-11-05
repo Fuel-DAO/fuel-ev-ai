@@ -1,8 +1,8 @@
-use candid::Principal;
+use candid::{Nat, Principal};
 use ic_agent::AgentError;
 use serde::{Deserialize, Serialize};
 use leptos::expect_context;
-use crate::{canister::token::CollectionMetaData, state::canisters::Canisters};
+use crate::{canister::token::{CollectionMetaData, GetSaleStatusRet}, state::canisters::Canisters};
 
 // Structure to hold both canister IDs
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -67,7 +67,24 @@ pub async fn fetch_collections_data() -> Result<Vec<CollectionData>, String> {
 
 pub async fn get_collection_metadata_from_token_canister(token_canister_id: Principal) -> Result<CollectionMetaData, String> {
     let cans: Canisters = expect_context();
-    let token_canister = cans.token_canister(token_canister_id).await;
+    let agent = Canisters::agent();
+    let token_canister = cans.token_canister(token_canister_id, &agent).await;
 
          token_canister.get_metadata().await.map_err(|e| e.to_string()) 
+}
+
+pub async fn get_total_booked_tokens(token_canister_id: Principal) -> Result<Nat, String> {
+    let cans: Canisters = expect_context();
+    let agent = Canisters::agent();
+    let token_canister = cans.token_canister(token_canister_id, &agent).await;
+
+         token_canister.get_total_booked_tokens().await.map_err(|e| e.to_string()) 
+}
+
+pub async fn get_sale_status(token_canister_id: Principal) -> Result<GetSaleStatusRet, String> {
+    let cans: Canisters = expect_context();
+    let agent = Canisters::agent();
+    let token_canister = cans.token_canister(token_canister_id, &agent).await;
+
+         token_canister.get_sale_status().await.map_err(|e| e.to_string()) 
 }

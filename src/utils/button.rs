@@ -4,7 +4,7 @@ use leptos_router::A;
 use crate::utils::plus_icon::PlusIcon;
 
 #[component]
-pub fn ButtonComponent<N, EF>(
+pub fn ButtonComponent(
     #[prop(optional)] secondary: bool,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] submit: bool,
@@ -13,22 +13,11 @@ pub fn ButtonComponent<N, EF>(
     #[prop(optional)] icon_only: bool,
     #[prop(optional)] target: Option<String>,
     #[prop(optional)] classes: Option<String>,
-    children: EF,
+    #[prop(into)] on_click: Callback<()>,
+    children: Children,
 )  -> impl IntoView  
-where 
-N: IntoView + 'static,
-EF: Fn() -> N + 'static + Clone,
+
 {
-
-let children = move || {
-    (children)().into_view()
-};
-
-    //  let secondary = false;
-	//  let disabled = false;
-	//  let submit = false;
-	//  let loading = false;
-	//  let iconOnly = false;
 
     let button_classes = {
         let base_classes = if secondary {
@@ -57,13 +46,13 @@ let children = move || {
                     target=target.unwrap_or("_self".to_string())
                     class=button_classes
                     // role="presentation"
-                    on:click=move |_| {}
+                    on:click=move |_| on_click(())
                 >
                     <div class=if loading {
                         "opacity-0 transition-opacity"
                     } else {
                         ""
-                    }>{children}</div>
+                    }>{children()}</div>
                     {move || {
                         if loading {
                             view! {
@@ -85,13 +74,13 @@ let children = move || {
                     type=if submit { "submit" } else { "button" }
                     disabled=disabled
                     class=button_classes
-                    on:click=move |_| {}
+                    on:click=move |_| on_click(())
                 >
                     <div class=if loading {
                         "opacity-0 transition-opacity"
                     } else {
                         ""
-                    }>{children}</div>
+                    }>{children()}</div>
                     {move || {
                         if loading {
                             view! {

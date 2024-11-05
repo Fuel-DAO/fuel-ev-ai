@@ -84,12 +84,15 @@ fn CarDetailPage(metadata: CollectionMetaData,) -> impl IntoView {
         .map(|p| p.asset_id.clone())
         .unwrap_or_else(|_| "unknown".to_string());
 
+        let token_canister_id = Principal::from_text(collection_id.clone()).unwrap();
+
+
     view! {
         <div class="w-full flex flex-col items-center gap-4 pb-8">
 	<div class="flex flex-col lg:flex-row gap-8 pt-6 w-full max-w-6xl">
 		<CollectionHeader metadata=metadata.clone() collection_id />
         <div class="flex flex-col gap-8">
-			<InvestInfo metadata />
+			<InvestInfo metadata token_canister_id/>
 		</div>
 		// <div class="flex flex-col gap-8">
         //     <SpecificationComponent />

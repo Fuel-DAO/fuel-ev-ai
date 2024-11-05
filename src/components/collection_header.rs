@@ -10,13 +10,13 @@ pub fn CollectionHeader(metadata: CollectionMetaData, collection_id: String, ) -
     // Define tabs and selected tab state
     let tabs = vec!["specifications".to_string(), "documents".to_string()];
     let selected = create_rw_signal( "specifications".to_string());
-    let share_link_s =|| { format!("/collection/{}/{}", collection_id, metadata.asset_canister.to_text()) };
+    let share_link_s =|| { format!("/collections/{}/{}", collection_id, metadata.asset_canister.to_text()) };
     let share_message_s = || {format!("{}
 Take a look at this car at FuelDAO!", metadata.name)};
 
 
     // Check if the user is logged in and is the collection owner
-    let is_owner = move || false;
+    // let is_owner = move || false;
 
     view! { 
         <div class="flex flex-col grow gap-4">

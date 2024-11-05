@@ -1,4 +1,4 @@
-use crate::stores::auth_client::login;
+use crate::stores::auth_client::{login, logout};
 use ic_auth_client::AuthClient;
 use leptos::*;
 use leptos_dom::logging::{console_error, console_log};
@@ -44,6 +44,9 @@ fn UserPrincipal() -> impl IntoView {
             .flatten()
     };
 
+    let logout_action = create_action(|()| async { logout().await} );
+
+    logout_action.pending();
     
     view! {
         <Show
@@ -81,7 +84,7 @@ fn UserPrincipal() -> impl IntoView {
                 }
             }
         >
-            <div>{principal().unwrap().to_text()}</div>
+            <button on:click=move|_|{logout_action.dispatch(());} ><div>{principal().unwrap().to_text()}</div></button>
         </Show>
     }
 }

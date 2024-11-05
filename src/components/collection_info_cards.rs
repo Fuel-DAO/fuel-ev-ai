@@ -23,7 +23,7 @@ pub fn CollectionInfoCards( props: CollectionMetaData) -> impl IntoView {
 
             <div class="border border-black/20 flex-1 rounded-xl p-4 flex flex-col gap-1 text-black items-center">
                 <div class="font-bold text-nowrap">"Seating"</div>
-                <div class="">{seating} "Seats"</div>
+                <div class="">{seating} " Seats"</div>
             </div>
         </div>
     }

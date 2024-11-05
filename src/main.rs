@@ -16,6 +16,7 @@ mod utils;
 mod outbound;
 #[component]
 fn App() -> impl IntoView {
+    provide_context(Canisters::default());
     view! {
         <Router>
             <main>
@@ -33,8 +34,6 @@ fn App() -> impl IntoView {
 #[component]
 fn Providers() -> impl IntoView {
     provide_meta_context();
-    provide_context(Canisters::default());
-
     console_error_panic_hook::set_once();
     view! {
         <AuthClientProvider>
