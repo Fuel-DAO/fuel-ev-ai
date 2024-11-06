@@ -22,8 +22,8 @@ pub struct CollectionData {
 // Modify the fetch_collections_data function to specify that it accepts an authenticated Canisters instance
 pub async fn fetch_collections_data() -> Result<Vec<CollectionData>, String> {
     // Get provision canister actor
-    // let cans: Canisters = expect_context();
-    let cans = use_context::<Canisters>().unwrap();
+    let cans: Canisters = expect_context();
+    // let cans = use_context::<Canisters>().unwrap();
 
     let provision_canister = cans.provision_canister().await;
 
