@@ -72,7 +72,7 @@ fn UserPrincipal() -> impl IntoView {
                             Ok(cans) => {
                                 let cans_rc = Rc::new(cans);
                                 set_canisters(Some(cans_rc.clone()));
-                                provide_context(cans_rc);
+                                provide_context(canisters);
                             }
                             Err(e) => {
                                 log::error!("Failed to create Canisters: {}", e);
