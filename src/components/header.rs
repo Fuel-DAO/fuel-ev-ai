@@ -65,7 +65,7 @@ fn UserPrincipal() -> impl IntoView {
             // Spawn the asynchronous login process
             spawn_local(async move {
                 // Perform login
-                let result = block_on(auth_service.borrow_mut().login());
+                let result = auth_service.borrow_mut().login().await;
                 match result {
                     Ok(_) => {
                         log::info!("Login successful.");
