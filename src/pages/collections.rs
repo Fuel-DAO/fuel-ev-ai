@@ -1,8 +1,10 @@
-use crate::{ outbound::collection_canister_calls::fetch_collections_data, state::canisters::Canisters};
+use crate::components::header::Header;
+use crate::{
+    outbound::collection_canister_calls::fetch_collections_data, state::canisters::Canisters,
+};
 use candid::{Nat, Principal};
 use leptos::*;
 use serde::{Deserialize, Serialize};
-
 #[derive(Clone, PartialEq)]
 enum Tab {
     All,
@@ -22,14 +24,8 @@ struct TokenMetadata {
     // ...
 }
 
-
-
-
-
-
 #[component]
 pub fn Collections() -> impl IntoView {
-    
     let selected_tab = create_rw_signal(Tab::All);
 
     // Create a resource to fetch collection data and token metadata
@@ -42,6 +38,7 @@ pub fn Collections() -> impl IntoView {
     );
 
     view! {
+        <Header />
         <section class="p-6 bg-gray-100">
             // Top Filter Bar
             <div class="flex justify-between items-center mb-8">

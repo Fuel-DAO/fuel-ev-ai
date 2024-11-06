@@ -1,21 +1,20 @@
 use candid::Principal;
 use futures::executor::block_on;
-use ic_agent::{Agent, Identity};
+use ic_agent::{identity::Identity, Agent};
 use ic_auth_client::{AuthClient, AuthClientLoginOptions};
-use leptos_use::storage::use_local_storage;
 use log::{error, info};
 use std::error::Error;
+use std::rc::Rc;
 
 #[derive(Clone)]
 pub struct AuthService {
     auth_client: AuthClient,
-    agent: Option<Agent>, // Store agent after login
+    agent: Option<Rc<Agent>>, // Store agent in Rc for shared ownership
 }
 
 impl AuthService {
     pub fn new() -> Result<Self, String> {
         let auth_client = block_on(AuthClient::builder().build());
-
         Ok(AuthService {
             auth_client,
             agent: None,
@@ -36,16 +35,16 @@ impl AuthService {
             .with_url("https://ic0.app")
             .with_identity(identity)
             .build()
-            .map_err(|e| format!("Failed to build Agent: {}", e))?;
+            .map_err(|e| format!("Failed to build agent: {}", e))?;
+        self.agent = Some(Rc::new(agent)); // Wrap the agent in Rc
 
-        self.agent = Some(agent);
         Ok(())
     }
 
-    /// Get the authenticated Agent instance
-    pub fn get_agent(&self) -> Result<&Agent, String> {
+    pub fn get_agent(&self) -> Result<Rc<Agent>, String> {
         self.agent
             .as_ref()
+            .cloned() // Clones the Rc<Agent>, increasing the reference count
             .ok_or_else(|| "Agent not available. Please login first.".to_string())
     }
 
@@ -54,6 +53,6 @@ impl AuthService {
         self.auth_client
             .identity()
             .sender()
-            .map_err(|_| "Unable to retrieve principal.".to_string().into())
+            .map_err(|_| "Unable to retrieve principal.".into())
     }
 }

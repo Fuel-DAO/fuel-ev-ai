@@ -35,20 +35,17 @@ fn App() -> impl IntoView {
 fn AuthServiceProvider(children: Children) -> impl IntoView {
     // Initialize AuthService and handle potential errors
     let auth_service = AuthService::new().expect("Failed to initialize AuthService");
+    let auth_service_rc = Rc::new(RefCell::new(auth_service)); // Wrap AuthService in RefCell
+    provide_context(Canisters::new(auth_service_rc.clone()));
 
-    // Wrap AuthService in Rc<RefCell<>> for shared ownership and interior mutability
-    let auth_service_rc = Rc::new(RefCell::new(auth_service));
-
-    // Provide the Rc<RefCell<AuthService>> to the context
-    provide_context(auth_service_rc.clone());
-
-    // Render child components
+    // Provide AuthService context
+    provide_context(auth_service_rc.clone()); // Render child components
     children()
 }
 #[component]
 fn Providers() -> impl IntoView {
     provide_meta_context();
-    provide_context(Canisters::default());
+    // provide_context(Canisters::default());
     console_error_panic_hook::set_once();
     view! {
         <AuthClientProvider>

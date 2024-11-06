@@ -41,36 +41,34 @@ fn UserPrincipal() -> impl IntoView {
     let auth_service =
         use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
 
-    // Clone once for use in the `when` closure and once for the `fallback` closure
-    let cloned_auth_service = auth_service.clone();
-    let fallback_auth_service = auth_service.clone();
     let (principal_id, set_principal_id, _) =
         use_local_storage::<String, FromToStringCodec>("user-principal-id");
-
+    // Closure to determine if the principal_id is available
+    let has_principal = move || !principal_id.get().is_empty();
     // Reactive signal to store the principal
 
     view! {
         <Show
-            when=move || {
-                let principal_opt = cloned_auth_service.borrow().get_principal();
-                log::info!(" {}", &format!("Principal fetched: {:?}", principal_opt));
-                principal_opt.is_ok()
-            }
+            when=has_principal
             fallback=move || {
-                let auth_service = fallback_auth_service.clone();
+                let auth_service = Rc::clone(&auth_service);
                 view! {
+                    // let set_principal_id = set_principal_id.clone();
                     <button
                         on:click=move |_| {
-                            let auth_service = auth_service.clone();
+                            let auth_service = Rc::clone(&auth_service);
                             spawn_local(async move {
-                                let result = block_on(auth_service.borrow_mut().login());
+                                let result = auth_service.borrow_mut().login().await;
                                 match result {
-                                    Ok(_) => log::info!("Started login process."),
+                                    Ok(_) => {
+                                        log::info!("Login successful.");
+                                        if let Ok(principal) = auth_service.borrow().get_principal()
+                                        {
+                                            set_principal_id(principal.to_text());
+                                        }
+                                    }
                                     Err(e) => {
-                                        log::info!(
-                                            " {}",
-                                            &format!("Failed to start login process: {:?}", e),
-                                        )
+                                        log::info!("Failed to start login process: {:?}", e);
                                     }
                                 }
                             });
@@ -95,10 +93,7 @@ fn UserPrincipal() -> impl IntoView {
                 }
             }
         >
-            <div>
-
-                {principal_id.get()}
-            </div>
+            <div>{principal_id.get()}</div>
         </Show>
     }
 }
