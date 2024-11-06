@@ -13,14 +13,13 @@ pub fn InputComponent(
    #[prop(optional)] class: Option<String>,
 ) -> impl IntoView {
     // Classes for input styling
-    let base_classes = "text-black block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6";
+    let base_classes = "p-2 text-black block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6";
     let combined_classes = if let Some(class) = class {
         format!("{} {}", base_classes, class)
     } else {
         base_classes.to_string()
     };
 
-    // Determine class for label based on the disabled state
     let label_classes = format!(
         "flex flex-col gap-2 transition-opacity {}",
         if disabled { "pointer-events-none opacity-50" } else { "opacity-100" }
