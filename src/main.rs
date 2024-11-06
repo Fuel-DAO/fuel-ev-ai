@@ -44,6 +44,11 @@ fn AuthServiceProvider(children: Children) -> impl IntoView {
 fn Providers() -> impl IntoView {
     provide_meta_context();
     // provide_context(Canisters::default());
+    let (canisters_signal, set_canisters) = create_signal::<Option<Rc<Canisters>>>(None);
+
+    // Provide the ReadSignal and WriteSignal as contexts
+    provide_context(canisters_signal); // ReadSignal<Option<Rc<Canisters>>>
+    provide_context(set_canisters);
     console_error_panic_hook::set_once();
     view! {
         <AuthClientProvider>

@@ -30,15 +30,30 @@ struct TokenMetadata {
 #[component]
 pub fn Collections() -> impl IntoView {
     let selected_tab = create_rw_signal(Tab::All);
-    let canisters = use_context::<Rc<Canisters>>().expect("Canisters context must be provided");
+    // let canisters = use_context::<Rc<Canisters>>().expect("Canisters context must be provided");
+    let canisters_signal = use_context::<ReadSignal<Option<Rc<Canisters>>>>()
+        .expect("Canisters ReadSignal must be provided");
 
     // Create a resource to fetch collection data and token metadata
     let collection_data = create_resource(
-        move || canisters.clone(), // Dependency: Canisters instance
-        move |cans| {
-            // Pass a reference to Canisters to the async function
-            let cans_ref = cans;
-            async move { fetch_collections_data(&cans_ref).await }
+        move || canisters_signal().clone(), // Dependency: Canisters instance
+        move |cans_option| async move {
+            if let Some(cans) = cans_option {
+                log::info!("Fetching collections data.");
+                match fetch_collections_data(&cans).await {
+                    Ok(data) => {
+                        log::info!("Successfully fetched collections data.");
+                        Ok(data)
+                    }
+                    Err(e) => {
+                        log::error!("Error fetching collections data: {}", e);
+                        Err(e)
+                    }
+                }
+            } else {
+                log::warn!("Canisters not available. User needs to log in.");
+                Err("Canisters not available. Please log in.".to_string())
+            }
         },
     );
     view! {

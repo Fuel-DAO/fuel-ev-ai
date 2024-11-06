@@ -45,34 +45,41 @@ fn UserPrincipal() -> impl IntoView {
     let auth_service =
         use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
 
+    // Get the WriteSignal for Canisters from context
+    let set_canisters = use_context::<WriteSignal<Option<Rc<Canisters>>>>()
+        .expect("Canisters setter must be provided");
+
+    // Manage principal ID using local storage
     let (principal_id, set_principal_id, _) =
         use_local_storage::<String, FromToStringCodec>("user-principal-id");
 
-    let (canisters, set_canisters) = create_signal::<Option<Rc<Canisters>>>(None);
-
+    // Handle login event
     let handle_login = {
         let auth_service = Rc::clone(&auth_service);
+        // let set_canisters = set_canisters.clone();
 
         move |_: MouseEvent| {
             let auth_service = Rc::clone(&auth_service);
+            // let set_canisters = set_canisters.clone();
 
             // Spawn the asynchronous login process
             spawn_local(async move {
-                let result = auth_service.borrow_mut().login().await;
+                // Perform login
+                let result = block_on(auth_service.borrow_mut().login());
                 match result {
                     Ok(_) => {
                         log::info!("Login successful.");
 
+                        // Retrieve and set the principal ID
                         if let Ok(principal) = auth_service.borrow().get_principal() {
                             set_principal_id(principal.to_text());
                         }
 
-                        // Now create Canisters
+                        // Create and set the Canisters context
                         match Canisters::new(auth_service.clone()) {
                             Ok(cans) => {
                                 let cans_rc = Rc::new(cans);
-                                set_canisters(Some(cans_rc.clone()));
-                                provide_context(canisters);
+                                set_canisters(Some(cans_rc)); // Update the global Canisters signal
                             }
                             Err(e) => {
                                 log::error!("Failed to create Canisters: {}", e);
@@ -93,7 +100,6 @@ fn UserPrincipal() -> impl IntoView {
             fallback=move || {
                 let handle_login = handle_login.clone();
                 view! {
-                    // Define a new closure for the fallback to satisfy Fn
                     <button on:click=handle_login class="bg-black text-white rounded-full p-2">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
