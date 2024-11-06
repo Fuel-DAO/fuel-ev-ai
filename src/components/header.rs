@@ -48,21 +48,13 @@ fn UserPrincipal() -> impl IntoView {
     let (principal_id, set_principal_id, _) =
         use_local_storage::<String, FromToStringCodec>("user-principal-id");
 
-    // Reactive signal to store the principal
     let (canisters, set_canisters) = create_signal::<Option<Rc<Canisters>>>(None);
 
-    // Define the handle_login closure without wrapping it in Rc
     let handle_login = {
-        // Clone Rc pointers for use inside the closure
         let auth_service = Rc::clone(&auth_service);
-        let set_principal_id = set_principal_id.clone();
-        let set_canisters = set_canisters.clone();
 
-        // Create a callback that implements FnMut(MouseEvent)
         move |_: MouseEvent| {
             let auth_service = Rc::clone(&auth_service);
-            let set_principal_id = set_principal_id.clone();
-            let set_canisters = set_canisters.clone();
 
             // Spawn the asynchronous login process
             spawn_local(async move {
