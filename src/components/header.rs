@@ -58,7 +58,7 @@ fn UserPrincipal() -> impl IntoView {
         let auth_service = Rc::clone(&auth_service);
         // let set_canisters = set_canisters.clone();
 
-        move |_: MouseEvent| {
+        move |_| {
             let auth_service = Rc::clone(&auth_service);
             // let set_canisters = set_canisters.clone();
 
