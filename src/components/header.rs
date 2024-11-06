@@ -1,7 +1,11 @@
 use crate::state::auth::AuthService;
+use crate::{
+    outbound::collection_canister_calls::fetch_collections_data, state::canisters::Canisters,
+};
 use codee::string::FromToStringCodec;
 use futures::executor::block_on;
 use ic_auth_client::AuthClient;
+use leptos::ev::MouseEvent;
 use leptos::*;
 use leptos_dom::logging::{console_error, console_log};
 use leptos_use::storage::use_local_storage;
@@ -43,38 +47,62 @@ fn UserPrincipal() -> impl IntoView {
 
     let (principal_id, set_principal_id, _) =
         use_local_storage::<String, FromToStringCodec>("user-principal-id");
-    // Closure to determine if the principal_id is available
-    let has_principal = move || !principal_id.get().is_empty();
+
     // Reactive signal to store the principal
+    let (canisters, set_canisters) = create_signal::<Option<Rc<Canisters>>>(None);
+
+    // Define the handle_login closure without wrapping it in Rc
+    let handle_login = {
+        // Clone Rc pointers for use inside the closure
+        let auth_service = Rc::clone(&auth_service);
+        let set_principal_id = set_principal_id.clone();
+        let set_canisters = set_canisters.clone();
+
+        // Create a callback that implements FnMut(MouseEvent)
+        move |_: MouseEvent| {
+            let auth_service = Rc::clone(&auth_service);
+            let set_principal_id = set_principal_id.clone();
+            let set_canisters = set_canisters.clone();
+
+            // Spawn the asynchronous login process
+            spawn_local(async move {
+                let result = auth_service.borrow_mut().login().await;
+                match result {
+                    Ok(_) => {
+                        log::info!("Login successful.");
+
+                        if let Ok(principal) = auth_service.borrow().get_principal() {
+                            set_principal_id(principal.to_text());
+                        }
+
+                        // Now create Canisters
+                        match Canisters::new(auth_service.clone()) {
+                            Ok(cans) => {
+                                let cans_rc = Rc::new(cans);
+                                set_canisters(Some(cans_rc.clone()));
+                                provide_context(cans_rc);
+                            }
+                            Err(e) => {
+                                log::error!("Failed to create Canisters: {}", e);
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        log::error!("Failed to start login process: {:?}", e);
+                    }
+                }
+            });
+        }
+    };
 
     view! {
         <Show
-            when=has_principal
+            when=move || !principal_id.get().is_empty()
             fallback=move || {
-                let auth_service = Rc::clone(&auth_service);
+                let handle_login = handle_login.clone();
                 view! {
-                    // let set_principal_id = set_principal_id.clone();
-                    <button
-                        on:click=move |_| {
-                            let auth_service = Rc::clone(&auth_service);
-                            spawn_local(async move {
-                                let result = auth_service.borrow_mut().login().await;
-                                match result {
-                                    Ok(_) => {
-                                        log::info!("Login successful.");
-                                        if let Ok(principal) = auth_service.borrow().get_principal()
-                                        {
-                                            set_principal_id(principal.to_text());
-                                        }
-                                    }
-                                    Err(e) => {
-                                        log::info!("Failed to start login process: {:?}", e);
-                                    }
-                                }
-                            });
-                        }
-                        class="bg-black text-white rounded-full p-2"
-                    >
+                    // Define a new closure for the fallback to satisfy Fn
+                    <button on:click=handle_login class="bg-black text-white rounded-full p-2">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"

@@ -1,7 +1,10 @@
 use crate::components::header::Header;
+// use crate::state::canisters::{fetch_collections_data, Canisters, CollectionData};
 use crate::{
     outbound::collection_canister_calls::fetch_collections_data, state::canisters::Canisters,
 };
+use std::rc::Rc;
+
 use candid::{Nat, Principal};
 use leptos::*;
 use serde::{Deserialize, Serialize};
@@ -27,16 +30,17 @@ struct TokenMetadata {
 #[component]
 pub fn Collections() -> impl IntoView {
     let selected_tab = create_rw_signal(Tab::All);
+    let canisters = use_context::<Rc<Canisters>>().expect("Canisters context must be provided");
 
     // Create a resource to fetch collection data and token metadata
     let collection_data = create_resource(
-        move || (), // Dependency: none in this case
-        move |_| {
-            // let cans = cans.clone();
-            async move { fetch_collections_data().await }
+        move || canisters.clone(), // Dependency: Canisters instance
+        move |cans| {
+            // Pass a reference to Canisters to the async function
+            let cans_ref = cans;
+            async move { fetch_collections_data(&cans_ref).await }
         },
     );
-
     view! {
         <Header />
         <section class="p-6 bg-gray-100">

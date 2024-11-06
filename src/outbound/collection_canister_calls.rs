@@ -19,13 +19,11 @@ pub struct CollectionData {
     pub status: String,
     pub metadata: Option<CollectionMetaData>,
 }
-// Modify the fetch_collections_data function to specify that it accepts an authenticated Canisters instance
-pub async fn fetch_collections_data() -> Result<Vec<CollectionData>, String> {
-    // Get provision canister actor
-    let cans: Canisters = expect_context();
-    // let cans = use_context::<Canisters>().unwrap();
 
-    let provision_canister = cans.provision_canister().await;
+// Modify the fetch_collections_data function to accept a reference to Canisters
+pub async fn fetch_collections_data(canisters: &Canisters) -> Result<Vec<CollectionData>, String> {
+    // Get provision canister actor
+    let provision_canister = canisters.provision_canister().await;
 
     // Fetch collections from provision canister
     let collections_list = provision_canister
@@ -42,7 +40,7 @@ pub async fn fetch_collections_data() -> Result<Vec<CollectionData>, String> {
         };
 
         let collection_meta_data =
-            get_collection_metadata_from_token_canister(collection.token_canister).await;
+            get_collection_metadata_from_token_canister(canisters, collection.token_canister).await;
 
         match collection_meta_data {
             Ok(metadata) => {
@@ -54,13 +52,12 @@ pub async fn fetch_collections_data() -> Result<Vec<CollectionData>, String> {
                 });
             }
             Err(e) => {
-                // Handle metadata fetch failure
-                // collections.push(CollectionData {
-                //     id: collection_id.clone(),
-                //     name: "Unknown".to_string(),
-                //     status: "Unavailable".to_string(),
-                //     metadata: None,
-                // });
+                log::error!(
+                    "Failed to fetch metadata for collection {:?}: {}",
+                    collection_id,
+                    e
+                );
+                // Optionally, you can push a CollectionData with partial information
             }
         }
     }
@@ -68,11 +65,12 @@ pub async fn fetch_collections_data() -> Result<Vec<CollectionData>, String> {
     Ok(collections)
 }
 
+// Modify get_collection_metadata_from_token_canister similarly
 pub async fn get_collection_metadata_from_token_canister(
+    canisters: &Canisters,
     token_canister_id: Principal,
 ) -> Result<CollectionMetaData, String> {
-    let cans: Canisters = expect_context();
-    let token_canister = cans.token_canister(token_canister_id).await;
+    let token_canister = canisters.token_canister(token_canister_id).await;
 
     token_canister
         .get_metadata()
