@@ -31,12 +31,12 @@ struct TokenMetadata {
 pub fn Collections() -> impl IntoView {
     let selected_tab = create_rw_signal(Tab::All);
     // let canisters = use_context::<Rc<Canisters>>().expect("Canisters context must be provided");
-    let canisters_signal = use_context::<ReadSignal<Option<Rc<Canisters>>>>()
-        .expect("Canisters ReadSignal must be provided");
+    let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
+        .expect("Canisters ReadWriteSignal must be provided");
 
     // Create a resource to fetch collection data and token metadata
     let collection_data = create_resource(
-        move || canisters_signal().clone(), // Dependency: Canisters instance
+        move || canisters_signal.get().clone(), // Access the signal value correctly
         move |cans_option| async move {
             if let Some(cans) = cans_option {
                 log::info!("Fetching collections data.");
