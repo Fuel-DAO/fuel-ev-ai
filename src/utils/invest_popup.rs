@@ -152,9 +152,27 @@ pub fn InvestPopup(
             },
             2 => view! {
                 <div>
+                    <Show when=move|| &payment_details.get().status.get() != "completed" fallback=move||view! {
+                        <div class="flex flex-col items-center justify-center gap-4 h-full w-full">
+						<div class="flex w-full items-start justify-between text-sm gap-4">
+							<div>Amount for NFT:</div>
+							<div class="font-bold text-xs w-1/2 break-all text-right">
+								{amount()} ICP
+							</div>
+						</div>
+						<div
+							class="bg-green-100 h-24 w-24 rounded-full text-xl flex items-center justify-center text-white"
+						>
+							"✅"
+						</div>
+						<div class="font-bold py-4 text-2xl">Transaction successful</div>
+						<ButtonComponent on_click= move |_| (show.set(false))>Close</ButtonComponent>
+					</div>
+                    } >
                     <StepTwo amount=amount() payment_info payment_status=payment_details on_click=move ||{
                         create_payment_action.dispatch(());
                     }  />
+                    </Show>
                 </div>
             },
             _ => view! { <div>"Invalid step"</div> },
@@ -218,7 +236,9 @@ async fn check_payment_status(token_can_id: String, nft_to_buy: u64, payment_sta
                 crate::canister::token::BookTokensRet::Ok(_) => {
                     payment_status.set("completed".to_string());
                 },
-                crate::canister::token::BookTokensRet::Err(error) => payment_error.set(error),
+                crate::canister::token::BookTokensRet::Err(error) => {
+                    // For testing only payment_status.set("completed".to_string());
+                    payment_error.set(error)},
             }
                 
         }
@@ -232,8 +252,6 @@ fn StepTwo(
     on_click: impl Fn() + 'static,
 ) -> impl IntoView {
     // Calculate amount to pay based on the provided formula
-   
-
     view! {
         <div class="flex w-full items-start justify-between text-sm gap-4">
             <div>"Amount to pay:"</div>
@@ -285,7 +303,7 @@ fn StepTwo(
                 " Check now "
             </button>
         </div>
-
+                    
         
     }
 }

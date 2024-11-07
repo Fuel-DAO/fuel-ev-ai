@@ -98,12 +98,19 @@ fn InvenstInfoInner(props: InvestInfoMetaProps, token_canister_id: Principal ) -
     
         format!("{:.4}", booked_tokens_f64 * from_e8s(price_f64))
     };
+
+    let prop_status = props.status.clone();
+
+    let is_invest_disabled = move || {
+        
+        &format!("{:?}", prop_status) != &format!("{:?}", GetSaleStatusRet::Live) ||  show_invest_popup.get()
+    };
     
 
     view! { 
         <div class="shrink-0 bg-primary rounded-xl flex flex-col text-white gap-3 p-6 shadow-xl h-fit">
             <div class="font-bold text-5xl">
-                {match props.status {
+                {match props.status.clone() {
                     GetSaleStatusRet::Live => "Open",
                     _=> "Closed",
                 }
@@ -130,7 +137,7 @@ fn InvenstInfoInner(props: InvestInfoMetaProps, token_canister_id: Principal ) -
                     
                 }
             </div>
-            <ButtonComponent secondary=true disabled= &format!("{:?}", props.status) != &format!("{:?}", GetSaleStatusRet::Live) on_click=move|_| show_invest_popup.update(|f| *f = true)>    
+            <ButtonComponent secondary=true disabled=is_invest_disabled()   on_click=move|_| show_invest_popup.update(|f| *f = true)>    
             // {"Invest"}
             {|| view! {<div> Invest</div>}}
             </ButtonComponent>

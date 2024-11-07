@@ -25,6 +25,9 @@ pub fn InputComponent(
         if disabled { "pointer-events-none opacity-50" } else { "opacity-100" }
     );
 
+    let input_ref = create_node_ref::<html::Input>();
+
+
     view! { 
         <label class=label_classes>
             <span class="text-sm font-medium leading-6 text-gray-900">
@@ -38,16 +41,21 @@ pub fn InputComponent(
             </span>
             <input
                 type=input_type
+                _ref=input_ref
                 prop:disabled=disabled
                 prop:required=required
                 min=min.map(|m| m.to_string())
                 max=max.map(|m| m.to_string())
                 class=combined_classes
                 placeholder=placeholder
-                prop:value={value().clone()}
-                on:input=move |ev| {
-                    let input_value = event_target_value(&ev);
-                    value.set(input_value);
+                prop:value=move||{value.get_untracked()}
+                on:input=move |_| {
+                    let Some(input_value) = input_ref() else {
+                        return;
+                    };
+                    // let value = input.value();
+                    // let input_value = event_target_value(&ev);
+                    value.set(input_value.value());
                 }
             />
         </label>
