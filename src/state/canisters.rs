@@ -5,20 +5,20 @@ use crate::canister::PROVISION_ID;
 use crate::state::auth::AuthService;
 use candid::Principal;
 use ic_agent::Agent;
-use std::cell::{Ref, RefCell};
+use leptos::*;
+use std::cell::RefCell;
 use std::cmp::PartialEq;
 use std::rc::Rc;
 
 #[derive(Clone)]
 pub struct Canisters {
     auth_service: Rc<RefCell<AuthService>>,
-    agent: Rc<Agent>, // Store the Agent here
+    agent: Rc<Agent>,
     provision_principal: Principal,
 }
 
 impl Canisters {
     pub async fn new(auth_service: Rc<RefCell<AuthService>>) -> Result<Self, String> {
-        // Call get_agent asynchronously
         let agent = {
             let mut auth_service_borrow = auth_service.borrow_mut();
             auth_service_borrow.get_agent().await?
@@ -29,6 +29,7 @@ impl Canisters {
             provision_principal: PROVISION_ID,
         })
     }
+
     pub async fn provision_canister(&self) -> Provision<'_> {
         let agent_ref: &Agent = &self.agent;
         Provision(self.provision_principal, agent_ref)
@@ -39,10 +40,10 @@ impl Canisters {
         Token(canister_id, agent_ref)
     }
 }
+
 impl PartialEq for Canisters {
     fn eq(&self, other: &Self) -> bool {
         Rc::ptr_eq(&self.agent, &other.agent)
             && self.provision_principal == other.provision_principal
-        // Add comparisons for other fields if necessary
     }
 }

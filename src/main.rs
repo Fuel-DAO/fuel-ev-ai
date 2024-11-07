@@ -3,7 +3,9 @@ use crate::state::auth::AuthService;
 use crate::state::canisters::Canisters;
 use crate::stores::{agent::AgentProvider, auth_client::AuthClientProvider};
 use leptos::*;
+use leptos_dom::logging::{console_error, console_log};
 use leptos_meta::*;
+
 use leptos_router::{Route, Router, Routes};
 use pages::{collection_detail::CollectionDetail, collections::Collections, home::HomePage};
 use std::cell::RefCell;
@@ -36,20 +38,31 @@ fn AuthServiceProvider(children: Children) -> impl IntoView {
     let auth_service = Rc::new(RefCell::new(
         AuthService::new().expect("Failed to create AuthService"),
     ));
+    provide_context(auth_service.clone());
+
+    let canisters_signal = create_rw_signal(None);
+    provide_context(canisters_signal);
+
+    spawn_local({
+        let auth_service = auth_service.clone();
+        async move {
+            match Canisters::new(auth_service).await {
+                Ok(canisters_instance) => {
+                    canisters_signal.set(Some(Rc::new(canisters_instance)));
+                }
+                Err(e) => console_error(&format!("Failed to create Canisters: {:?}", e)),
+            }
+        }
+    });
 
     // Provide AuthService as a context
-    provide_context(auth_service.clone());
     children()
 }
 #[component]
 fn Providers() -> impl IntoView {
     provide_meta_context();
     // provide_context(Canisters::default());
-    let (canisters_signal, set_canisters) = create_signal::<Option<Rc<Canisters>>>(None);
 
-    // Provide the ReadSignal and WriteSignal as contexts
-    provide_context(canisters_signal); // ReadSignal<Option<Rc<Canisters>>>
-    provide_context(set_canisters);
     console_error_panic_hook::set_once();
     view! {
         <AuthClientProvider>
