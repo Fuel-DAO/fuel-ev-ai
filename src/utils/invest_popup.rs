@@ -295,6 +295,11 @@ fn StepTwo(
         // </div>
 
         <div class="text-red-500 mt-2 p-4 text-center">{move||payment_status.get().error.get()}</div>
+        <div class="mt-2 p-4 text-center text-sm">
+        <a href="https://nns.ic0.app/wallet/?u=qoctq-giaaa-aaaaa-aaaea-cai" target="_blank" class="underline text-xs font-bold">
+        "Click here to invest via NNS"
+        </a>
+        </div>
         <div class="text-center text-sm">
             <span>"Waiting for payment "</span>
             <button on:click=move |_| {
