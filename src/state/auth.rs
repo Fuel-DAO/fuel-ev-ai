@@ -1,10 +1,15 @@
 use candid::Principal;
+use dotenv_codegen::dotenv;
 use futures::executor::block_on;
 use ic_agent::{identity::Identity, Agent};
 use ic_auth_client::{AuthClient, AuthClientLoginOptions};
 use log::{error, info};
+use std::env;
 use std::error::Error;
 use std::rc::Rc;
+use std::time::Duration;
+
+pub const TIMEOUT: Duration = Duration::from_secs(60 * 5);
 
 #[derive(Clone)]
 pub struct AuthService {
@@ -29,23 +34,14 @@ impl AuthService {
             })
             .build();
         self.auth_client.login_with_options(options);
-
-        let identity = self.auth_client.identity();
-        let agent = Agent::builder()
-            .with_url("https://ic0.app")
-            .with_identity(identity)
-            .build()
-            .map_err(|e| format!("Failed to build agent: {}", e))?;
-        self.agent = Some(Rc::new(agent)); // Wrap the agent in Rc
-
         Ok(())
     }
 
-    pub fn get_agent(&self) -> Result<Rc<Agent>, String> {
-        self.agent
-            .as_ref()
-            .cloned() // Clones the Rc<Agent>, increasing the reference count
-            .ok_or_else(|| "Agent not available. Please login first.".to_string())
+    pub async fn get_agent(&mut self) -> Result<Rc<Agent>, String> {
+        if self.agent.is_none() {
+            self.agent = Some(Rc::new(create_agent(&self.auth_client).await?));
+        }
+        Ok(self.agent.as_ref().unwrap().clone())
     }
 
     /// Get the principal (identity's sender)
@@ -55,4 +51,35 @@ impl AuthService {
             .sender()
             .map_err(|_| "Unable to retrieve principal.".into())
     }
+}
+
+async fn create_agent(auth_client: &AuthClient) -> Result<Agent, String> {
+    let identity = auth_client.identity();
+
+    let mut dfx_network = dotenv!("BACKEND").to_string();
+    if dfx_network.is_empty() {
+        dfx_network = env::var("DFX_NETWORK").expect("DFX_NETWORK must be set");
+    }
+
+    let url = match dfx_network.as_str() {
+        "LOCAL" => "http://127.0.0.1:4943".to_string(),
+        "LIVE" => "https://ic0.app".to_string(),
+        _ => return Err(format!("Unknown DFX network: {}", dfx_network)),
+    };
+
+    let agent = Agent::builder()
+        .with_url(url)
+        .with_identity(identity)
+        .with_ingress_expiry(Some(TIMEOUT))
+        .build()
+        .map_err(|e| format!("Failed to build agent: {}", e))?;
+
+    if dfx_network == "LOCAL" {
+        agent
+            .fetch_root_key()
+            .await
+            .map_err(|e| format!("Failed to fetch root key: {}", e))?;
+    }
+
+    Ok(agent)
 }

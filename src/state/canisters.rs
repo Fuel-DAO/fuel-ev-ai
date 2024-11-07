@@ -17,10 +17,11 @@ pub struct Canisters {
 }
 
 impl Canisters {
-    pub fn new(auth_service: Rc<RefCell<AuthService>>) -> Result<Self, String> {
+    pub async fn new(auth_service: Rc<RefCell<AuthService>>) -> Result<Self, String> {
+        // Call get_agent asynchronously
         let agent = {
-            let auth_service_borrow = auth_service.borrow();
-            auth_service_borrow.get_agent()?.clone()
+            let mut auth_service_borrow = auth_service.borrow_mut();
+            auth_service_borrow.get_agent().await?
         };
         Ok(Self {
             auth_service,

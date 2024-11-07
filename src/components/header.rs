@@ -45,49 +45,24 @@ fn UserPrincipal() -> impl IntoView {
     let auth_service =
         use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
 
-    // Get the WriteSignal for Canisters from context
-    let set_canisters = use_context::<WriteSignal<Option<Rc<Canisters>>>>()
-        .expect("Canisters setter must be provided");
+    // State to hold the principal ID temporarily in memory after login
+    let (principal_id, set_principal_id) = create_signal(String::new());
 
-    // Manage principal ID using local storage
-    let (principal_id, set_principal_id, _) =
-        use_local_storage::<String, FromToStringCodec>("user-principal-id");
-
-    // Handle login event
     let handle_login = {
-        let auth_service = Rc::clone(&auth_service);
-        // let set_canisters = set_canisters.clone();
-
+        let auth_service = auth_service.clone();
         move |_| {
-            let auth_service = Rc::clone(&auth_service);
-            // let set_canisters = set_canisters.clone();
-
-            // Spawn the asynchronous login process
+            let auth_service = auth_service.clone();
             spawn_local(async move {
-                // Perform login
-                let result = auth_service.borrow_mut().login().await;
-                match result {
+                let mut auth_service = auth_service.borrow_mut();
+                match auth_service.login().await {
                     Ok(_) => {
-                        log::info!("Login successful.");
-
-                        // Retrieve and set the principal ID
-                        if let Ok(principal) = auth_service.borrow().get_principal() {
-                            set_principal_id(principal.to_text());
-                        }
-
-                        // Create and set the Canisters context
-                        match Canisters::new(auth_service.clone()) {
-                            Ok(cans) => {
-                                let cans_rc = Rc::new(cans);
-                                set_canisters(Some(cans_rc)); // Update the global Canisters signal
-                            }
-                            Err(e) => {
-                                log::error!("Failed to create Canisters: {}", e);
-                            }
+                        if let Ok(principal) = auth_service.get_principal() {
+                            set_principal_id(principal.to_text()); // Update the signal with the principal ID
+                            console_log("Login successful.");
                         }
                     }
                     Err(e) => {
-                        log::error!("Failed to start login process: {:?}", e);
+                        console_error(&format!("Login failed: {:?}", e));
                     }
                 }
             });
@@ -119,7 +94,7 @@ fn UserPrincipal() -> impl IntoView {
                 }
             }
         >
-            <div>{principal_id.get()}</div>
+            <div>{"Logged in as: "}{principal_id.get()}</div>
         </Show>
     }
 }

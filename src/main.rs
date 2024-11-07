@@ -33,11 +33,12 @@ fn App() -> impl IntoView {
 }
 #[component]
 fn AuthServiceProvider(children: Children) -> impl IntoView {
-    let auth_service = AuthService::new().expect("Failed to initialize AuthService");
-    let auth_service_rc = Rc::new(RefCell::new(auth_service)); // Wrap AuthService in RefCell
+    let auth_service = Rc::new(RefCell::new(
+        AuthService::new().expect("Failed to create AuthService"),
+    ));
 
-    // Provide AuthService context only
-    provide_context(auth_service_rc.clone());
+    // Provide AuthService as a context
+    provide_context(auth_service.clone());
     children()
 }
 #[component]
