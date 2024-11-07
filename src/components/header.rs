@@ -41,60 +41,100 @@ pub fn Header() -> impl IntoView {
 
 #[component]
 fn UserPrincipal() -> impl IntoView {
-    // Consume the AuthService context as Rc<RefCell<AuthService>>
     let auth_service =
         use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
 
-    // State to hold the principal ID temporarily in memory after login
-    let (principal_id, set_principal_id) = create_signal(String::new());
+    let is_authenticated = create_memo({
+        let auth_service = Rc::clone(&auth_service);
+        move |_| auth_service.borrow().is_authenticated()
+    });
 
-    let handle_login = {
-        let auth_service = auth_service.clone();
+    let principal = create_memo({
+        let auth_service = Rc::clone(&auth_service);
         move |_| {
-            let auth_service = auth_service.clone();
-            spawn_local(async move {
-                let mut auth_service = auth_service.borrow_mut();
-                match auth_service.login().await {
-                    Ok(_) => {
-                        if let Ok(principal) = auth_service.get_principal() {
-                            set_principal_id(principal.to_text()); // Update the signal with the principal ID
-                            console_log("Login successful.");
-                        }
-                    }
-                    Err(e) => {
-                        console_error(&format!("Login failed: {:?}", e));
-                    }
-                }
-            });
+            if is_authenticated() {
+                auth_service.borrow().get_principal().ok()
+            } else {
+                None
+            }
         }
-    };
+    });
 
+    let handle_login = create_action({
+        let auth_service = Rc::clone(&auth_service);
+        move |_: &()| {
+            let auth_service = Rc::clone(&auth_service);
+            async move {
+                match auth_service.borrow_mut().login().await {
+                    Ok(_) => console_log("Login successful."),
+                    Err(e) => console_error(&format!("Login failed: {:?}", e)),
+                }
+            }
+        }
+    });
+    let handle_logout = create_action({
+        let auth_service = Rc::clone(&auth_service);
+        move |_: &()| {
+            let auth_service = Rc::clone(&auth_service);
+            async move {
+                match auth_service.borrow_mut().logout().await {
+                    Ok(_) => console_log("Logout successful."),
+                    Err(e) => console_error(&format!("Logout failed: {:?}", e)),
+                }
+            }
+        }
+    });
     view! {
         <Show
-            when=move || !principal_id.get().is_empty()
+            when=move || is_authenticated()
             fallback=move || {
-                let handle_login = handle_login.clone();
                 view! {
-                    <button on:click=handle_login class="bg-black text-white rounded-full p-2">
+                    <button
+                        on:click=move |_| handle_login.dispatch(())
+                        class="bg-black text-white rounded-full p-2"
+                    >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke-width="1.5"
                             stroke="currentColor"
-                            class=""
+                            class="h-4 w-4"
                         >
                             <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
                                 d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                            />
+                            ></path>
                         </svg>
                     </button>
                 }
             }
         >
-            <div>{"Logged in as: "}{principal_id.get()}</div>
+            <div>{"user: "}{move || principal().map(|p| p.to_text()).unwrap_or_default()}</div>
+
+            <div class="flex items-center space-x-2">
+
+                <button
+                    on:click=move |_| handle_logout.dispatch(())
+                    class="bg-red-500 text-white rounded-full p-2"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="h-4 w-4"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
+                        />
+                    </svg>
+                </button>
+            </div>
         </Show>
     }
 }

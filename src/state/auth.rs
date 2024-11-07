@@ -1,3 +1,4 @@
+use crate::{canister::BACKEND_ID, state::canisters::Canisters};
 use candid::Principal;
 use dotenv_codegen::dotenv;
 use futures::executor::block_on;
@@ -8,6 +9,8 @@ use std::env;
 use std::error::Error;
 use std::rc::Rc;
 use std::time::Duration;
+use web_sys::window;
+use web_sys::Url;
 
 pub const TIMEOUT: Duration = Duration::from_secs(60 * 5);
 
@@ -27,16 +30,49 @@ impl AuthService {
     }
 
     pub async fn login(&mut self) -> Result<(), String> {
-        let options = AuthClientLoginOptions::builder()
-            .max_time_to_live(7 * 24 * 60 * 60 * 1_000_000_000)
-            .on_success(|auth_success| {
-                info!("Login successful: {:?}", auth_success);
-            })
-            .build();
-        self.auth_client.login_with_options(options);
-        Ok(())
-    }
+        let mut dfx_network = dotenv!("BACKEND").to_string();
+        if dfx_network.is_empty() {
+            dfx_network = env::var("BACKEND").expect("BACKEND is must be set");
+        }
 
+        let identity_provider: Option<Url> = match dfx_network.as_str() {
+            "LOCAL" => Some({
+                let port = 4943;
+                let canister_id = BACKEND_ID;
+                Url::new(&format!("http://{}.localhost:{}", canister_id, port)).unwrap()
+            }),
+            "LIVE" => Some(Url::new("https://identity.ic0.app/#authorize").unwrap()),
+            _ => panic!("Unknown dfx network: {}", dfx_network),
+        };
+
+        let mut builder = AuthClientLoginOptions::builder()
+            .max_time_to_live(7 * 24 * 60 * 60 * 1_000_000_000) // 7 days in nanoseconds
+            .on_success(|_| {
+                // Handle successful login
+                info!("Login successful");
+            })
+            .on_error(|_error| {
+                // Handle login error
+                // info!(&format!("Login failed: {:?}", error));
+            });
+
+        // Only set the identity_provider if it's Some
+        if let Some(provider) = identity_provider {
+            builder = builder.identity_provider(provider);
+        }
+
+        let options = builder.build();
+
+        // Use await here to wait for the login process to complete
+        self.auth_client.login_with_options(options);
+
+        // Verify authentication after login
+        if self.auth_client.is_authenticated() {
+            Ok(())
+        } else {
+            Err("Authentication failed".to_string())
+        }
+    }
     pub async fn get_agent(&mut self) -> Result<Rc<Agent>, String> {
         if self.agent.is_none() {
             self.agent = Some(Rc::new(create_agent(&self.auth_client).await?));
@@ -50,6 +86,31 @@ impl AuthService {
             .identity()
             .sender()
             .map_err(|_| "Unable to retrieve principal.".into())
+    }
+    pub fn is_authenticated(&self) -> bool {
+        self.auth_client.is_authenticated()
+    }
+
+    pub async fn logout(&mut self) -> Result<(), String> {
+        // Call the logout method on the AuthClient
+        self.auth_client
+            .logout(Some(window().unwrap().location()))
+            .await;
+
+        // Clear the agent
+        self.agent = None;
+
+        // Reload the page
+        window()
+            .unwrap()
+            .location()
+            .reload()
+            .map_err(|_| "Failed to reload page".to_string())?;
+
+        // Log the logout action
+        info!("Logout successful");
+
+        Ok(())
     }
 }
 
