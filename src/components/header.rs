@@ -1,14 +1,6 @@
 use crate::state::auth::AuthService;
-use crate::{
-    outbound::collection_canister_calls::fetch_collections_data, state::canisters::Canisters,
-};
-use codee::string::FromToStringCodec;
-use futures::executor::block_on;
-use ic_auth_client::AuthClient;
-use leptos::ev::MouseEvent;
 use leptos::*;
 use leptos_dom::logging::{console_error, console_log};
-use leptos_use::storage::use_local_storage;
 use std::cell::RefCell;
 use std::rc::Rc;
 #[component]
@@ -66,7 +58,11 @@ fn UserPrincipal() -> impl IntoView {
             let auth_service = Rc::clone(&auth_service);
             async move {
                 match auth_service.borrow_mut().login().await {
-                    Ok(_) => console_log("Login successful."),
+                    Ok(_) => {
+                        window().location().reload().unwrap();
+
+                        console_log("Login successful.")
+                    }
                     Err(e) => console_error(&format!("Login failed: {:?}", e)),
                 }
             }

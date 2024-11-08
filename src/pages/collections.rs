@@ -1,5 +1,6 @@
 use crate::components::header::Header;
 // use crate::state::canisters::{fetch_collections_data, Canisters, CollectionData};
+use crate::components::header2::Header2;
 use crate::{
     outbound::collection_canister_calls::fetch_collections_data, state::canisters::Canisters,
 };
@@ -14,19 +15,44 @@ enum Tab {
     Available,
     Upcoming,
 }
-
+use num_bigint::BigUint;
 // Define a structure for the token metadata
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 struct TokenMetadata {
     weight: f64,
     drive_type: String,
-    purchase_price: Nat,
+    purchase_price: BigUint, // Represents `nat`
     token: Principal,
     name: String,
-    // Add other fields based on the metadata record
-    // ...
+    // documents: Vec<Document>,
+    supply_cap: BigUint,
+    displays: String,
+    seating: String,
+    cargo: f64,
+    logo: String,
+    overall_height: f64,
+    description: String,
+    overall_width: f64,
+    track_front: f64,
+    collection_owner: Principal,
+    asset_canister: Principal,
+    ground_clearance: f64,
+    key_features: Vec<String>,
+    range_per_charge: f64,
+    track_rear: f64,
+    acceleration: String,
+    charging_speed: String,
+    wheels: f64,
+    brochure_url: String,
+    index: Principal,
+    price: BigUint,
+    battery: String,
+    overall_length: f64,
+    total_supply: BigUint,
+    symbol: String,
+    treasury: Principal,
+    images: Vec<String>,
 }
-
 #[component]
 pub fn Collections() -> impl IntoView {
     let selected_tab = create_rw_signal(Tab::All);
@@ -57,105 +83,137 @@ pub fn Collections() -> impl IntoView {
         },
     );
     view! {
-        <Header />
-        <section class="p-6 bg-gray-100">
-            // Top Filter Bar
-            <div class="flex justify-between items-center mb-8">
-                <div class="flex space-x-4">
-                    <Tabs selected_tab tab=Tab::All label="All".to_string() />
-                    <Tabs selected_tab tab=Tab::Available label="Available".to_string() />
-                    <Tabs selected_tab tab=Tab::Upcoming label="Upcoming".to_string() />
+        <Header2 />
+        <section class="p-6 ">
+            <div class="w-full max-w-6xl pt-32 px-8 mx-auto 6xl:px-0">
+
+                // Top Filter Bar
+                <div class="flex justify-between items-center mb-8">
+                    <div class="flex space-x-4">
+                        <Tabs selected_tab tab=Tab::All label="All".to_string() />
+                        <Tabs selected_tab tab=Tab::Available label="Available".to_string() />
+                        <Tabs selected_tab tab=Tab::Upcoming label="Upcoming".to_string() />
+                    </div>
+
+                    // Sort Button (For future sorting functionality)
+                    <div>
+                        <button class="flex items-center px-4 py-2 bg-white text-black rounded-full shadow-md font-medium">
+                            "Sort"
+                            <svg
+                                class="w-4 h-4 ml-2"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M19 9l-7 7-7-7"
+                                ></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
-                // Sort Button (For future sorting functionality)
-                <div>
-                    <button class="flex items-center px-4 py-2 bg-white text-black rounded-full shadow-md font-medium">
-                        "Sort"
-                        <svg
-                            class="w-4 h-4 ml-2"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M19 9l-7 7-7-7"
-                            ></path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
+                // Card Grid
+                <Suspense fallback=move || {
+                    view! { <div>"Loading collections..."</div> }
+                }>
+                    {move || match collection_data.get() {
+                        Some(Ok(collections)) => {
+                            let filtered_cars = collections
+                                .iter()
+                                .filter(|collection| {
+                                    match selected_tab.get() {
+                                        Tab::All => true,
+                                        Tab::Available => collection.status == "Available",
+                                        Tab::Upcoming => collection.status == "Upcoming",
+                                    }
+                                })
+                                .collect::<Vec<_>>();
+                            view! {
+                                <div class="flex py-12 items-center gap-8 justify-normal mx-auto flex-wrap ">
 
-            // Card Grid
-            <Suspense fallback=move || {
-                view! { <div>"Loading collections..."</div> }
-            }>
-                {move || match collection_data.get() {
-                    Some(Ok(collections)) => {
-                        let filtered_cars = collections
-                            .iter()
-                            .filter(|collection| {
-                                match selected_tab.get() {
-                                    Tab::All => true,
-                                    Tab::Available => collection.status == "Available",
-                                    Tab::Upcoming => collection.status == "Upcoming",
-                                }
-                            })
-                            .collect::<Vec<_>>();
-                        view! {
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {filtered_cars
-                                    .into_iter()
-                                    .map(|collection| {
-                                        let href = format!(
-                                            "/collections/{}/{}",
-                                            collection.id.token_canister.to_text(),
-                                            collection.id.asset_canister.to_text(),
-                                        );
-                                        view! {
-                                            <a href=href class="block">
-                                                <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                                                    <div class="relative">
-                                                        <img
-                                                            src="/public/img/car_image.jpg"
-                                                            alt=collection.name.clone()
-                                                            class="w-full h-48 object-cover"
-                                                        />
-                                                        <span class="absolute top-2 left-2 bg-white text-black font-semibold text-xs px-2 py-1 rounded-full">
-                                                            {collection.status.clone()}
-                                                        </span>
-                                                    </div>
-                                                    <div class="p-4">
-                                                        <h3 class="text-lg font-semibold">
-                                                            {collection.name.clone()}
-                                                        </h3>
-                                                        <p class="text-sm text-gray-600">
+                                    {filtered_cars
+                                        .into_iter()
+                                        .map(|collection| {
+                                            let href = format!(
+                                                "/collections/{}/{}",
+                                                collection.id.token_canister.to_text(),
+                                                collection.id.asset_canister.to_text(),
+                                            );
+                                            view! {
+                                                <a
+                                                    href=href
+                                                    class="rounded-xl relative overflow-hidden shadow-lg w-[20rem]"
+                                                >
+                                                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+
+                                                        <div class="relative">
                                                             {collection
                                                                 .metadata
                                                                 .as_ref()
-                                                                .map_or(
-                                                                    "No description available.".to_string(),
-                                                                    |meta| meta.drive_type.clone(),
-                                                                )}
-                                                        </p>
+                                                                .map(|meta| {
+                                                                    view! {
+                                                                        <img
+                                                                            src=meta.logo.clone()
+                                                                            alt=meta.name.clone()
+                                                                            class="w-full h-64 z-[2] object-cover"
+                                                                        />
+                                                                    }
+                                                                })
+                                                                .unwrap_or_else(|| {
+                                                                    view! {
+                                                                        <img
+                                                                            src="/public/img/default_logo.jpg"
+                                                                            alt=collection.name.clone()
+                                                                            class="w-full h-64 z-[2] object-cover"
+                                                                        />
+                                                                    }
+                                                                })}
+                                                            <span class="absolute top-2 left-2 bg-white text-black font-semibold text-xs px-2 py-1 rounded-full">
+                                                                {collection.status.clone()}
+                                                            </span>
+                                                        </div>
+                                                        <div class="p-4">
+                                                            <h3 class="text-lg font-semibold">
+                                                                {collection.name.clone()}
+                                                            </h3>
+                                                            <p class="text-sm text-gray-600">
+                                                                {collection
+                                                                    .metadata
+                                                                    .as_ref()
+                                                                    .map(|meta| {
+                                                                        let words: Vec<&str> = meta
+                                                                            .description
+                                                                            .split_whitespace()
+                                                                            .take(14)
+                                                                            .collect();
+                                                                        if meta.description.split_whitespace().count() > 14 {
+                                                                            format!("{}...", words.join(" "))
+                                                                        } else {
+                                                                            words.join(" ")
+                                                                        }
+                                                                    })}
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </a>
-                                        }
-                                    })
-                                    .collect::<Vec<_>>()}
-                            </div>
+                                                </a>
+                                            }
+                                        })
+                                        .collect::<Vec<_>>()}
+                                </div>
+                            }
                         }
-                    }
-                    Some(Err(e)) => {
-                        view! { <div>{format!("Error fetching collections: {}", e)}</div> }
-                    }
-                    None => view! { <div>"Loading..."</div> },
-                }}
-            </Suspense>
+                        Some(Err(e)) => {
+                            view! { <div>{format!("Error fetching collections: {}", e)}</div> }
+                        }
+                        None => view! { <div>"Loading..."</div> },
+                    }}
+                </Suspense>
+            </div>
         </section>
     }
 }

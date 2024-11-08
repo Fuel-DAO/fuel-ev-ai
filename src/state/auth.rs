@@ -68,6 +68,8 @@ impl AuthService {
 
         // Verify authentication after login
         if self.auth_client.is_authenticated() {
+            // window().unwrap().location().reload().unwrap();
+
             Ok(())
         } else {
             Err("Authentication failed".to_string())
