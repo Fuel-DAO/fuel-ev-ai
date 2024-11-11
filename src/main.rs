@@ -1,41 +1,40 @@
 extern crate console_error_panic_hook;
+use crate::state::canisters::Canisters;
 
-use crate::{
-    // components::account::{LoginButton, LogoutButton},
-    stores::{agent::AgentProvider, auth_client::AuthClientProvider},
-};
+use crate::stores::{agent::AgentProvider, auth_client::AuthClientProvider};
 use leptos::*;
 use leptos_meta::*;
 use leptos_router::{Route, Router, Routes};
-
+use pages::{collection_detail::CollectionDetail, collections::Collections, home::HomePage};
+mod canister;
 mod components;
-mod stores;
-mod  canister;
+mod consts;
 mod pages;
-use pages::{collections::Collections, home::HomePage};
+mod state;
+mod stores;
+mod utils;
+mod outbound;
 #[component]
 fn App() -> impl IntoView {
-   
-
+    provide_context(Canisters::default());
     view! {
-        <Router >
+        <Router>
             <main>
                 <Routes>
-                <Route path="/" view=HomePage />
-                <Route path="/collections" view=Collections />
+                    <Route path="/" view=HomePage />
+                    <Route path="/collections" view=Collections />
+                    <Route path="/collections/:token_id/:asset_id" view=CollectionDetail />
 
                 </Routes>
             </main>
         </Router>
-       
-        
     }
 }
 
 #[component]
 fn Providers() -> impl IntoView {
     provide_meta_context();
-
+    console_error_panic_hook::set_once();
     view! {
         <AuthClientProvider>
             <AgentProvider>

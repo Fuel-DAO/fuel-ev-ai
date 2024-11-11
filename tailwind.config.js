@@ -10,6 +10,9 @@ module.exports = {
           xl: "1280px", // Extra large devices
           "2xl": "1536px", // 2x Extra large devices
         },
+        colors: {
+          primary: '#02B74B'
+        }
       },
     },
     plugins: [],

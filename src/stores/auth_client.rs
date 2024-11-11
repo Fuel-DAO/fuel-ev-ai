@@ -1,3 +1,4 @@
+use candid::Principal;
 use dotenv_codegen::dotenv;
 use ic_agent::{identity::AnonymousIdentity, Identity};
 use ic_auth_client::{AuthClient, AuthClientLoginOptions};
@@ -6,7 +7,7 @@ use leptos_dom::logging::console_warn;
 use std::{env, sync::Arc};
 use web_sys::Url;
 
-use crate::canister::BACKEND_ID;
+use crate::{canister::BACKEND_ID, state::canisters::Canisters};
 
 /// Component that provides the AuthClient to the children components
 #[component]
@@ -47,6 +48,14 @@ fn auth_client() -> Result<AuthClient, AuthClientError> {
     }
 }
 
+pub fn get_current_user_principal() -> Option<Principal> {
+    auth_client().ok().map(|f| if f.is_authenticated() {
+        Some( f.identity().sender().unwrap()) 
+    } else {
+        None
+    } ).flatten()
+}
+
 pub fn get_identity() -> Arc<dyn Identity> {
     match auth_client() {
         Ok(auth_client) => auth_client.identity(),
@@ -60,7 +69,7 @@ pub fn login() -> Result<(), AuthClientError> {
         dfx_network = env::var("BACKEND").expect("BACKEND is must be set");
     }
 
-    let identity_provider = match dfx_network.as_str() {
+    let identity_provider: Option<Url> = match dfx_network.as_str() {
         "LOCAL" => Some({
             let port = 4943;
             let canister_id = BACKEND_ID ;
@@ -89,14 +98,18 @@ pub fn login() -> Result<(), AuthClientError> {
         .on_success(on_success)
         .on_error(on_error)
         .build();
-
+    
     auth_client()?.login_with_options(options);
+
+    provide_context(Canisters::default());
 
     Ok(())
 }
 
 pub async fn logout() -> Result<(), AuthClientError> {
     auth_client()?.logout(Some(window().location())).await;
+    window().location().reload().unwrap();
+    provide_context(Canisters::default());
     Ok(())
 }
 
