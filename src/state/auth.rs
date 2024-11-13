@@ -4,14 +4,14 @@ use dotenv_codegen::dotenv;
 use futures::executor::block_on;
 use ic_agent::{identity::Identity, Agent};
 use ic_auth_client::{AuthClient, AuthClientLoginOptions};
+use leptos::logging;
+use leptos::window;
 use log::{error, info};
 use std::env;
 use std::error::Error;
 use std::rc::Rc;
 use std::time::Duration;
-use web_sys::window;
 use web_sys::Url;
-
 pub const TIMEOUT: Duration = Duration::from_secs(60 * 5);
 
 #[derive(Clone)]
@@ -32,7 +32,7 @@ impl AuthService {
     pub async fn login(&mut self) -> Result<(), String> {
         let mut dfx_network = dotenv!("BACKEND").to_string();
         if dfx_network.is_empty() {
-            dfx_network = env::var("BACKEND").expect("BACKEND is must be set");
+            dfx_network = env::var("BACKEND").expect("BACKEND must be set");
         }
 
         let identity_provider: Option<Url> = match dfx_network.as_str() {
@@ -50,10 +50,11 @@ impl AuthService {
             .on_success(|_| {
                 // Handle successful login
                 info!("Login successful");
+                window().location().reload().unwrap();
             })
-            .on_error(|_error| {
+            .on_error(|error| {
                 // Handle login error
-                // info!(&format!("Login failed: {:?}", error));
+                logging::log!("Login failed: {:?}", error);
             });
 
         // Only set the identity_provider if it's Some
@@ -63,13 +64,11 @@ impl AuthService {
 
         let options = builder.build();
 
-        // Use await here to wait for the login process to complete
+        // Initiate the login process
         self.auth_client.login_with_options(options);
 
         // Verify authentication after login
         if self.auth_client.is_authenticated() {
-            // window().unwrap().location().reload().unwrap();
-
             Ok(())
         } else {
             Err("Authentication failed".to_string())
@@ -96,14 +95,14 @@ impl AuthService {
     pub async fn logout(&mut self) -> Result<(), String> {
         // Call the logout method on the AuthClient
         self.auth_client
-            .logout(Some(window().unwrap().location()))
+            .logout(Some(web_sys::window().unwrap().location()))
             .await;
 
         // Clear the agent
         self.agent = None;
 
         // Reload the page
-        window()
+        web_sys::window()
             .unwrap()
             .location()
             .reload()

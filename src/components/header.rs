@@ -1,4 +1,7 @@
-use crate::state::auth::AuthService;
+use crate::state::{
+    auth::AuthService,
+    auth_actions::{create_login_action, create_logout_action},
+};
 use leptos::*;
 use leptos_dom::logging::{console_error, console_log};
 use std::cell::RefCell;
@@ -33,14 +36,17 @@ pub fn Header() -> impl IntoView {
 
 #[component]
 fn UserPrincipal() -> impl IntoView {
+    // Obtain AuthService from the context
     let auth_service =
         use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
 
+    // Reactive signal for authentication state
     let is_authenticated = create_memo({
         let auth_service = Rc::clone(&auth_service);
         move |_| auth_service.borrow().is_authenticated()
     });
 
+    // Reactive signal for principal
     let principal = create_memo({
         let auth_service = Rc::clone(&auth_service);
         move |_| {
@@ -52,34 +58,9 @@ fn UserPrincipal() -> impl IntoView {
         }
     });
 
-    let handle_login = create_action({
-        let auth_service = Rc::clone(&auth_service);
-        move |_: &()| {
-            let auth_service = Rc::clone(&auth_service);
-            async move {
-                match auth_service.borrow_mut().login().await {
-                    Ok(_) => {
-                        window().location().reload().unwrap();
-
-                        console_log("Login successful.")
-                    }
-                    Err(e) => console_error(&format!("Login failed: {:?}", e)),
-                }
-            }
-        }
-    });
-    let handle_logout = create_action({
-        let auth_service = Rc::clone(&auth_service);
-        move |_: &()| {
-            let auth_service = Rc::clone(&auth_service);
-            async move {
-                match auth_service.borrow_mut().logout().await {
-                    Ok(_) => console_log("Logout successful."),
-                    Err(e) => console_error(&format!("Logout failed: {:?}", e)),
-                }
-            }
-        }
-    });
+    // Use the reusable actions from auth_actions.rs
+    let handle_login = create_login_action(Rc::clone(&auth_service));
+    let handle_logout = create_logout_action(Rc::clone(&auth_service));
     view! {
         <Show
             when=move || is_authenticated()

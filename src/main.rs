@@ -7,7 +7,15 @@ use leptos_dom::logging::{console_error, console_log};
 use leptos_meta::*;
 
 use leptos_router::{Route, Router, Routes};
-use pages::{collection_detail::CollectionDetail, collections::Collections, home::HomePage};
+use pages::{
+    admin::{
+        auth::AdminComponent, collection_list::CollectionListPage,
+        new_collection::NewCollectionForm,
+    },
+    collection_detail::CollectionDetail,
+    collections::Collections,
+    home::HomePage,
+};
 use std::cell::RefCell;
 use std::rc::Rc;
 mod canister;
@@ -27,6 +35,9 @@ fn App() -> impl IntoView {
                     <Route path="/" view=HomePage />
                     <Route path="/collections" view=Collections />
                     <Route path="/collections/:token_id/:asset_id" view=CollectionDetail />
+                    <Route path="/admin" view=AdminComponent />
+                    <Route path="/admin/new-collection" view=NewCollectionForm />
+                    <Route path="/admin/manage/list" view=CollectionListPage />
 
                 </Routes>
             </main>
