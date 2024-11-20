@@ -1,3 +1,4 @@
 pub mod auth;
-pub mod new_collection;
 pub mod collection_list;
+pub mod manage_collection;
+pub mod new_collection;

@@ -1,29 +1,39 @@
 use leptos::*;
 use std::rc::Rc;
+use wasm_bindgen::JsCast;
+use web_sys::{Event, FileList, HtmlInputElement}; // Import JsCast to use dyn_into
 
-// Subcomponent for Documents Tab
+// Your component function and logic...
 #[component]
 pub fn DocumentsInfo(documents: RwSignal<Vec<String>>) -> impl IntoView {
-    // Access the loading state from context
-    let loading = use_context::<ReadSignal<bool>>()
-        .unwrap_or_else(|| create_rw_signal(false).read_only());
+    let loading =
+        use_context::<ReadSignal<bool>>().unwrap_or_else(|| create_rw_signal(false).read_only());
 
-    // Handlers
-    // Wrap the remove_document handler in Rc to allow cloning
     let remove_document = Rc::new(move |index: usize| {
         documents.update(|d| {
             d.remove(index);
         });
     });
 
-    let upload_document = move |_| {
+    let on_select_document = Rc::new(move |event: Event| {
         if loading.get() {
             return;
         }
-        // Simulate document upload
-        let new_doc = format!("Document {}", documents.get().len() + 1);
-        documents.update(|d| d.push(new_doc));
-    };
+        // Correctly cast EventTarget to HtmlInputElement using dyn_into()
+        let input: HtmlInputElement = event
+            .target()
+            .unwrap()
+            .dyn_into::<HtmlInputElement>()
+            .unwrap();
+        let files = input.files().unwrap();
+        if files.length() == 0 {
+            return;
+        }
+        let file = files.get(0).unwrap();
+        let file_name = file.name();
+        documents.update(|d| d.push(file_name));
+        input.set_value(""); // Clear the input to allow the same file to be reselected if necessary
+    });
 
     view! {
         <div class="flex flex-col gap-2">
@@ -32,7 +42,6 @@ pub fn DocumentsInfo(documents: RwSignal<Vec<String>>) -> impl IntoView {
                 <For
                     each=move || documents.get()
                     key=|doc| doc.clone()
-                    // Use the children prop
                     children=move |doc| {
                         let remove_document = Rc::clone(&remove_document);
                         let doc_clone = doc.clone();
@@ -66,15 +75,16 @@ pub fn DocumentsInfo(documents: RwSignal<Vec<String>>) -> impl IntoView {
                 </Show>
             </div>
             <div class="mt-4 flex flex-col gap-2">
-                <button
-                    on:click=upload_document
-                    disabled=move || loading.get()
-                    class="bg-primary shadow-md rounded-full flex items-center gap-2 font-semibold py-2 px-6 hover:bg-green-600 active:bg-green-500 transition-colors cursor-pointer text-nowrap text-sm text-white"
-                >
+                <label class="bg-primary shadow-md rounded-full flex items-center gap-2 font-semibold py-2 px-6 hover:bg-green-600 active:bg-green-500 transition-colors cursor-pointer text-nowrap text-sm text-white">
                     {move || if loading.get() { "Uploading..." } else { "Upload Document" }}
-                </button>
+                    <input
+                        on:change=move |e| on_select_document(e)
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        class="sr-only"
+                    />
+                </label>
             </div>
         </div>
     }
 }
-

@@ -4,7 +4,7 @@ use wasm_bindgen::JsCast;
 use web_sys::{Event, FileList};
 
 // Define the data structure for ImagesInfoData
-#[derive(Default, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct ImagesInfoData {
     pub images: Vec<String>,
     pub logo: String,
@@ -29,6 +29,13 @@ pub fn ImagesInfo(
     let uploading_progress = create_rw_signal(0);
     let error_asset = create_rw_signal(false);
     let error_logo = create_rw_signal(false);
+    // Images Info Data Signal
+    let images_info_data = create_rw_signal(ImagesInfoData {
+    images: vec![
+        "https://plus.unsplash.com/premium_photo-1664303847960-586318f59035?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D".to_string(),
+    ],
+    logo: "https://plus.unsplash.com/premium_photo-1664303847960-586318f59035?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D".to_string(),
+});
 
     // Computed signal for disabled state
     let disabled = Arc::new(move || uploading.get() || loading.get())
@@ -161,7 +168,7 @@ pub fn ImagesInfo(
 
     view! {
         <div class="flex flex-col -mt-8 gap-4">
-            <span class="text-sm font-medium leading-6 text-gray-900">"Thumbnail/Logo:"</span>
+            <span class="text-sm font-medium leading-6 text-gray-900 mt-8">"Thumbnail/Logo:"</span>
             <div class="h-[14rem] w-[14rem] p-2 border rounded relative">
                 {move || {
                     let data = data_clone.clone();
@@ -190,7 +197,7 @@ pub fn ImagesInfo(
                                     src=if absolute_logo_path {
                                         logo_clone.clone()
                                     } else {
-                                        (asset_path)(&logo_clone)
+                                        logo_clone
                                     }
                                     class="h-full w-full rounded-md object-contain"
                                     alt="logo"
@@ -268,7 +275,7 @@ pub fn ImagesInfo(
                                     class="bg-white rounded-full flex items-center justify-center w-4 h-4 absolute top-2 right-2"
                                 ></button>
                                 <img
-                                    src=(asset_path_clone)(&path_clone)
+                                    src=&path_clone
                                     class="h-full w-full rounded-md object-contain"
                                     alt=&format!("image {}", path_clone)
                                 />
@@ -316,4 +323,3 @@ pub fn ImagesInfo(
         </div>
     }
 }
-
