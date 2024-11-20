@@ -26,7 +26,7 @@ pub fn InvestInfo( metadata: CollectionMetaData  ) -> impl IntoView {
         status: Status::Live
     };
 
-    
+
     // Function to calculate invested percentage
     let invested_percentage = move || {
         if props.booked_tokens > 0 && props.metadata.supply_cap.0.to_string().parse::<f64>().unwrap_or_default() > 0.0 {
@@ -44,7 +44,7 @@ pub fn InvestInfo( metadata: CollectionMetaData  ) -> impl IntoView {
         (props.booked_tokens as f64 * price).to_string()
     };
 
-    view! { 
+    view! {
         <div class="shrink-0 bg-primary rounded-xl flex flex-col text-white gap-3 p-6 shadow-xl h-fit">
             <div class="font-bold text-5xl">
                 {if props.status == Status::Live { "Open" } else { "Closed" }}
@@ -62,18 +62,25 @@ pub fn InvestInfo( metadata: CollectionMetaData  ) -> impl IntoView {
             </div>
 
             <div class="text-md font-light">
-                "Funded " { invested_percentage_clone()} "%" {if props.status == Status::Live { "till now" } else { "" }}
+                "Funded " {invested_percentage_clone()} "%"
+                {if props.status == Status::Live { "till now" } else { "" }}
             </div>
-
-            <button 
-                class="btn-secondary"
+            <button
+                role="presentation"
+                type="button"
                 disabled=move || props.status != Status::Live
-                on:click=move |_| {
-                    // Handle Invest button click logic here
-                }
+                on:click=move |_| {}
+                class="bg-white ring-1 ring-inset ring-gray-100 hover:bg-gray-50 outline-none active:bg-gray-200 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30 "
             >
-                "Invest"
+                <div class=" transition-opacity">Invest</div>
             </button>
+        // <button
+        // class="btn-secondary"
+        // disabled=move || props.status != Status::Live
+        // on:click=move |_| {}
+        // >
+        // "Invest"
+        // </button>
         </div>
     }
 }

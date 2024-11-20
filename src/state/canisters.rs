@@ -12,7 +12,7 @@ use std::rc::Rc;
 
 #[derive(Clone)]
 pub struct Canisters {
-    auth_service: Rc<RefCell<AuthService>>,
+    pub auth_service: Rc<RefCell<AuthService>>,
     agent: Rc<Agent>,
     provision_principal: Principal,
 }

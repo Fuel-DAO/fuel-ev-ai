@@ -1,5 +1,8 @@
 use crate::{
-    canister::provision::{AddCollectionRequestArg, ApprovalStatus, Metadata, RequestInfo},
+    canister::provision::{
+        AddCollectionRequestArg, ApprovalStatus, ApproveRequestResponse, Metadata,
+        RejectRequestResponse, RequestInfo,
+    },
     state::canisters::Canisters,
 };
 use candid::Nat;
@@ -8,6 +11,7 @@ use leptos::logging::log;
 use leptos::*;
 use serde::{Deserialize, Serialize};
 // Import the new types
+use ic_agent::AgentError;
 
 /// Structure to hold both canister IDs
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -152,6 +156,77 @@ pub async fn get_request_info_by_id(
                 "Failed to fetch request info for collection_id {}: {:?}",
                 collection_id, e
             );
+            log!("{}", error_msg);
+            Err(error_msg)
+        }
+    }
+}
+
+pub async fn approve_request(
+    canisters: &Canisters,
+    collection_id: Nat,
+) -> Result<(Nat, Principal, Principal), String> {
+    let provision_canister = canisters.provision_canister().await;
+
+    // Call the approve_request method on the canister
+    let response_result: Result<ApproveRequestResponse, AgentError> = provision_canister
+        .approve_request(collection_id.clone())
+        .await;
+
+    // Handle the response
+    match response_result {
+        Ok(response) => match response {
+            ApproveRequestResponse::Ok {
+                id,
+                token_canister,
+                asset_canister,
+            } => {
+                log!(
+                    "Request approved: id={}, token_canister={}, asset_canister={}",
+                    id,
+                    token_canister,
+                    asset_canister
+                );
+                Ok((id, token_canister, asset_canister))
+            }
+            ApproveRequestResponse::Err(err_msg) => {
+                let error_msg = format!("approve_request failed: {}", err_msg);
+                log!("{}", error_msg);
+                Err(error_msg)
+            }
+        },
+        Err(agent_error) => {
+            let error_msg = format!("Agent error during approve_request: {:?}", agent_error);
+            log!("{}", error_msg);
+            Err(error_msg)
+        }
+    }
+}
+pub async fn reject_request(canisters: &Canisters, collection_id: Nat) -> Result<bool, String> {
+    let provision_canister = canisters.provision_canister().await;
+
+    // Call the reject_request method on the canister
+    let response: RejectRequestResponse = provision_canister
+        .reject_request(collection_id.clone())
+        .await
+        .map_err(|e| format!("Failed to call reject_request: {:?}", e))?;
+
+    match response {
+        RejectRequestResponse::Ok(success) => {
+            if success {
+                log!(
+                    "Request rejected successfully for collection_id: {}",
+                    collection_id
+                );
+                Ok(true)
+            } else {
+                let error_msg = "reject_request returned Ok(false)".to_string();
+                log!("{}", error_msg);
+                Err(error_msg)
+            }
+        }
+        RejectRequestResponse::Err(err_msg) => {
+            let error_msg = format!("reject_request failed: {}", err_msg);
             log!("{}", error_msg);
             Err(error_msg)
         }

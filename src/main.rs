@@ -11,6 +11,7 @@ use pages::{
     admin::{
         auth::AdminComponent, collection_list::CollectionListPage,
         new_collection::NewCollectionForm,
+        manage_collection::ManageCollectionPage
     },
     collection_detail::CollectionDetail,
     collections::Collections,
@@ -38,7 +39,7 @@ fn App() -> impl IntoView {
                     <Route path="/admin" view=AdminComponent />
                     <Route path="/admin/new-collection" view=NewCollectionForm />
                     <Route path="/admin/manage/list" view=CollectionListPage />
-
+                    <Route path="/admin/manage/:id" view=ManageCollectionPage />
                 </Routes>
             </main>
         </Router>

@@ -29,7 +29,9 @@ pub fn CollectionDetail() -> impl IntoView {
         .unwrap_or_else(|_| "unknown".to_string());
 
     let collection_id = id.clone();
-    let canisters = use_context::<Rc<Canisters>>();
+    // let canisters = use_context::<Rc<Canisters>>();
+    let canisters = use_context::<RwSignal<Option<Rc<Canisters>>>>()
+        .expect("Canisters ReadWriteSignal must be provided");
 
     // Create a resource to fetch collection metadata
     let collection_resource = create_resource(
@@ -41,7 +43,7 @@ pub fn CollectionDetail() -> impl IntoView {
                 let principal = Principal::from_text(token_id).map_err(|e| e.to_string())?;
 
                 // Ensure Canisters is available
-                if let Some(cans_rc) = &canisters {
+                if let Some(cans_rc) = canisters.get() {
                     get_collection_metadata_from_token_canister(cans_rc.as_ref(), principal).await
                 } else {
                     Err("Canisters not available. Please log in.".to_string())
@@ -49,7 +51,6 @@ pub fn CollectionDetail() -> impl IntoView {
             }
         },
     );
-
     view! {
         <Suspense fallback=|| {
             view! { <div>"Loading..."</div> }

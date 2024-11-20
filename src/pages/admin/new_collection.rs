@@ -1,6 +1,6 @@
 use crate::canister::provision::{AddCollectionRequestArg, Document};
 use crate::components::header2::Header2;
-use crate::outbound::add_collection_canister_calls::{add_collection};
+use crate::outbound::add_collection_canister_calls::add_collection;
 use crate::state::canisters::Canisters;
 use candid::{Nat, Principal};
 use leptos::logging::log;
@@ -52,7 +52,6 @@ pub fn NewCollectionForm() -> impl IntoView {
     // let success_message = create_signal(String::new());
     let success_message = create_rw_signal(String::new());
 
-    let loading = create_signal(false);
     // Documents Data Signal
     let documents = create_rw_signal(vec!["Document 1".to_string(), "Document 2".to_string()]);
 
@@ -71,79 +70,12 @@ pub fn NewCollectionForm() -> impl IntoView {
 
     // ==== Event Handlers ====
 
-    // Handler for form submission
-    let submit_form = move |_| {
-        if loading.get() {
-            return; // Prevent duplicate submissions
-        }
-        loading.set(true); // Set loading state
-
-        // Simulate an asynchronous operation (e.g., API call)
-        spawn_local(async move {
-            use gloo_timers::future::TimeoutFuture;
-            TimeoutFuture::new(2000).await; // 2-second delay
-
-            // Collect form data
-            let basic_info = format!(
-                "Name: {}\nTreasury: {}\nPrice: {}\nSupply Cap: {}\nSymbol: {}\nDescription: {}",
-                name.get(),
-                treasury.get(),
-                price.get(),
-                supply_cap.get(),
-                symbol.get(),
-                description.get()
-            );
-
-            let collection_info = format!(
-                "Purchase Price: {}\nWeight: {}\nDrive Type: {}\nDisplays: {}\nSeating: {}\nCargo: {}\nOverall Height: {}\nOverall Width: {}\nOverall Length: {}\nTrack Front: {}\nTrack Rear: {}\nGround Clearance: {}\nKey Features: {}\nRange per Charge: {}\nAcceleration: {}\nCharging Speed: {}\nWheels: {}\nBrochure URL: {}\nBattery: {}",
-                purchase_price.get(),
-                weight.get(),
-                drive_type.get(),
-                displays.get(),
-                seating.get(),
-                cargo.get(),
-                overall_height.get(),
-                overall_width.get(),
-                overall_length.get(),
-                track_front.get(),
-                track_rear.get(),
-                ground_clearance.get(),
-                key_features.get(),
-                range_per_charge.get(),
-                acceleration.get(),
-                charging_speed.get(),
-                wheels.get(),
-                brochure_url.get(),
-                battery.get(),
-            );
-
-            let docs = documents.get().join(", ");
-
-            // Extract images and logo
-            let images_data = images_info_data.get();
-            let images = images_data.images.join(", ");
-            let logo = images_data.logo.clone();
-
-            let form_data = format!(
-                "Basic Info:\n{}\n\nCollection Info:\n{}\n\nDocuments:\n{}\n\nImages:\n{}\nLogo:\n{}",
-                basic_info, collection_info, docs, images, logo
-            );
-
-            // After delay, set the result and reset loading state
-            res.set(Some(format!(
-                "Form submitted successfully!\n\n{}",
-                form_data
-            )));
-            loading.set(false);
-        });
-    };
-
     // Handler to navigate back in browser history
-    let go_back = move |_| {
-        if let Some(history) = window().and_then(|w| w.history().ok()) {
-            let _ = history.back();
-        }
-    };
+    // let go_back = move |_| {
+    //     if let Some(history) = window().and_then(|w| w.history().ok()) {
+    //         let _ = history.back();
+    //     }
+    // };
 
     let on_cancel = move |_e: MouseEvent| {
         // Implement your cancel logic here
@@ -209,34 +141,34 @@ pub fn NewCollectionForm() -> impl IntoView {
         move |_e: MouseEvent| {
             log!("Form Submission Initiated");
 
-            // Log the values of the signals
-            log!("name: {:?}", name.get());
-            log!("treasury: {:?}", treasury.get());
-            log!("price: {:?}", price.get());
-            log!("supply_cap: {:?}", supply_cap.get());
-            log!("symbol: {:?}", symbol.get());
-            log!("description: {:?}", description.get());
-            log!("purchase_price: {:?}", purchase_price.get());
-            log!("weight: {:?}", weight.get());
-            log!("drive_type: {:?}", drive_type.get());
-            log!("displays: {:?}", displays.get());
-            log!("seating: {:?}", seating.get());
-            log!("cargo: {:?}", cargo.get());
-            log!("overall_height: {:?}", overall_height.get());
-            log!("overall_width: {:?}", overall_width.get());
-            log!("overall_length: {:?}", overall_length.get());
-            log!("track_front: {:?}", track_front.get());
-            log!("track_rear: {:?}", track_rear.get());
-            log!("ground_clearance: {:?}", ground_clearance.get());
-            log!("key_features: {:?}", key_features.get());
-            log!("range_per_charge: {:?}", range_per_charge.get());
-            log!("acceleration: {:?}", acceleration.get());
-            log!("charging_speed: {:?}", charging_speed.get());
-            log!("wheels: {:?}", wheels.get());
-            log!("brochure_url: {:?}", brochure_url.get());
-            log!("battery: {:?}", battery.get());
-            log!("documents: {:?}", documents.get());
-            log!("images_info_data: {:?}", images_info_data.get());
+            // // Log the values of the signals
+            // log!("name: {:?}", name.get());
+            // log!("treasury: {:?}", treasury.get());
+            // log!("price: {:?}", price.get());
+            // log!("supply_cap: {:?}", supply_cap.get());
+            // log!("symbol: {:?}", symbol.get());
+            // log!("description: {:?}", description.get());
+            // log!("purchase_price: {:?}", purchase_price.get());
+            // log!("weight: {:?}", weight.get());
+            // log!("drive_type: {:?}", drive_type.get());
+            // log!("displays: {:?}", displays.get());
+            // log!("seating: {:?}", seating.get());
+            // log!("cargo: {:?}", cargo.get());
+            // log!("overall_height: {:?}", overall_height.get());
+            // log!("overall_width: {:?}", overall_width.get());
+            // log!("overall_length: {:?}", overall_length.get());
+            // log!("track_front: {:?}", track_front.get());
+            // log!("track_rear: {:?}", track_rear.get());
+            // log!("ground_clearance: {:?}", ground_clearance.get());
+            // log!("key_features: {:?}", key_features.get());
+            // log!("range_per_charge: {:?}", range_per_charge.get());
+            // log!("acceleration: {:?}", acceleration.get());
+            // log!("charging_speed: {:?}", charging_speed.get());
+            // log!("wheels: {:?}", wheels.get());
+            // log!("brochure_url: {:?}", brochure_url.get());
+            // log!("battery: {:?}", battery.get());
+            // log!("documents: {:?}", documents.get());
+            // log!("images_info_data: {:?}", images_info_data.get());
 
             if loading.get() {
                 return; // Prevent duplicate submissions
@@ -267,14 +199,15 @@ pub fn NewCollectionForm() -> impl IntoView {
                         }
                     };
 
-                    // Construct the CollectionRequestData
-                    let collection_data = AddCollectionRequestArg {
+                    let collection_data1 = AddCollectionRequestArg {
                         weight: weight.get(),
                         drive_type: drive_type.get(),
                         purchase_price: Nat::from(purchase_price.get() as u64),
                         token: Principal::from_text(&treasury_principal)
                             .expect("Invalid token principal"), // Adjust as necessary
-                        documents: documents_transformed, // Corrected to use transformed data
+                        documents: vec![],
+
+                        // documents: documents_transformed, // Corrected to use transformed data
                         supply_cap: Nat::from(supply_cap.get() as u64),
                         displays: displays.get(),
                         seating: seating.get(),
@@ -307,10 +240,53 @@ pub fn NewCollectionForm() -> impl IntoView {
                             .expect("Invalid token principal"),
                         images: images_info_data.get().images.clone(),
                     };
-                    log!("collection_data: {:?}", collection_data);
+                    log!("collection_data1: {:?}", collection_data1);
 
+                    let collection_data = AddCollectionRequestArg {
+                        weight: 1.0,
+                        drive_type: "type".to_string(),
+                        purchase_price: Nat::from(1u64),
+                        token: Principal::from_text(
+                            "acred-4djfc-ledly-qhddc-eugbf-geqcc-w5g2i-dry2j-rce77-vorar-5qe",
+                        )
+                        .unwrap(),
+                        documents: vec![],
+                        supply_cap: Nat::from(1u64),
+                        displays: "disdpayes".to_string(),
+                        seating: "1".to_string(),
+                        cargo: 1.0,
+                        logo: "sdf".to_string(),
+                        name: "sd".to_string(),
+                        overall_height: 1.0,
+                        description: "desc".to_string(),
+                        overall_width: 1.0,
+                        track_front: 1.0,
+                        ground_clearance: 1.0,
+                        key_features: vec!["dsfgdf".to_string()],
+                        range_per_charge: f64::NAN,
+                        track_rear: f64::NAN,
+                        acceleration: "".to_string(),
+                        charging_speed: "".to_string(),
+                        wheels: f64::NAN,
+                        brochure_url: "".to_string(),
+                        index: Principal::from_text(
+                            "acred-4djfc-ledly-qhddc-eugbf-geqcc-w5g2i-dry2j-rce77-vorar-5qe",
+                        )
+                        .unwrap(),
+                        price: Nat::from(0u64),
+                        battery: "".to_string(),
+                        overall_length: f64::NAN,
+                        symbol: "".to_string(),
+                        treasury: Principal::from_text(
+                            "acred-4djfc-ledly-qhddc-eugbf-geqcc-w5g2i-dry2j-rce77-vorar-5qe",
+                        )
+                        .unwrap(),
+                        images: vec![],
+                    };
+                    log!("collection_data: {:?}", collection_data);
+                    //
                     // Call the add_collection_request function
-                    match add_collection(&canisters, collection_data).await {
+                    match add_collection(&canisters, collection_data1).await {
                         Ok(_) => {
                             loading.set(false);
                             success_message.set("Collection created successfully!".to_string());
@@ -518,14 +494,6 @@ pub fn NewCollectionForm() -> impl IntoView {
                                             }
                                         }
                                     }}
-                                </div>
-                                <div>
-                                    <button on:click=go_back disabled=loading.get()>
-                                        "Cancel"
-                                    </button>
-                                    <button on:click=submit_form disabled=loading.get()>
-                                        "Save"
-                                    </button>
                                 </div>
                             </div>
                         }

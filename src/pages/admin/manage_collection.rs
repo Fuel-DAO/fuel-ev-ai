@@ -5,7 +5,7 @@ use crate::components::admin::manage_collection::{
 use crate::components::header2::Header2;
 use crate::{
     outbound::get_pending_collection_requests::{
-        fetch_pending_requests_data, get_request_info_by_id,
+        approve_request, fetch_pending_requests_data, get_request_info_by_id, reject_request,
     },
     state::canisters::Canisters,
 };
@@ -86,30 +86,66 @@ pub fn ManageCollectionPage() -> impl IntoView {
             }
         },
     );
-
+    // Function to handle approval
+    let approve_action = move || {
+        if let Some(canisters) = canisters_signal.get().clone() {
+            let collection_id = Nat::from(id());
+            spawn_local(async move {
+                match approve_request(canisters.as_ref(), collection_id).await {
+                    Ok((id, token_canister, asset_canister)) => {
+                        logging::log!(
+                            "Approval successful! ID: {}, Token Canister: {}, Asset Canister: {}",
+                            id,
+                            token_canister,
+                            asset_canister
+                        );
+                    }
+                    Err(err) => {
+                        logging::log!("Error approving request: {}", err);
+                    }
+                }
+            });
+        } else {
+            logging::log!("Canisters not available. Please log in.");
+        }
+    };
+    let reject_action = move || {
+        if let Some(canisters) = canisters_clone.clone() {
+            let collection_id = Nat::from(id());
+            spawn_local(async move {
+                match reject_request(canisters.as_ref(), collection_id).await {
+                    Ok(_) => {
+                        logging::log!("Rejection successful for ID: {}", id());
+                    }
+                    Err(err) => {
+                        logging::log!("Error rejecting request: {}", err);
+                    }
+                }
+            });
+        } else {
+            logging::log!("Canisters not available. Please log in.");
+        }
+    };
     view! {
         <Header2 />
         <div class="w-full max-w-6xl pt-32 px-8 mx-auto 6xl:px-0">
             <div class="flex justify-between items-center">
                 <h1 class="text-xl font-bold">"Manage Collection"</h1>
 
-                <button
-                    class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
-                    on:click=move |_| {
-                        logging::log!("Approve button clicked for ID: {}", id());
-                    }
-                >
-                    "Approve"
-                </button>
-                <button
-                    class="bg-primary hover:bg-white-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-black focus-visible:outline-white-300 ring-0 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
-                    on:click=move |_| {
-                        logging::log!("Approve button clicked for ID: {}", id());
-                    }
-                >
-                    "Decline"
-                </button>
-
+                <div class="flex space-x-2">
+                    <button
+                        class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex items-center rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
+                        on:click=move |_| approve_action()
+                    >
+                        "Approve"
+                    </button>
+                    <button
+                        class="bg-primary hover:bg-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-black focus-visible:outline-red-300 ring-0 px-4 py-2 inline-flex items-center rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
+                        on:click=move |_| reject_action()
+                    >
+                        "Decline"
+                    </button>
+                </div>
             </div>
             <div class="manage-collection-page flex flex-col gap-8 divide-y divide-gray-300 mx-32">
                 <InfoSection>
