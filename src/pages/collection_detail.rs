@@ -1,15 +1,19 @@
 use candid::Principal;
 use leptos::*;
 
-use leptos_router::{use_params, Params};
-use std::cmp::PartialEq;
-
+use crate::components::admin::invest_info_admin::ConcludeSaleAdminComponent;
 use crate::state::canisters::Canisters;
 use crate::{
     canister::token::CollectionMetaData,
-    components::{collection_header::CollectionHeader, header::Header, invest_info::InvestInfo},
+    components::{
+        collection_header::CollectionHeader, collection_images::CollectionImages, header::Header,
+        invest_info::InvestInfo,
+    },
     outbound::collection_canister_calls::get_collection_metadata_from_token_canister,
 };
+use leptos_router::{use_params, Params};
+use std::cmp::PartialEq;
+
 use std::rc::Rc;
 #[derive(Debug, Clone, Params, PartialEq)]
 pub struct CollectionParams {
@@ -27,7 +31,10 @@ pub fn CollectionDetail() -> impl IntoView {
         .get()
         .map(|p| p.token_id.clone())
         .unwrap_or_else(|_| "unknown".to_string());
-
+    let asset_can_id = params
+        .get()
+        .map(|p| p.asset_id.clone())
+        .unwrap_or_else(|_| "unknown".to_string());
     let collection_id = id.clone();
     // let canisters = use_context::<Rc<Canisters>>();
     let canisters = use_context::<RwSignal<Option<Rc<Canisters>>>>()
@@ -52,41 +59,36 @@ pub fn CollectionDetail() -> impl IntoView {
         },
     );
     view! {
-        <Suspense fallback=|| {
-            view! { <div>"Loading..."</div> }
-        }>
-            {move || match collection_resource.get() {
-                Some(Ok(metadata)) => {
-                    view! {
-                        <div>
-                            <Header />
-                            <div class="w-full max-w-6xl pt-32 mx-auto px-8 lg:px-0">
-                                <div class="w-full flex flex-col items-center justify-center gap-4 pb-8">
-                                    <div class="flex flex-col lg:flex-row gap-2 lg:h-[40rem] w-full overflow-hidden overflow-x-auto relative">
-                                        <div class="absolute h-16 lg:h-28 top-4 shadow-md z-[2] left-4 w-16 lg:w-28 rounded-full overflow-hidden">
-                                            <img
-                                                alt="Collection logo"
-                                                class="h-full w-full object-cover object-center"
-                                                src="https://fu2z3-qyaaa-aaaam-acpga-cai.icp0.io/Tesla_Model_S_2021-01@2x.jpg"
-                                            />
+        <Suspense>
+            {
+                let asset_can_id = asset_can_id.clone();
+                move || {
+                    collection_resource
+                        .get()
+                        .map(|res| match res {
+                            Ok(metadata) => {
+                                let asset_can_id = asset_can_id.clone();
+                                view! {
+                                    <div>
+                                        <Header />
+                                        <div class="w-full max-w-6xl pt-32 mx-auto px-8 lg:px-0">
+                                            <CollectionImages metadata=metadata.clone() asset_can_id />
+                                            <div class="w-full flex flex-col items-center justify-center  gap-4 pb-8">
+                                                <CarDetailPage metadata />
+                                                <div>"check"</div>
+
+                                            </div>
                                         </div>
-                                        <img
-                                            alt="Collection"
-                                            src="https://fu2z3-qyaaa-aaaam-acpga-cai.icp0.io/Tesla_Model_S_2021-03@2x.jpg"
-                                            class="rounded-xl lg:h-full lg:grow object-cover"
-                                        />
                                     </div>
-                                    <CarDetailPage metadata=metadata.clone() />
-                                </div>
-                            </div>
-                        </div>
-                    }
+                                }
+                            }
+                            Err(e) => {
+                                view! { <div>Failed to get details</div> }
+                            }
+                        })
                 }
-                Some(Err(e)) => {
-                    view! { <div>{format!("Failed to get details: {}", e)}</div> }
-                }
-                None => view! { <div>"Loading..."</div> },
-            }}
+            }
+
         </Suspense>
     }
 }
@@ -99,18 +101,30 @@ fn CarDetailPage(metadata: CollectionMetaData) -> impl IntoView {
         .get()
         .map(|p| p.token_id.clone())
         .unwrap_or_else(|_| "unknown".to_string());
+    let asset_id = params
+        .get()
+        .map(|p| p.asset_id.clone())
+        .unwrap_or_else(|_| "unknown".to_string());
+
+    let token_canister_id = Principal::from_text(collection_id.clone()).unwrap();
 
     view! {
         <div class="w-full flex flex-col items-center gap-4 pb-8">
             <div class="flex flex-col lg:flex-row gap-8 pt-6 w-full max-w-6xl">
                 <CollectionHeader metadata=metadata.clone() collection_id />
                 <div class="flex flex-col gap-8">
-                    <InvestInfo metadata />
+                    <InvestInfo metadata=metadata.clone() token_canister_id />
+
+                    <ConcludeSaleAdminComponent metadata=metadata.clone() token_canister_id />
+
                 </div>
+                <div>"check"</div>
             // <div class="flex flex-col gap-8">
             // <SpecificationComponent />
             // </div>
             </div>
+            <div>"check"</div>
+
         </div>
     }
 }

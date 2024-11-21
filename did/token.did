@@ -33,6 +33,16 @@ type CollectionMetaData = record {
         treasury : principal;
         images : vec text
     };
+type AcceptSaleResponse = variant {
+    Ok : bool;
+    Err : text;
+};
+
+type RejectSaleResponse = variant {
+    Ok : bool;
+    Err : text;
+};
+type SaleStatusResponse = variant { Live; Rejected; Accepted };
 
 service : (variant {
     Upgrade;
@@ -71,13 +81,13 @@ service : (variant {
         images : vec text
     }
 }) -> {
-    accept_sale : () -> (variant { Ok : bool; Err : text });
+     accept_sale : () -> (AcceptSaleResponse);
     book_tokens : (record { quantity : nat }) -> (variant { Ok : bool; Err : text });
     change_ownership : (principal) -> (variant { Ok : nat; Err : text });
     get_booked_tokens : (opt principal) -> (nat) query;
     get_escrow_account : () -> (record { accountId : text; account : record { owner : principal; subaccount : vec nat8 } }) query;
     get_metadata : () -> ( CollectionMetaData ) query;
-    get_sale_status : () -> (variant { Live; Rejected; Accepted }) query;
+    get_sale_status : () -> (SaleStatusResponse) query;
     get_total_booked_tokens : () -> (nat) query;
     icrc61_supported_standards : () -> (vec record { url : text; name : text }) query;
     icrc7_atomic_batch_transfers : () -> (opt bool) query;
@@ -145,7 +155,8 @@ service : (variant {
         }
     });
     icrc7_tx_window : () -> (opt nat) query;
-    reject_sale : () -> (variant { Ok : bool; Err : text });
+        reject_sale : () -> (RejectSaleResponse);
+
     reject_sale_individual : (principal) -> (variant { Ok : bool; Err : text });
     update_metadata : (record {
         weight : opt float64;

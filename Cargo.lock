@@ -1113,6 +1113,7 @@ dependencies = [
  "leptos_router",
  "log",
  "num-bigint",
+ "num-traits",
  "reqwest",
  "serde",
  "serde-wasm-bindgen",

@@ -1,5 +1,7 @@
 pub mod account;
+pub mod admin;
 pub mod collection_header;
+pub mod collection_images;
 pub mod collection_info_cards;
 pub mod footer;
 pub mod header;
@@ -12,4 +14,3 @@ pub mod ridesharing_info;
 pub mod specifications;
 pub mod tabs;
 pub mod trip_includes;
-pub mod admin;
