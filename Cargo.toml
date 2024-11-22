@@ -63,7 +63,7 @@ anyhow = "1.0.86"
 num-bigint = "0.4.6"
 gloo-timers = "0.3.0"
 gloo-file = "0.3.0"
-gloo = "0.11.0"
+gloo = { version = "0.11.0", features = ["file", "futures"] }
 
 
 [build-dependencies]

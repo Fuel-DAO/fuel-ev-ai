@@ -2,11 +2,12 @@ use crate::state::asset_manager::AssetManager;
 use crate::state::canisters::Canisters;
 use candid::Principal;
 use gloo::file::futures::read_as_bytes;
+use gloo_file::Blob;
 use leptos::*;
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::sync::Arc;
-use web_sys::{Event, File, HtmlInputElement};
+use wasm_bindgen::JsCast;
+use web_sys::{Event, HtmlInputElement};
 
 #[derive(Default, Debug, Clone)]
 pub struct ImagesInfoData {
@@ -43,18 +44,21 @@ pub fn ImagesInfo(
         let upload_canister_id = upload_canister_id.clone();
         let asset_canister_id = asset_canister_id.clone();
 
-        Arc::new(move |event: Event, file_type: &'static str| {
+        Rc::new(move |event: Event, file_type: &'static str| {
             if file_type == "logo" {
                 error_logo.set(false);
             } else {
                 error_asset.set(false);
             }
 
-            let input = event
-                .target()
-                .unwrap()
-                .dyn_into::<HtmlInputElement>()
-                .unwrap();
+            let input = match event.target() {
+                Some(target) => match target.dyn_into::<HtmlInputElement>() {
+                    Ok(input) => input,
+                    Err(_) => return,
+                },
+                None => return,
+            };
+
             let files = input.files();
             if files.is_none() {
                 uploading.set(false);
@@ -65,9 +69,16 @@ pub fn ImagesInfo(
                 uploading.set(false);
                 return;
             }
-            let file = files.get(0).unwrap();
+            let file = match files.get(0) {
+                Some(file) => file,
+                None => {
+                    uploading.set(false);
+                    return;
+                }
+            };
             uploading.set(true);
             uploading_progress.set(0);
+            let blob = Blob::from(file.clone());
 
             let canisters_resource = canisters_resource.clone();
             let uploading = uploading.clone();
@@ -81,12 +92,36 @@ pub fn ImagesInfo(
             spawn_local(async move {
                 let canisters = canisters_resource.borrow();
                 let agent = &canisters.agent;
-                let upload_principal = Principal::from_text(&upload_canister_id).unwrap();
-                let asset_principal = Principal::from_text(&asset_canister_id).unwrap();
+                let upload_principal = match Principal::from_text(&upload_canister_id) {
+                    Ok(principal) => principal,
+                    Err(_) => {
+                        log::error!("Invalid upload canister ID");
+                        if file_type == "logo" {
+                            error_logo.set(true);
+                        } else {
+                            error_asset.set(true);
+                        }
+                        uploading.set(false);
+                        return;
+                    }
+                };
+                let asset_principal = match Principal::from_text(&asset_canister_id) {
+                    Ok(principal) => principal,
+                    Err(_) => {
+                        log::error!("Invalid asset canister ID");
+                        if file_type == "logo" {
+                            error_logo.set(true);
+                        } else {
+                            error_asset.set(true);
+                        }
+                        uploading.set(false);
+                        return;
+                    }
+                };
                 let manager = AssetManager::new(upload_principal, asset_principal, agent);
 
                 let file_name = file.name();
-                let file_data = match read_as_bytes(&file).await {
+                let file_data = match read_as_bytes(&blob).await {
                     Ok(bytes) => bytes,
                     Err(e) => {
                         log::error!("Failed to read file data: {:?}", e);
@@ -102,10 +137,10 @@ pub fn ImagesInfo(
 
                 match manager.store(file_data, file_name.clone()).await {
                     Ok(url) => {
-                        if file_type == "images" {
-                            data.update(|d| d.images.push(url.clone()));
-                        } else {
+                        if file_type == "logo" {
                             data.update(|d| d.logo = url.clone());
+                        } else {
+                            data.update(|d| d.images.push(url.clone()));
                         }
                         uploading_progress.set(100);
                     }
@@ -122,7 +157,7 @@ pub fn ImagesInfo(
                 uploading.set(false);
                 input.set_value("");
             });
-        }) as Arc<dyn Fn(Event, &'static str) + Send + Sync + 'static>
+        }) as Rc<dyn Fn(Event, &'static str) + 'static>
     };
 
     let remove_image = {
@@ -133,7 +168,7 @@ pub fn ImagesInfo(
         let upload_canister_id = upload_canister_id.clone();
         let asset_canister_id = asset_canister_id.clone();
 
-        Arc::new(move |path: String, file_type: &'static str| {
+        Rc::new(move |path: String, file_type: &'static str| {
             let data = data.clone();
             let error_asset = error_asset.clone();
             let error_logo = error_logo.clone();
@@ -145,8 +180,30 @@ pub fn ImagesInfo(
             spawn_local(async move {
                 let canisters = canisters_resource.borrow();
                 let agent = &canisters.agent;
-                let upload_principal = Principal::from_text(&upload_canister_id).unwrap();
-                let asset_principal = Principal::from_text(&asset_canister_id).unwrap();
+                let upload_principal = match Principal::from_text(&upload_canister_id) {
+                    Ok(principal) => principal,
+                    Err(_) => {
+                        log::error!("Invalid upload canister ID");
+                        if file_type == "logo" {
+                            error_logo.set(true);
+                        } else {
+                            error_asset.set(true);
+                        }
+                        return;
+                    }
+                };
+                let asset_principal = match Principal::from_text(&asset_canister_id) {
+                    Ok(principal) => principal,
+                    Err(_) => {
+                        log::error!("Invalid asset canister ID");
+                        if file_type == "logo" {
+                            error_logo.set(true);
+                        } else {
+                            error_asset.set(true);
+                        }
+                        return;
+                    }
+                };
                 let manager = AssetManager::new(upload_principal, asset_principal, agent);
 
                 match manager.delete(path.clone()).await {
@@ -167,13 +224,13 @@ pub fn ImagesInfo(
                     }
                 }
             });
-        }) as Arc<dyn Fn(String, &'static str) + Send + Sync + 'static>
+        }) as Rc<dyn Fn(String, &'static str) + 'static>
     };
 
     let asset_path = move |path: &str| format!("{}/{}", asset_canister_id, path);
 
     let data_clone = data.clone();
-    let remove_image_clone = Arc::clone(&remove_image);
+    let remove_image_clone = remove_image.clone();
     let disabled_clone = disabled.clone();
     let asset_path_clone = asset_path.clone();
     let absolute_logo_path_clone = absolute_logo_path;
@@ -184,7 +241,7 @@ pub fn ImagesInfo(
             <div class="h-[14rem] w-[14rem] p-2 border rounded relative">
                 {move || {
                     let data = data_clone.get();
-                    let remove_image = Arc::clone(&remove_image_clone);
+                    let remove_image = remove_image_clone.clone();
                     let disabled = disabled_clone();
                     let asset_path = asset_path_clone.clone();
                     let absolute_logo_path = absolute_logo_path_clone;
@@ -195,7 +252,7 @@ pub fn ImagesInfo(
                                 <button
                                     disabled=disabled
                                     on:click={
-                                        let remove_image = Arc::clone(&remove_image);
+                                        let remove_image = remove_image.clone();
                                         let logo_clone = logo.clone();
                                         move |_| { (remove_image)(logo_clone.clone(), "logo") }
                                     }
@@ -248,7 +305,7 @@ pub fn ImagesInfo(
                     <input
                         disabled=disabled()
                         on:change={
-                            let on_select_clone = Arc::clone(&on_select);
+                            let on_select_clone = on_select.clone();
                             move |e| (on_select_clone)(e, "logo")
                         }
                         type="file"
@@ -262,7 +319,7 @@ pub fn ImagesInfo(
             <div class="h-[14rem] border rounded p-2 items-center w-full overflow-hidden overflow-x-auto flex gap-2">
                 <For each=move || data.get().images.clone() key=|path| path.clone() let:path>
                     {
-                        let remove_image_clone = Arc::clone(&remove_image);
+                        let remove_image_clone = remove_image.clone();
                         let disabled_clone = disabled.clone();
                         let asset_path_clone = asset_path.clone();
                         let path_clone = path.clone();
@@ -276,7 +333,7 @@ pub fn ImagesInfo(
                                 <button
                                     disabled=disabled_clone()
                                     on:click={
-                                        let remove_image_clone = Arc::clone(&remove_image_clone);
+                                        let remove_image_clone = remove_image_clone.clone();
                                         let path_clone_inner = path_clone.clone();
                                         move |_| {
                                             (remove_image_clone)(path_clone_inner.clone(), "images")
@@ -324,7 +381,7 @@ pub fn ImagesInfo(
                     <input
                         disabled=disabled()
                         on:change={
-                            let on_select_clone = Arc::clone(&on_select);
+                            let on_select_clone = on_select.clone();
                             move |e| (on_select_clone)(e, "images")
                         }
                         type="file"

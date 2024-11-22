@@ -317,6 +317,7 @@ pub fn NewCollectionForm() -> impl IntoView {
                         }
                     } else {
                         view! {
+                            // ==== Render the Form ====
                             <div>
                                 <div class="flex items-start justify-between py-4 gap-4">
                                     <div class="flex flex-col">
@@ -464,24 +465,13 @@ pub fn NewCollectionForm() -> impl IntoView {
                                             }
                                         }
                                         "images" => {
-                                            dotenv::dotenv().ok();
-                                            let asset_canister_id = dotenv!("ASSET_CANISTER_ID")
-                                                .to_string();
-                                            let asset_proxy_canister_id = dotenv!(
-                                                "ASSET_PROXY_CANISTER_ID"
-                                            )
-                                                .to_string();
                                             view! {
-                                                // Load environment variables from .env file
-
-                                                // Wrap asset_canister_id and asset_proxy_canister_id in Rc<String>
-
                                                 <div>
                                                     <ImagesInfo
                                                         data=images_info_data
                                                         absolute_logo_path=false
-                                                        upload_canister_id=asset_canister_id
-                                                        asset_canister_id=asset_proxy_canister_id
+                                                        upload_canister_id="your_upload_canister_id".to_string()
+                                                        asset_canister_id="your_asset_canister_id".to_string()
                                                     />
                                                 </div>
                                             }
