@@ -120,8 +120,8 @@ pub fn CollectionListPage() -> impl IntoView {
                                                                 </div>
                                                             </div>
                                                             <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
-                                                                <p class="text-sm leading-6 text-gray-900">// {format!("Submitted by: {}", collection_owner)}
-                                                                </p>
+                                                                // {format!("Submitted by: {}", collection_owner)}
+                                                                <p class="text-sm leading-6 text-gray-900"></p>
                                                             </div>
                                                         </a>
                                                     </li>

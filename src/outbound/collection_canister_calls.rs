@@ -1,4 +1,7 @@
-use crate::{canister::token::{CollectionMetaData, SaleStatusResponse}, state::canisters::Canisters};
+use crate::{
+    canister::token::{CollectionMetaData, SaleStatusResponse},
+    state::canisters::Canisters,
+};
 
 use candid::Nat;
 use candid::Principal;
