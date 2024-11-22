@@ -2,6 +2,9 @@
 use crate::canister::provision::Provision;
 use crate::canister::token::Token;
 use crate::canister::PROVISION_ID;
+use dotenv_codegen::dotenv;
+
+use crate::state::asset_manager::AssetManager;
 use crate::state::auth::AuthService;
 use candid::Principal;
 use ic_agent::Agent;
@@ -13,7 +16,7 @@ use std::rc::Rc;
 #[derive(Clone)]
 pub struct Canisters {
     pub auth_service: Rc<RefCell<AuthService>>,
-    agent: Rc<Agent>,
+    pub agent: Rc<Agent>,
     provision_principal: Principal,
 }
 
@@ -38,6 +41,14 @@ impl Canisters {
     pub async fn token_canister(&self, canister_id: Principal) -> Token<'_> {
         let agent_ref: &Agent = &self.agent;
         Token(canister_id, agent_ref)
+    }
+    pub fn asset_manager(&self) -> AssetManager<'_> {
+        dotenv::dotenv().ok();
+        let asset_canister_id = Principal::from_text(dotenv!("ASSET_CANISTER_ID")).unwrap();
+        let asset_proxy_canister_id =
+            Principal::from_text(dotenv!("ASSET_PROXY_CANISTER_ID")).unwrap();
+
+        AssetManager::new(asset_proxy_canister_id, asset_canister_id, &self.agent)
     }
 }
 

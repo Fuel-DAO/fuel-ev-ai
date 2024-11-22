@@ -1,11 +1,19 @@
+use leptos::logging::log;
 use leptos::*;
+use std::future::Future;
 use std::rc::Rc;
 use wasm_bindgen::JsCast;
-use web_sys::{Event, FileList, HtmlInputElement}; // Import JsCast to use dyn_into
+use web_sys::{Event, HtmlInputElement};
 
-// Your component function and logic...
+// Mock upload function (replace with your actual upload logic)
+async fn upload_document(file: web_sys::File) -> Result<String, String> {
+    // Implement actual upload logic here.
+    // For demonstration, we'll return a dummy URL.
+    Ok(format!("https://your-storage-service.com/{}", file.name()))
+}
+
 #[component]
-pub fn DocumentsInfo(documents: RwSignal<Vec<String>>) -> impl IntoView {
+pub fn DocumentsInfo(documents: RwSignal<Vec<(String, String)>>) -> impl IntoView {
     let loading =
         use_context::<ReadSignal<bool>>().unwrap_or_else(|| create_rw_signal(false).read_only());
 
@@ -19,20 +27,45 @@ pub fn DocumentsInfo(documents: RwSignal<Vec<String>>) -> impl IntoView {
         if loading.get() {
             return;
         }
-        // Correctly cast EventTarget to HtmlInputElement using dyn_into()
+
         let input: HtmlInputElement = event
             .target()
             .unwrap()
             .dyn_into::<HtmlInputElement>()
             .unwrap();
-        let files = input.files().unwrap();
-        if files.length() == 0 {
+
+        let files = input.files().clone();
+        if files.is_none() || files.unwrap().length() == 0 {
             return;
         }
-        let file = files.get(0).unwrap();
-        let file_name = file.name();
-        documents.update(|d| d.push(file_name));
-        input.set_value(""); // Clear the input to allow the same file to be reselected if necessary
+
+        let file = input.files().clone().unwrap().get(0).unwrap();
+        let file_clone = file.clone();
+        input.set_value(""); // Clear the input
+
+        let documents = documents.clone();
+        let loading = loading.clone();
+
+        // Spawn an async task to handle the upload
+        spawn_local(async move {
+            match upload_document(file_clone).await {
+                Ok(url) => {
+                    // Determine the document type based on file extension
+                    let doc_type = if url.ends_with(".pdf") {
+                        "pdf".to_string()
+                    } else if url.ends_with(".doc") || url.ends_with(".docx") {
+                        "docx".to_string()
+                    } else {
+                        "unknown".to_string()
+                    };
+                    documents.update(|d| d.push((doc_type, url)));
+                }
+                Err(e) => {
+                    // Handle upload error (e.g., show a notification)
+                    log!("Error uploading document: {}", e);
+                }
+            }
+        });
     });
 
     view! {
@@ -41,7 +74,8 @@ pub fn DocumentsInfo(documents: RwSignal<Vec<String>>) -> impl IntoView {
             <div class="h-[14rem] border rounded p-2 items-center w-full overflow-hidden overflow-x-auto flex gap-2">
                 <For
                     each=move || documents.get()
-                    key=|doc| doc.clone()
+                    // Use URL as key
+                    key=|doc| doc.1.clone()
                     children=move |doc| {
                         let remove_document = Rc::clone(&remove_document);
                         let doc_clone = doc.clone();
@@ -62,7 +96,13 @@ pub fn DocumentsInfo(documents: RwSignal<Vec<String>>) -> impl IntoView {
                                     "Remove"
                                 </button>
                                 <div class="flex items-center justify-center h-full">
-                                    <span>{doc.clone()}</span>
+                                    <a
+                                        href=doc.1.clone()
+                                        target="_blank"
+                                        class="text-blue-500 underline"
+                                    >
+                                        {doc.1.clone()}
+                                    </a>
                                 </div>
                             </div>
                         }

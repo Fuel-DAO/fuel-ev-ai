@@ -1,13 +1,15 @@
-use crate::canister::provision::{AddCollectionRequestArg, Document};
+use crate::canister::provision::AddCollectionRequestArg;
 use crate::components::header2::Header2;
 use crate::outbound::add_collection_canister_calls::add_collection;
 use crate::state::canisters::Canisters;
 use candid::{Nat, Principal};
+use dotenv_codegen::dotenv;
 use leptos::logging::log;
 use leptos::*;
 use std::rc::Rc;
 use web_sys::window;
 use web_sys::MouseEvent;
+
 // Import the subcomponents and ImagesInfoData
 use crate::components::admin::{
     basic_info::BasicInfo,
@@ -53,7 +55,7 @@ pub fn NewCollectionForm() -> impl IntoView {
     let success_message = create_rw_signal(String::new());
 
     // Documents Data Signal
-    let documents = create_rw_signal(vec!["Document 1".to_string(), "Document 2".to_string()]);
+    let documents = create_rw_signal(Vec::<(String, String)>::new());
 
     // Images Info Data Signal
     let images_info_data = create_rw_signal(ImagesInfoData {
@@ -119,7 +121,7 @@ pub fn NewCollectionForm() -> impl IntoView {
         // log!("brochure_url: {:?}", brochure_url.get());
         // log!("battery: {:?}", battery.get());
         // log!("title: {:?}", title);
-        // log!("documents: {:?}", documents.get());
+        log!("documents: {:?}", documents.get());
         // log!("images_info_data: {:?}", images_info_data.get());
         // Clone all the signals used in the async block
         let loading = loading.clone();
@@ -175,15 +177,11 @@ pub fn NewCollectionForm() -> impl IntoView {
             }
             loading.set(true);
             let documents_transformed = vec![
-                Document {
-                    title: "Document 1".to_string(),
-                    url: "https://pdfobject.com/pdf/sample.pdf".to_string(),
-                },
-                Document {
-                    title: "Document 2".to_string(),
-                    url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
-                        .to_string(),
-                },
+                (
+                    "pdf".to_string(),
+                    "https://www.tesla.com/ns_videos/2021-tesla-impact-report.pdf".to_string(),
+                ),
+                // Add more documents as needed
             ];
             log!("documents: {:?}", documents_transformed);
 
@@ -205,9 +203,8 @@ pub fn NewCollectionForm() -> impl IntoView {
                         purchase_price: Nat::from(purchase_price.get() as u64),
                         token: Principal::from_text(&treasury_principal)
                             .expect("Invalid token principal"), // Adjust as necessary
-                        documents: vec![],
-
-                        // documents: documents_transformed, // Corrected to use transformed data
+                        // documents: vec![],
+                        documents: documents.get(), // Corrected to use transformed data
                         supply_cap: Nat::from(supply_cap.get() as u64),
                         displays: displays.get(),
                         seating: seating.get(),
@@ -320,7 +317,6 @@ pub fn NewCollectionForm() -> impl IntoView {
                         }
                     } else {
                         view! {
-                            // ==== Render the Form ====
                             <div>
                                 <div class="flex items-start justify-between py-4 gap-4">
                                     <div class="flex flex-col">
@@ -468,13 +464,24 @@ pub fn NewCollectionForm() -> impl IntoView {
                                             }
                                         }
                                         "images" => {
+                                            dotenv::dotenv().ok();
+                                            let asset_canister_id = dotenv!("ASSET_CANISTER_ID")
+                                                .to_string();
+                                            let asset_proxy_canister_id = dotenv!(
+                                                "ASSET_PROXY_CANISTER_ID"
+                                            )
+                                                .to_string();
                                             view! {
+                                                // Load environment variables from .env file
+
+                                                // Wrap asset_canister_id and asset_proxy_canister_id in Rc<String>
+
                                                 <div>
                                                     <ImagesInfo
                                                         data=images_info_data
                                                         absolute_logo_path=false
-                                                        upload_canister_id="your_upload_canister_id".to_string()
-                                                        asset_canister_id="your_asset_canister_id".to_string()
+                                                        upload_canister_id=asset_canister_id
+                                                        asset_canister_id=asset_proxy_canister_id
                                                     />
                                                 </div>
                                             }
