@@ -1,4 +1,5 @@
 extern crate console_error_panic_hook;
+use crate::admin_routes::{Admin, ProtectedRoute};
 use crate::state::auth::AuthService;
 use crate::state::canisters::Canisters;
 use crate::stores::{agent::AgentProvider, auth_client::AuthClientProvider};
@@ -10,8 +11,7 @@ use leptos_router::{Route, Router, Routes};
 use pages::{
     admin::{
         auth::AdminComponent, collection_list::CollectionListPage,
-        new_collection::NewCollectionForm,
-        manage_collection::ManageCollectionPage
+        manage_collection::ManageCollectionPage, new_collection::NewCollectionForm,
     },
     collection_detail::CollectionDetail,
     collections::Collections,
@@ -19,6 +19,7 @@ use pages::{
 };
 use std::cell::RefCell;
 use std::rc::Rc;
+mod admin_routes;
 mod canister;
 mod components;
 mod consts;
@@ -37,9 +38,14 @@ fn App() -> impl IntoView {
                     <Route path="/collections" view=Collections />
                     <Route path="/collections/:token_id/:asset_id" view=CollectionDetail />
                     <Route path="/admin" view=AdminComponent />
+                    // <Route path="" view=Admin>
+                    // <Route path="" view=ProtectedRoute>
                     <Route path="/admin/new-collection" view=NewCollectionForm />
                     <Route path="/admin/manage/list" view=CollectionListPage />
                     <Route path="/admin/manage/:id" view=ManageCollectionPage />
+                // </Route>
+                // </Route>
+                // </Route>
                 </Routes>
             </main>
         </Router>
