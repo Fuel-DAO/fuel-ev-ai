@@ -42,6 +42,7 @@ impl Canisters {
         let agent_ref: &Agent = &self.agent;
         Token(canister_id, agent_ref)
     }
+
     pub fn asset_manager(&self) -> AssetManager<'_> {
         dotenv::dotenv().ok();
         let asset_canister_id = Principal::from_text(dotenv!("ASSET_CANISTER_ID")).unwrap();

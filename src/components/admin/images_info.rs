@@ -1,10 +1,11 @@
+// images_info.rs
+
 use crate::state::asset_manager::AssetManager;
 use crate::state::canisters::Canisters;
 use candid::Principal;
 use gloo::file::futures::read_as_bytes;
 use gloo_file::Blob;
 use leptos::*;
-use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::JsCast;
 use web_sys::{Event, HtmlInputElement};
@@ -22,35 +23,42 @@ pub fn ImagesInfo(
     upload_canister_id: String,
     asset_canister_id: String,
 ) -> impl IntoView {
-    let canisters_resource =
-        use_context::<Rc<RefCell<Canisters>>>().expect("Canisters not provided");
-    let loading =
-        use_context::<ReadSignal<bool>>().unwrap_or_else(|| create_rw_signal(false).read_only());
+    // Access the Canisters context as RwSignal<Option<Rc<Canisters>>>
+    let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
+        .expect("Canisters ReadWriteSignal must be provided");
 
+    // Local signals for upload state
     let uploading = create_rw_signal(false);
     let uploading_progress = create_rw_signal(0);
     let error_asset = create_rw_signal(false);
     let error_logo = create_rw_signal(false);
+    let error_message = create_rw_signal(String::new());
 
-    let disabled = move || uploading.get() || loading.get();
+    // Determine if input elements should be disabled
+    let disabled = move || uploading.get();
 
+    // Handler for file selection (upload)
     let on_select = {
         let uploading = uploading.clone();
         let uploading_progress = uploading_progress.clone();
         let data = data.clone();
         let error_asset = error_asset.clone();
         let error_logo = error_logo.clone();
-        let canisters_resource = canisters_resource.clone();
+        let error_message = error_message.clone();
+        let canisters_signal = canisters_signal.clone();
         let upload_canister_id = upload_canister_id.clone();
         let asset_canister_id = asset_canister_id.clone();
 
         Rc::new(move |event: Event, file_type: &'static str| {
+            // Reset error states based on file type
             if file_type == "logo" {
                 error_logo.set(false);
             } else {
                 error_asset.set(false);
             }
+            error_message.set(String::new());
 
+            // Extract the file input element
             let input = match event.target() {
                 Some(target) => match target.dyn_into::<HtmlInputElement>() {
                     Ok(input) => input,
@@ -59,6 +67,7 @@ pub fn ImagesInfo(
                 None => return,
             };
 
+            // Retrieve the selected file
             let files = input.files();
             if files.is_none() {
                 uploading.set(false);
@@ -76,55 +85,48 @@ pub fn ImagesInfo(
                     return;
                 }
             };
+
             uploading.set(true);
             uploading_progress.set(0);
             let blob = Blob::from(file.clone());
 
-            let canisters_resource = canisters_resource.clone();
+            // Clone necessary variables for async task
+            let canisters_signal = canisters_signal.clone();
             let uploading = uploading.clone();
             let uploading_progress = uploading_progress.clone();
             let data = data.clone();
             let error_asset = error_asset.clone();
             let error_logo = error_logo.clone();
+            let error_message = error_message.clone();
             let upload_canister_id = upload_canister_id.clone();
             let asset_canister_id = asset_canister_id.clone();
 
+            // Perform the upload asynchronously
             spawn_local(async move {
-                let canisters = canisters_resource.borrow();
-                let agent = &canisters.agent;
-                let upload_principal = match Principal::from_text(&upload_canister_id) {
-                    Ok(principal) => principal,
-                    Err(_) => {
-                        log::error!("Invalid upload canister ID");
-                        if file_type == "logo" {
-                            error_logo.set(true);
-                        } else {
-                            error_asset.set(true);
-                        }
-                        uploading.set(false);
-                        return;
+                // Check if canisters are available
+                let canisters_option = canisters_signal.get();
+                if canisters_option.is_none() {
+                    log::error!("Canisters not available.");
+                    error_message.set("Canisters not available.".to_string());
+                    if file_type == "logo" {
+                        error_logo.set(true);
+                    } else {
+                        error_asset.set(true);
                     }
-                };
-                let asset_principal = match Principal::from_text(&asset_canister_id) {
-                    Ok(principal) => principal,
-                    Err(_) => {
-                        log::error!("Invalid asset canister ID");
-                        if file_type == "logo" {
-                            error_logo.set(true);
-                        } else {
-                            error_asset.set(true);
-                        }
-                        uploading.set(false);
-                        return;
-                    }
-                };
-                let manager = AssetManager::new(upload_principal, asset_principal, agent);
+                    uploading.set(false);
+                    return;
+                }
+                let canisters = canisters_option.unwrap();
 
+                let manager = canisters.asset_manager();
+
+                // Read the file data
                 let file_name = file.name();
                 let file_data = match read_as_bytes(&blob).await {
                     Ok(bytes) => bytes,
                     Err(e) => {
                         log::error!("Failed to read file data: {:?}", e);
+                        error_message.set("Failed to read file data.".to_string());
                         if file_type == "logo" {
                             error_logo.set(true);
                         } else {
@@ -135,6 +137,7 @@ pub fn ImagesInfo(
                     }
                 };
 
+                // Upload the file
                 match manager.store(file_data, file_name.clone()).await {
                     Ok(url) => {
                         if file_type == "logo" {
@@ -146,6 +149,7 @@ pub fn ImagesInfo(
                     }
                     Err(e) => {
                         log::error!("Upload failed: {}", e);
+                        error_message.set(format!("Upload failed: {}", e));
                         if file_type == "logo" {
                             error_logo.set(true);
                         } else {
@@ -160,11 +164,13 @@ pub fn ImagesInfo(
         }) as Rc<dyn Fn(Event, &'static str) + 'static>
     };
 
+    // Handler for removing images or logo
     let remove_image = {
         let data = data.clone();
         let error_asset = error_asset.clone();
         let error_logo = error_logo.clone();
-        let canisters_resource = canisters_resource.clone();
+        let error_message = error_message.clone();
+        let canisters_signal = canisters_signal.clone();
         let upload_canister_id = upload_canister_id.clone();
         let asset_canister_id = asset_canister_id.clone();
 
@@ -172,40 +178,30 @@ pub fn ImagesInfo(
             let data = data.clone();
             let error_asset = error_asset.clone();
             let error_logo = error_logo.clone();
-            let canisters_resource = canisters_resource.clone();
+            let error_message = error_message.clone();
+            let canisters_signal = canisters_signal.clone();
             let upload_canister_id = upload_canister_id.clone();
             let asset_canister_id = asset_canister_id.clone();
             let file_type = file_type.to_string();
 
             spawn_local(async move {
-                let canisters = canisters_resource.borrow();
-                let agent = &canisters.agent;
-                let upload_principal = match Principal::from_text(&upload_canister_id) {
-                    Ok(principal) => principal,
-                    Err(_) => {
-                        log::error!("Invalid upload canister ID");
-                        if file_type == "logo" {
-                            error_logo.set(true);
-                        } else {
-                            error_asset.set(true);
-                        }
-                        return;
+                // Check if canisters are available
+                let canisters_option = canisters_signal.get();
+                if canisters_option.is_none() {
+                    log::error!("Canisters not available.");
+                    error_message.set("Canisters not available.".to_string());
+                    if file_type == "logo" {
+                        error_logo.set(true);
+                    } else {
+                        error_asset.set(true);
                     }
-                };
-                let asset_principal = match Principal::from_text(&asset_canister_id) {
-                    Ok(principal) => principal,
-                    Err(_) => {
-                        log::error!("Invalid asset canister ID");
-                        if file_type == "logo" {
-                            error_logo.set(true);
-                        } else {
-                            error_asset.set(true);
-                        }
-                        return;
-                    }
-                };
-                let manager = AssetManager::new(upload_principal, asset_principal, agent);
+                    return;
+                }
+                let canisters = canisters_option.unwrap();
 
+                let manager = canisters.asset_manager();
+
+                // Delete the asset
                 match manager.delete(path.clone()).await {
                     Ok(_) => {
                         if file_type == "logo" {
@@ -216,6 +212,7 @@ pub fn ImagesInfo(
                     }
                     Err(e) => {
                         log::error!("Deletion failed: {}", e);
+                        error_message.set(format!("Deletion failed: {}", e));
                         if file_type == "logo" {
                             error_logo.set(true);
                         } else {
@@ -227,8 +224,10 @@ pub fn ImagesInfo(
         }) as Rc<dyn Fn(String, &'static str) + 'static>
     };
 
+    // Function to construct the full asset path
     let asset_path = move |path: &str| format!("{}/{}", asset_canister_id, path);
 
+    // Clone necessary variables for rendering
     let data_clone = data.clone();
     let remove_image_clone = remove_image.clone();
     let disabled_clone = disabled.clone();
@@ -257,6 +256,7 @@ pub fn ImagesInfo(
                                         move |_| { (remove_image)(logo_clone.clone(), "logo") }
                                     }
                                     class="bg-white rounded-full flex items-center justify-center w-4 h-4 absolute top-2 right-2"
+                                    aria-label="Remove logo"
                                 >
                                     "X"
                                 </button>
@@ -267,7 +267,7 @@ pub fn ImagesInfo(
                                         asset_path(&logo)
                                     }
                                     class="h-full w-full rounded-md object-contain"
-                                    alt="logo"
+                                    alt="Logo"
                                 />
                             </div>
                         }
@@ -340,19 +340,20 @@ pub fn ImagesInfo(
                                         }
                                     }
                                     class="bg-white rounded-full flex items-center justify-center w-4 h-4 absolute top-2 right-2"
+                                    aria-label=format!("Remove image {}", path_clone)
                                 >
                                     "X"
                                 </button>
                                 <img
                                     src=asset_path(&path_clone)
                                     class="h-full w-full rounded-md object-contain"
-                                    alt=format!("image {}", path_clone)
+                                    alt=format!("Image {}", path_clone)
                                 />
                             </div>
                         }
                     }
                 </For>
-                <Show when=move || data.get().images.is_empty() fallback=|| ()>
+                <Show when=move || data.get().images.is_empty()>
                     <div class="flex flex-1 text-sm items-center justify-center">
                         "No images added yet"
                     </div>
@@ -391,6 +392,10 @@ pub fn ImagesInfo(
                     />
                 </label>
             </div>
+
+            <Show when=move || !error_message.get().is_empty()>
+                <div class="text-red-500 text-sm mt-2">{error_message.get()}</div>
+            </Show>
         </div>
     }
 }
