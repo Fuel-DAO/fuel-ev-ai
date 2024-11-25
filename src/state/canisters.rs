@@ -49,7 +49,7 @@ impl Canisters {
         let asset_proxy_canister_id =
             Principal::from_text(dotenv!("ASSET_PROXY_CANISTER_ID")).unwrap();
 
-        AssetManager::new(asset_proxy_canister_id, asset_canister_id, &self.agent)
+        AssetManager::new(asset_proxy_canister_id, &self.agent)
     }
 }
 

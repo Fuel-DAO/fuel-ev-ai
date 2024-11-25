@@ -113,7 +113,7 @@ pub fn DocumentsInfo(documents: RwSignal<Vec<(String, String)>>) -> impl IntoVie
                 };
 
                 // Initialize the AssetManager
-                let manager = AssetManager::new(upload_principal.clone(), upload_principal, agent); // Adjust if different
+                let manager = AssetManager::new(upload_principal, agent); // Adjust if different
 
                 // Read the file data
                 let file_name = file.name();
@@ -182,7 +182,7 @@ pub fn DocumentsInfo(documents: RwSignal<Vec<(String, String)>>) -> impl IntoVie
                 };
 
                 // Initialize the AssetManager
-                let manager = AssetManager::new(upload_principal.clone(), upload_principal, agent); // Adjust if different
+                let manager = AssetManager::new(upload_principal, agent); // Adjust if different
 
                 // Delete the document
                 match manager.delete(name.clone()).await {

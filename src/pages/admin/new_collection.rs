@@ -59,12 +59,7 @@ pub fn NewCollectionForm() -> impl IntoView {
     let documents = create_rw_signal(Vec::<(String, String)>::new());
 
     // Images Info Data Signal
-    let images_info_data = create_rw_signal(ImagesInfoData {
-        images: vec![
-            "https://plus.unsplash.com/premium_photo-1664303847960-586318f59035?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D".to_string(),
-        ],
-        logo: "https://plus.unsplash.com/premium_photo-1664303847960-586318f59035?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D".to_string(),
-    });
+    let images_info_data = create_rw_signal(ImagesInfoData::default());
 
     // ==== Define Additional Signals for Form Handling ====
     let loading = create_rw_signal(false);

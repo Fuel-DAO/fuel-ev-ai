@@ -1,24 +1,33 @@
 // asset_manager.rs
 
 use candid::Principal;
+use candid::{CandidType, Deserialize};
 use candid::{Decode, Encode};
 use ic_agent::Agent;
+use serde::Serialize;
 
 pub struct AssetManager<'a> {
     upload_canister_id: Principal,
-    asset_canister_id: Principal,
+    // asset_canister_id: Principal,
     agent: &'a Agent,
+}
+
+#[derive(Serialize, Deserialize, CandidType)]
+struct StoreResponse {
+    success: bool,
+    key: Option<String>,
+    error: Option<String>,
 }
 
 impl<'a> AssetManager<'a> {
     pub fn new(
         upload_canister_id: Principal,
-        asset_canister_id: Principal,
+        // asset_canister_id: Principal,
         agent: &'a Agent,
     ) -> Self {
         Self {
             upload_canister_id,
-            asset_canister_id,
+            // asset_canister_id,
             agent,
         }
     }
@@ -39,19 +48,30 @@ impl<'a> AssetManager<'a> {
             .map_err(|e| format!("Agent update call failed: {}", e))?;
 
         // Decode the response to extract the URL
-        let url: String = Decode!(response.as_slice(), String)
+        let store_response: StoreResponse = Decode!(response.as_slice(), StoreResponse)
             .map_err(|e| format!("Candid decode error: {}", e))?;
 
-        Ok(url)
+        if store_response.success {
+            if let Some(key) = store_response.key {
+                Ok(key)
+            } else {
+                Err("Store succeeded but no key returned.".to_string())
+            }
+        } else {
+            if let Some(error) = store_response.error {
+                Err(error)
+            } else {
+                Err("Store failed without error message.".to_string())
+            }
+        }
     }
-
     pub async fn delete(&self, url: String) -> Result<(), String> {
         // Encode the URL using Candid
         let args = Encode!(&url).map_err(|e| format!("Candid encode error: {}", e))?;
 
         // Make an update call to the 'delete' method on the asset canister
         self.agent
-            .update(&self.asset_canister_id, "delete")
+            .update(&self.upload_canister_id, "delete")
             .with_arg(args)
             .call_and_wait()
             .await

@@ -1,10 +1,11 @@
 // images_info.rs
-
+use crate::canister::PROVISION_ID;
 use crate::state::asset_manager::AssetManager;
 use crate::state::canisters::Canisters;
 use candid::Principal;
 use gloo::file::futures::read_as_bytes;
 use gloo_file::Blob;
+use leptos::logging::log;
 use leptos::*;
 use std::rc::Rc;
 use wasm_bindgen::JsCast;
@@ -38,6 +39,7 @@ pub fn ImagesInfo(
     let disabled = move || uploading.get();
 
     // Handler for file selection (upload)
+    // Handler for file selection (upload)
     let on_select = {
         let uploading = uploading.clone();
         let uploading_progress = uploading_progress.clone();
@@ -67,7 +69,7 @@ pub fn ImagesInfo(
                 None => return,
             };
 
-            // Retrieve the selected file
+            // Retrieve the selected files
             let files = input.files();
             if files.is_none() {
                 uploading.set(false);
@@ -78,17 +80,9 @@ pub fn ImagesInfo(
                 uploading.set(false);
                 return;
             }
-            let file = match files.get(0) {
-                Some(file) => file,
-                None => {
-                    uploading.set(false);
-                    return;
-                }
-            };
 
             uploading.set(true);
             uploading_progress.set(0);
-            let blob = Blob::from(file.clone());
 
             // Clone necessary variables for async task
             let canisters_signal = canisters_signal.clone();
@@ -120,40 +114,51 @@ pub fn ImagesInfo(
 
                 let manager = canisters.asset_manager();
 
-                // Read the file data
-                let file_name = file.name();
-                let file_data = match read_as_bytes(&blob).await {
-                    Ok(bytes) => bytes,
-                    Err(e) => {
-                        log::error!("Failed to read file data: {:?}", e);
-                        error_message.set("Failed to read file data.".to_string());
-                        if file_type == "logo" {
-                            error_logo.set(true);
-                        } else {
-                            error_asset.set(true);
-                        }
-                        uploading.set(false);
-                        return;
-                    }
-                };
+                // Iterate over each selected file
+                for i in 0..files.length() {
+                    let file = match files.get(i) {
+                        Some(f) => f,
+                        None => continue,
+                    };
 
-                // Upload the file
-                match manager.store(file_data, file_name.clone()).await {
-                    Ok(url) => {
-                        if file_type == "logo" {
-                            data.update(|d| d.logo = url.clone());
-                        } else {
-                            data.update(|d| d.images.push(url.clone()));
+                    let file_name = file.name();
+                    let blob = Blob::from(file.clone());
+
+                    // Read the file data
+                    let file_data = match read_as_bytes(&blob).await {
+                        Ok(bytes) => bytes,
+                        Err(e) => {
+                            log::error!("Failed to read file data: {:?}", e);
+                            error_message.set("Failed to read file data.".to_string());
+                            if file_type == "logo" {
+                                error_logo.set(true);
+                            } else {
+                                error_asset.set(true);
+                            }
+                            continue;
                         }
-                        uploading_progress.set(100);
-                    }
-                    Err(e) => {
-                        log::error!("Upload failed: {}", e);
-                        error_message.set(format!("Upload failed: {}", e));
-                        if file_type == "logo" {
-                            error_logo.set(true);
-                        } else {
-                            error_asset.set(true);
+                    };
+
+                    log!("file_data: {:?}", file_data);
+
+                    // Upload the file
+                    match manager.store(file_data, file_name.clone()).await {
+                        Ok(asset_key) => {
+                            if file_type == "logo" {
+                                data.update(|d| d.logo = asset_key.clone());
+                            } else {
+                                data.update(|d| d.images.push(asset_key.clone()));
+                            }
+                            uploading_progress.set(100);
+                        }
+                        Err(e) => {
+                            log::error!("Upload failed: {}", e);
+                            error_message.set(format!("Upload failed: {}", e));
+                            if file_type == "logo" {
+                                error_logo.set(true);
+                            } else {
+                                error_asset.set(true);
+                            }
                         }
                     }
                 }
@@ -225,7 +230,8 @@ pub fn ImagesInfo(
     };
 
     // Function to construct the full asset path
-    let asset_path = move |path: &str| format!("{}/{}", asset_canister_id, path);
+    // let asset_path = move |path: &str| format!("{}/{}", asset_canister_id, path);
+    let asset_path = move |path: &str| format!("https://{}.icp0.io{}", PROVISION_ID, path);
 
     // Clone necessary variables for rendering
     let data_clone = data.clone();

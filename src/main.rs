@@ -10,12 +10,12 @@ use leptos_router::{Route, Router, Routes};
 use pages::{
     admin::{
         auth::AdminComponent, collection_list::CollectionListPage,
-        new_collection::NewCollectionForm,
-        manage_collection::ManageCollectionPage
+        manage_collection::ManageCollectionPage, new_collection::NewCollectionForm,
     },
     collection_detail::CollectionDetail,
     collections::Collections,
     home::HomePage,
+    login::Login,
 };
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -34,6 +34,8 @@ fn App() -> impl IntoView {
             <main>
                 <Routes>
                     <Route path="/" view=HomePage />
+                    <Route path="/login" view=Login />
+
                     <Route path="/collections" view=Collections />
                     <Route path="/collections/:token_id/:asset_id" view=CollectionDetail />
                     <Route path="/admin" view=AdminComponent />
