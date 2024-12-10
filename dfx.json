@@ -1,0 +1,8 @@
+{
+  "canisters": {
+    "fuel-dao-frontend-rs": {
+      "source": ["dist"],
+      "type": "assets"
+    }
+  }
+}
