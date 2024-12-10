@@ -6,11 +6,11 @@ use crate::{
     state::canisters::Canisters,
 };
 use leptos::*;
-use leptos::*;
 use log;
 use std::rc::Rc;
 use web_sys::window;
 /// Represents the metadata of a form.
+
 
 #[component]
 pub fn CollectionListPage() -> impl IntoView {
@@ -45,7 +45,7 @@ pub fn CollectionListPage() -> impl IntoView {
     // Render the component
     view! {
         <Header2 />
-        <div class="container mx-auto p-4">
+        <div class="container mx-auto p-12">
             <h1 class="text-2xl font-bold mb-4">"Pending Requests"</h1>
             <Suspense fallback=move || {
                 view! { <div>"Loading pending requests..."</div> }
@@ -100,6 +100,7 @@ pub fn CollectionListPage() -> impl IntoView {
                                                                                     class="h-12 w-12 flex-none rounded-full bg-gray-50 object-cover"
                                                                                     src=logo_url.clone()
                                                                                     alt=name.clone()
+
                                                                                 />
                                                                             </div>
                                                                         }
@@ -154,9 +155,9 @@ pub fn CollectionListPage() -> impl IntoView {
                             <div>
                                 <div class="container mx-auto p-4">
                                     <h1 class="text-2xl font-bold mb-4">"Pending Requests"</h1>
+
                                 </div>
-                                <div>"Loading..."</div>
-                            </div>
+                            }
                         }
                     }
                 }}

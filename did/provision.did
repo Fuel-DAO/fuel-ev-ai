@@ -8,7 +8,7 @@ type AddCollectionRequestArg = record {
     drive_type : text;
     purchase_price : nat;
     token : principal;
-    documents : vec Document; // Now uses the named Document type
+    documents : vec record { text; text };
     supply_cap : nat;
     displays : text;
     seating : text;

@@ -1,9 +1,16 @@
+// images_info.rs
+use crate::canister::PROVISION_ID;
+use crate::state::asset_manager::AssetManager;
+use crate::state::canisters::Canisters;
+use candid::Principal;
+use gloo::file::futures::read_as_bytes;
+use gloo_file::Blob;
+use leptos::logging::log;
 use leptos::*;
-use std::sync::Arc;
+use std::rc::Rc;
 use wasm_bindgen::JsCast;
-use web_sys::{Event, FileList};
+use web_sys::{Event, HtmlInputElement};
 
-// Define the data structure for ImagesInfoData
 #[derive(Default, Debug, Clone)]
 pub struct ImagesInfoData {
     pub images: Vec<String>,
@@ -17,49 +24,52 @@ pub fn ImagesInfo(
     upload_canister_id: String,
     asset_canister_id: String,
 ) -> impl IntoView {
-    // Wrap IDs in Arc for cloning
-    let upload_canister_id = Arc::new(upload_canister_id);
-    let asset_canister_id = Arc::new(asset_canister_id);
+    // Access the Canisters context as RwSignal<Option<Rc<Canisters>>>
+    let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
+        .expect("Canisters ReadWriteSignal must be provided");
 
-    // Access the loading state from context
-    let loading =
-        use_context::<ReadSignal<bool>>().unwrap_or_else(|| create_rw_signal(false).read_only());
-    // State variables
+    // Local signals for upload state
     let uploading = create_rw_signal(false);
     let uploading_progress = create_rw_signal(0);
     let error_asset = create_rw_signal(false);
     let error_logo = create_rw_signal(false);
-    // Images Info Data Signal
-    let images_info_data = create_rw_signal(ImagesInfoData {
-    images: vec![
-        "https://plus.unsplash.com/premium_photo-1664303847960-586318f59035?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D".to_string(),
-    ],
-    logo: "https://plus.unsplash.com/premium_photo-1664303847960-586318f59035?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D".to_string(),
-});
+    let error_message = create_rw_signal(String::new());
 
-    // Computed signal for disabled state
-    let disabled = Arc::new(move || uploading.get() || loading.get())
-        as Arc<dyn Fn() -> bool + Send + Sync + 'static>;
+    // Determine if input elements should be disabled
+    let disabled = move || uploading.get();
 
-    // Event handler for file selection
+    // Handler for file selection (upload)
+    // Handler for file selection (upload)
     let on_select = {
         let uploading = uploading.clone();
         let uploading_progress = uploading_progress.clone();
         let data = data.clone();
         let error_asset = error_asset.clone();
         let error_logo = error_logo.clone();
-        let upload_canister_id = Arc::clone(&upload_canister_id);
-        Arc::new(move |event: Event, file_type: &'static str| {
+        let error_message = error_message.clone();
+        let canisters_signal = canisters_signal.clone();
+        let upload_canister_id = upload_canister_id.clone();
+        let asset_canister_id = asset_canister_id.clone();
+
+        Rc::new(move |event: Event, file_type: &'static str| {
+            // Reset error states based on file type
             if file_type == "logo" {
                 error_logo.set(false);
             } else {
                 error_asset.set(false);
             }
+            error_message.set(String::new());
 
-            let input = event
-                .target()
-                .unwrap()
-                .unchecked_into::<web_sys::HtmlInputElement>();
+            // Extract the file input element
+            let input = match event.target() {
+                Some(target) => match target.dyn_into::<HtmlInputElement>() {
+                    Ok(input) => input,
+                    Err(_) => return,
+                },
+                None => return,
+            };
+
+            // Retrieve the selected files
             let files = input.files();
             if files.is_none() {
                 uploading.set(false);
@@ -70,100 +80,164 @@ pub fn ImagesInfo(
                 uploading.set(false);
                 return;
             }
-            let file = files.get(0).unwrap();
+
             uploading.set(true);
             uploading_progress.set(0);
-            upload_file(
-                file,
-                file_type.to_string(),
-                uploading.clone(),
-                uploading_progress.clone(),
-                data.clone(),
-                error_asset.clone(),
-                error_logo.clone(),
-                Arc::clone(&upload_canister_id),
-            );
-            // Clear the input value
-            input.set_value("");
-        }) as Arc<dyn Fn(Event, &'static str) + Send + Sync + 'static>
+
+            // Clone necessary variables for async task
+            let canisters_signal = canisters_signal.clone();
+            let uploading = uploading.clone();
+            let uploading_progress = uploading_progress.clone();
+            let data = data.clone();
+            let error_asset = error_asset.clone();
+            let error_logo = error_logo.clone();
+            let error_message = error_message.clone();
+            let upload_canister_id = upload_canister_id.clone();
+            let asset_canister_id = asset_canister_id.clone();
+
+            // Perform the upload asynchronously
+            spawn_local(async move {
+                // Check if canisters are available
+                let canisters_option = canisters_signal.get();
+                if canisters_option.is_none() {
+                    log::error!("Canisters not available.");
+                    error_message.set("Canisters not available.".to_string());
+                    if file_type == "logo" {
+                        error_logo.set(true);
+                    } else {
+                        error_asset.set(true);
+                    }
+                    uploading.set(false);
+                    return;
+                }
+                let canisters = canisters_option.unwrap();
+
+                let manager = canisters.asset_manager();
+
+                // Iterate over each selected file
+                for i in 0..files.length() {
+                    let file = match files.get(i) {
+                        Some(f) => f,
+                        None => continue,
+                    };
+
+                    let file_name = file.name();
+                    let blob = Blob::from(file.clone());
+
+                    // Read the file data
+                    let file_data = match read_as_bytes(&blob).await {
+                        Ok(bytes) => bytes,
+                        Err(e) => {
+                            log::error!("Failed to read file data: {:?}", e);
+                            error_message.set("Failed to read file data.".to_string());
+                            if file_type == "logo" {
+                                error_logo.set(true);
+                            } else {
+                                error_asset.set(true);
+                            }
+                            continue;
+                        }
+                    };
+
+                    log!("file_data: {:?}", file_data);
+
+                    // Upload the file
+                    match manager.store(file_data, file_name.clone()).await {
+                        Ok(asset_key) => {
+                            if file_type == "logo" {
+                                data.update(|d| d.logo = asset_key.clone());
+                            } else {
+                                data.update(|d| d.images.push(asset_key.clone()));
+                            }
+                            uploading_progress.set(100);
+                        }
+                        Err(e) => {
+                            log::error!("Upload failed: {}", e);
+                            error_message.set(format!("Upload failed: {}", e));
+                            if file_type == "logo" {
+                                error_logo.set(true);
+                            } else {
+                                error_asset.set(true);
+                            }
+                        }
+                    }
+                }
+
+                uploading.set(false);
+                input.set_value("");
+            });
+        }) as Rc<dyn Fn(Event, &'static str) + 'static>
     };
 
-    // Function to handle file upload
-    fn upload_file(
-        file: web_sys::File,
-        file_type: String,
-        uploading: RwSignal<bool>,
-        uploading_progress: RwSignal<u32>,
-        data: RwSignal<ImagesInfoData>,
-        error_asset: RwSignal<bool>,
-        error_logo: RwSignal<bool>,
-        upload_canister_id: Arc<String>,
-    ) {
-        spawn_local(async move {
-            // Implement your actual upload logic here.
-            // For this example, we'll simulate an upload with a delay.
-            use gloo_timers::future::TimeoutFuture;
-            for i in 1..=100 {
-                uploading_progress.set(i);
-                TimeoutFuture::new(20).await;
-            }
-
-            // Simulate successful upload
-            let res = format!("uploaded_file_url_{}", file.name());
-            if file_type == "images" {
-                data.update(|d| {
-                    d.images.push(res.clone());
-                });
-            } else {
-                data.update(|d| {
-                    d.logo = res.clone();
-                });
-            }
-            uploading.set(false);
-        });
-    }
-
-    // Function to remove an image
+    // Handler for removing images or logo
     let remove_image = {
         let data = data.clone();
-        let upload_canister_id = Arc::clone(&upload_canister_id);
-        Arc::new(move |path: String, file_type: &'static str| {
+        let error_asset = error_asset.clone();
+        let error_logo = error_logo.clone();
+        let error_message = error_message.clone();
+        let canisters_signal = canisters_signal.clone();
+        let upload_canister_id = upload_canister_id.clone();
+        let asset_canister_id = asset_canister_id.clone();
+
+        Rc::new(move |path: String, file_type: &'static str| {
             let data = data.clone();
-            let upload_canister_id = Arc::clone(&upload_canister_id);
+            let error_asset = error_asset.clone();
+            let error_logo = error_logo.clone();
+            let error_message = error_message.clone();
+            let canisters_signal = canisters_signal.clone();
+            let upload_canister_id = upload_canister_id.clone();
+            let asset_canister_id = asset_canister_id.clone();
+            let file_type = file_type.to_string();
+
             spawn_local(async move {
-                // Implement your actual delete logic here.
-                // For this example, we'll simulate deletion with a delay.
-                use gloo_timers::future::TimeoutFuture;
-                TimeoutFuture::new(500).await;
-
-                if file_type == "logo" {
-                    data.update(|d| {
-                        d.logo.clear();
-                    });
-                } else {
-                    data.update(|d| {
-                        d.images.retain(|img| img != &path);
-                    });
+                // Check if canisters are available
+                let canisters_option = canisters_signal.get();
+                if canisters_option.is_none() {
+                    log::error!("Canisters not available.");
+                    error_message.set("Canisters not available.".to_string());
+                    if file_type == "logo" {
+                        error_logo.set(true);
+                    } else {
+                        error_asset.set(true);
+                    }
+                    return;
                 }
-                // Simulate deletion from server
+                let canisters = canisters_option.unwrap();
+
+                let manager = canisters.asset_manager();
+
+                // Delete the asset
+                match manager.delete(path.clone()).await {
+                    Ok(_) => {
+                        if file_type == "logo" {
+                            data.update(|d| d.logo.clear());
+                        } else {
+                            data.update(|d| d.images.retain(|img| img != &path));
+                        }
+                    }
+                    Err(e) => {
+                        log::error!("Deletion failed: {}", e);
+                        error_message.set(format!("Deletion failed: {}", e));
+                        if file_type == "logo" {
+                            error_logo.set(true);
+                        } else {
+                            error_asset.set(true);
+                        }
+                    }
+                }
             });
-        }) as Arc<dyn Fn(String, &'static str) + Send + Sync + 'static>
+        }) as Rc<dyn Fn(String, &'static str) + 'static>
     };
 
-    // Function to get asset path
-    let asset_path = {
-        let asset_canister_id = Arc::clone(&asset_canister_id);
-        Arc::new(move |path: &str| {
-            // Implement your logic to generate the asset path
-            format!("{}/{}", asset_canister_id, path)
-        }) as Arc<dyn Fn(&str) -> String + Send + Sync + 'static>
-    };
+    // Function to construct the full asset path
+    // let asset_path = move |path: &str| format!("{}/{}", asset_canister_id, path);
+    let asset_path = move |path: &str| format!("https://{}.icp0.io{}", PROVISION_ID, path);
 
-    // Clone variables before the closure
+    // Clone necessary variables for rendering
     let data_clone = data.clone();
-    let remove_image_clone = Arc::clone(&remove_image);
-    let disabled_clone = Arc::clone(&disabled);
-    let asset_path_clone = Arc::clone(&asset_path);
+    let remove_image_clone = remove_image.clone();
+    let disabled_clone = disabled.clone();
+    let asset_path_clone = asset_path.clone();
     let absolute_logo_path_clone = absolute_logo_path;
 
     view! {
@@ -171,36 +245,35 @@ pub fn ImagesInfo(
             <span class="text-sm font-medium leading-6 text-gray-900 mt-8">"Thumbnail/Logo:"</span>
             <div class="h-[14rem] w-[14rem] p-2 border rounded relative">
                 {move || {
-                    let data = data_clone.clone();
-                    let remove_image = Arc::clone(&remove_image_clone);
-                    let disabled = Arc::clone(&disabled_clone);
-                    let asset_path = Arc::clone(&asset_path_clone);
+                    let data = data_clone.get();
+                    let remove_image = remove_image_clone.clone();
+                    let disabled = disabled_clone();
+                    let asset_path = asset_path_clone.clone();
                     let absolute_logo_path = absolute_logo_path_clone;
-                    if !data.get().logo.is_empty() {
-                        let logo = data.get().logo.clone();
-                        let logo_clone = logo.clone();
+                    if !data.logo.is_empty() {
+                        let logo = data.logo.clone();
                         view! {
                             <div>
                                 <button
-                                    disabled=disabled()
+                                    disabled=disabled
                                     on:click={
-                                        let remove_image_clone = Arc::clone(&remove_image);
-                                        let logo_clone_inner = logo_clone.clone();
-                                        move |_| {
-                                            let logo = logo_clone_inner.clone();
-                                            (remove_image_clone)(logo, "logo")
-                                        }
+                                        let remove_image = remove_image.clone();
+                                        let logo_clone = logo.clone();
+                                        move |_| { (remove_image)(logo_clone.clone(), "logo") }
                                     }
                                     class="bg-white rounded-full flex items-center justify-center w-4 h-4 absolute top-2 right-2"
-                                ></button>
+                                    aria-label="Remove logo"
+                                >
+                                    "X"
+                                </button>
                                 <img
                                     src=if absolute_logo_path {
-                                        logo_clone.clone()
+                                        logo.clone()
                                     } else {
-                                        logo_clone
+                                        asset_path(&logo)
                                     }
                                     class="h-full w-full rounded-md object-contain"
-                                    alt="logo"
+                                    alt="Logo"
                                 />
                             </div>
                         }
@@ -213,6 +286,7 @@ pub fn ImagesInfo(
                     }
                 }}
             </div>
+
             <div class="mt-4 flex flex-col gap-2">
                 <label class=move || {
                     format!(
@@ -235,9 +309,9 @@ pub fn ImagesInfo(
                     </div>
 
                     <input
-                        // disabled=disabled_clone()
+                        disabled=disabled()
                         on:change={
-                            let on_select_clone = Arc::clone(&on_select);
+                            let on_select_clone = on_select.clone();
                             move |e| (on_select_clone)(e, "logo")
                         }
                         type="file"
@@ -246,49 +320,52 @@ pub fn ImagesInfo(
                     />
                 </label>
             </div>
+
             <span class="text-sm font-medium leading-6 text-gray-900">"Images:"</span>
             <div class="h-[14rem] border rounded p-2 items-center w-full overflow-hidden overflow-x-auto flex gap-2">
                 <For each=move || data.get().images.clone() key=|path| path.clone() let:path>
                     {
-                        let remove_image_clone = Arc::clone(&remove_image);
-                        let disabled_clone = Arc::clone(&disabled);
-                        let asset_path_clone = Arc::clone(&asset_path);
-                        let uploading_clone = uploading.clone();
+                        let remove_image_clone = remove_image.clone();
+                        let disabled_clone = disabled.clone();
+                        let asset_path_clone = asset_path.clone();
                         let path_clone = path.clone();
                         view! {
                             <div class=move || {
                                 format!(
                                     "p-1 shrink-0 border rounded-md w-52 h-52 relative transition-opacity {}",
-                                    if uploading_clone.get() { "opacity-50" } else { "" },
+                                    if uploading.get() { "opacity-50" } else { "" },
                                 )
                             }>
                                 <button
-                                    // disabled=disabled_clone()
+                                    disabled=disabled_clone()
                                     on:click={
-                                        let remove_image_clone = Arc::clone(&remove_image_clone);
+                                        let remove_image_clone = remove_image_clone.clone();
                                         let path_clone_inner = path_clone.clone();
                                         move |_| {
-                                            let path = path_clone_inner.clone();
-                                            (remove_image_clone)(path, "images")
+                                            (remove_image_clone)(path_clone_inner.clone(), "images")
                                         }
                                     }
                                     class="bg-white rounded-full flex items-center justify-center w-4 h-4 absolute top-2 right-2"
-                                ></button>
+                                    aria-label=format!("Remove image {}", path_clone)
+                                >
+                                    "X"
+                                </button>
                                 <img
-                                    src=&path_clone
+                                    src=asset_path(&path_clone)
                                     class="h-full w-full rounded-md object-contain"
-                                    alt=&format!("image {}", path_clone)
+                                    alt=format!("Image {}", path_clone)
                                 />
                             </div>
                         }
                     }
                 </For>
-                <Show when=move || data.get().images.is_empty() fallback=|| ()>
+                <Show when=move || data.get().images.is_empty()>
                     <div class="flex flex-1 text-sm items-center justify-center">
                         "No images added yet"
                     </div>
                 </Show>
             </div>
+
             <div class="mt-4 flex flex-col gap-2">
                 <label class=move || {
                     format!(
@@ -309,17 +386,22 @@ pub fn ImagesInfo(
                     </div>
 
                     <input
-                        // disabled=disabled_clone()
+                        disabled=disabled()
                         on:change={
-                            let on_select_clone = Arc::clone(&on_select);
+                            let on_select_clone = on_select.clone();
                             move |e| (on_select_clone)(e, "images")
                         }
                         type="file"
                         accept="image/*"
+                        multiple=true
                         class="sr-only"
                     />
                 </label>
             </div>
+
+            <Show when=move || !error_message.get().is_empty()>
+                <div class="text-red-500 text-sm mt-2">{error_message.get()}</div>
+            </Show>
         </div>
     }
 }
