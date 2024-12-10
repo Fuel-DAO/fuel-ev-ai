@@ -81,6 +81,28 @@ pub fn AdminComponent() -> impl IntoView {
                                     <div class="text-sm">
                                         {"user: "}
                                         {principal().map(|p| p.to_text()).unwrap_or_default()}
+                                        <div class="flex flex-col items-center justify-center mt-4 gap-4">
+                                            <a
+                                                href="/admin/new-collection"
+                                                role="presentation"
+                                                class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30 "
+                                            >
+                                                <div class=" transition-opacity">
+                                                    Submit a new collection
+                                                </div>
+                                            </a>
+
+                                            <div class="text-sm text-gray-400">or</div>
+                                            <a
+                                                href="/admin/manage/list"
+                                                role="presentation"
+                                                class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30 "
+                                            >
+                                                <div class=" transition-opacity">
+                                                    Manage submitted collections
+                                                </div>
+                                            </a>
+                                        </div>
                                     </div>
                                 </>
                             }
@@ -94,6 +116,29 @@ pub fn AdminComponent() -> impl IntoView {
                                     <div class="text-sm">
                                         {"user: "}
                                         {principal().map(|p| p.to_text()).unwrap_or_default()}
+                                        <div class="flex flex-col mt-4 items-center justify-center gap-4">
+                                            <a
+                                                href="/admin/new-collection"
+                                                role="presentation"
+                                                class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30 "
+                                            >
+                                                <div class=" transition-opacity">
+                                                    Submit a new collection
+                                                </div>
+                                            </a>
+
+                                            <div class="text-sm text-gray-400">or</div>
+                                            <a
+                                                href="/admin/manage/list"
+                                                role="presentation"
+                                                class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30 "
+                                            >
+                                                <div class=" transition-opacity">
+                                                    Manage submitted collections
+                                                </div>
+                                            </a>
+                                        </div>
+
                                     </div>
                                 </>
                             }

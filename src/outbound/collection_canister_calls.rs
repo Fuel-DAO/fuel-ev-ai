@@ -1,4 +1,9 @@
-use crate::{canister::token::CollectionMetaData, state::canisters::Canisters};
+use crate::{
+    canister::token::{CollectionMetaData, SaleStatusResponse},
+    state::canisters::Canisters,
+};
+
+use candid::Nat;
 use candid::Principal;
 use ic_agent::AgentError;
 use leptos::expect_context;
@@ -74,6 +79,30 @@ pub async fn get_collection_metadata_from_token_canister(
 
     token_canister
         .get_metadata()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+pub async fn get_total_booked_tokens(
+    canisters: &Canisters,
+    token_canister_id: Principal,
+) -> Result<Nat, String> {
+    let token_canister = canisters.token_canister(token_canister_id).await;
+
+    token_canister
+        .get_total_booked_tokens()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+pub async fn get_sale_status(
+    canisters: &Canisters,
+    token_canister_id: Principal,
+) -> Result<SaleStatusResponse, String> {
+    let token_canister = canisters.token_canister(token_canister_id).await;
+
+    token_canister
+        .get_sale_status()
         .await
         .map_err(|e| e.to_string())
 }
