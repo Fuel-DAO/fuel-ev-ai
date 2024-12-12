@@ -5,11 +5,7 @@ use crate::{
 
 use candid::Nat;
 use candid::Principal;
-use ic_agent::AgentError;
-use leptos::expect_context;
-use leptos::*;
 use serde::{Deserialize, Serialize};
-use std::rc::Rc;
 // Structure to hold both canister IDs
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CollectionId {

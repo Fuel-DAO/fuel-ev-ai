@@ -1,6 +1,5 @@
 // documents_info.rs
 
-use crate::TEMP_ASSET_CANISTER_ID;
 use crate::{canister::ASSET_PROXY_ID, state::asset_manager::*};
 use crate::state::canisters::Canisters;
 use candid::Principal;
