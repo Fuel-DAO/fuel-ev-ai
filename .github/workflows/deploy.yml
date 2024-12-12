@@ -1,7 +1,10 @@
-name: Canisters Deployment
+name: Canisters  Deployment
 
 on:
   push:
+    branches:
+      - main
+  pull_request:
     branches:
       - main
 
