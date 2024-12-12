@@ -6,7 +6,7 @@ pub fn Footer() -> impl IntoView {
         <footer
 	class="flex flex-col items-start py-32 px-8 bg-zinc-800 text-white gap-16"
 >
-	<img src="/public/img/app.svg" alt="FuelEv" class="h-12" />
+	<img src="/public/img/app.svg" alt="FuelEV" class="h-12" />
 	<div
 		class="items-center w-full flex flex-col lg:flex-row border border-white lg:border-l-0 lg:border-r-0"
 	>

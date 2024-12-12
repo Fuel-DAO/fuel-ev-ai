@@ -181,7 +181,7 @@ pub fn NewCollectionForm() -> impl IntoView {
                         wheels: wheels.get() as f64,
                         brochure_url: brochure_url.get(),
                         battery: battery.get(),
-                        price: price.get() ,
+                        price: price.get() * 100_000_000.0 , // To e8s
                         symbol: symbol.get(),
                         treasury: Principal::from_text(&treasury_principal)
                             .expect("Invalid token principal"),

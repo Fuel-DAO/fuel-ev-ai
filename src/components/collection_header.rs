@@ -12,7 +12,7 @@ pub fn CollectionHeader(metadata: GetMetadataRet, collection_id: String) -> impl
     let selected = create_rw_signal( "specifications".to_string());
     let share_link_s =|| { format!("/collections/{}/{}", collection_id, metadata.asset_canister.to_text()) };
     let share_message_s = || {format!("{}
-Take a look at this car at FuelEv!", metadata.name)};
+Take a look at this car at FuelEV!", metadata.name)};
 
 
     // Check if the user is logged in and is the collection owner
