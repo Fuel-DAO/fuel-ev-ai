@@ -1,14 +1,13 @@
 // canisters.rs
 use crate::canister::provision::Provision;
 use crate::canister::token::Token;
-use crate::canister::PROVISION_ID;
-use dotenv_codegen::dotenv;
+use crate::canister::{ASSET_PROXY_ID, PROVISION_ID};
+use crate::TEMP_ASSET_CANISTER_ID;
 
 use crate::state::asset_manager::AssetManager;
 use crate::state::auth::AuthService;
 use candid::Principal;
 use ic_agent::Agent;
-use leptos::*;
 use std::cell::RefCell;
 use std::cmp::PartialEq;
 use std::rc::Rc;
@@ -45,9 +44,9 @@ impl Canisters {
 
     pub fn asset_manager(&self) -> AssetManager<'_> {
         dotenv::dotenv().ok();
-        let asset_canister_id = Principal::from_text(dotenv!("ASSET_CANISTER_ID")).unwrap();
+        let asset_canister_id = Principal::from_text(TEMP_ASSET_CANISTER_ID).unwrap();
         let asset_proxy_canister_id =
-            Principal::from_text(dotenv!("ASSET_PROXY_CANISTER_ID")).unwrap();
+                ASSET_PROXY_ID;
 
         AssetManager::new(asset_proxy_canister_id, &self.agent)
     }

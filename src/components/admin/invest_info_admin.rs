@@ -1,5 +1,4 @@
 use leptos::*;
-use leptos::prelude::*;
 use crate::canister::token::CollectionMetaData;
 use crate::state::canisters::Canisters;
 use crate::outbound::accept_or_reject_sale::{accept_sale, reject_sale};

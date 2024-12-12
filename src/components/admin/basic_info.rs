@@ -75,13 +75,13 @@ pub fn BasicInfo(
 
             <label class="w-full">
                 Description
-                <textarea
+                <input
                     placeholder="Enter a description"
                     disabled=move || loading.get()
                     value=description.get()
                     on:input=move |e| description.set(event_target_value(&e))
                     class="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                ></textarea>
+                ></input>
             </label>
         </div>
     }

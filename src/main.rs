@@ -3,7 +3,7 @@ use crate::state::auth::AuthService;
 use crate::state::canisters::Canisters;
 use crate::stores::{agent::AgentProvider, auth_client::AuthClientProvider};
 use leptos::*;
-use leptos_dom::logging::{console_error, console_log};
+use leptos_dom::logging::console_error;
 use leptos_meta::*;
 
 use leptos_router::{Route, Router, Routes};
@@ -17,6 +17,8 @@ use pages::{
     home::HomePage,
     login::Login,
 };
+pub mod constants;
+pub use constants::TEMP_ASSET_CANISTER_ID;
 use std::cell::RefCell;
 use std::rc::Rc;
 mod canister;

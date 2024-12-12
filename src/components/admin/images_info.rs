@@ -1,7 +1,8 @@
 // images_info.rs
 use crate::canister::PROVISION_ID;
-use crate::state::asset_manager::AssetManager;
+use crate::state::asset_manager::*;
 use crate::state::canisters::Canisters;
+use crate::TEMP_ASSET_CANISTER_ID;
 use candid::Principal;
 use gloo::file::futures::read_as_bytes;
 use gloo_file::Blob;
@@ -139,17 +140,30 @@ pub fn ImagesInfo(
                         }
                     };
 
-                    log!("file_data: {:?}", file_data);
 
+                let future =  manager.store(StoreArg{key: format!("/{}", &file_name), content: file_data, sha256: None, content_type: "image/png".to_string(), content_encoding: "identity".to_string() });
                     // Upload the file
-                    match manager.store(file_data, file_name.clone()).await {
-                        Ok(asset_key) => {
+                    match future.await {
+                        Ok(ret) => {
+                            match ret {
+    crate::canister::asset_proxy::StoreRet::Ok(_) => {
+        if file_type == "logo" {
+            data.update(|d| d.logo = format!("/{}", &file_name));
+        } else {
+            data.update(|d| d.images.push( format!("/{}", &file_name)));
+        }
+        uploading_progress.set(100);
+    },
+    crate::canister::asset_proxy::StoreRet::Err(e) => {
+        log::error!("Upload failed: {}", e);
+                            error_message.set(format!("Upload failed: {}", e));
                             if file_type == "logo" {
-                                data.update(|d| d.logo = asset_key.clone());
+                                error_logo.set(true);
                             } else {
-                                data.update(|d| d.images.push(asset_key.clone()));
+                                error_asset.set(true);
                             }
-                            uploading_progress.set(100);
+    },
+}
                         }
                         Err(e) => {
                             log::error!("Upload failed: {}", e);
@@ -231,7 +245,7 @@ pub fn ImagesInfo(
 
     // Function to construct the full asset path
     // let asset_path = move |path: &str| format!("{}/{}", asset_canister_id, path);
-    let asset_path = move |path: &str| format!("https://{}.icp0.io{}", PROVISION_ID, path);
+    let asset_path = move |path: &str| format!("https://{}.icp0.io{}", TEMP_ASSET_CANISTER_ID,  &path);
 
     // Clone necessary variables for rendering
     let data_clone = data.clone();
@@ -270,7 +284,7 @@ pub fn ImagesInfo(
                                     src=if absolute_logo_path {
                                         logo.clone()
                                     } else {
-                                        asset_path(&logo)
+                                        asset_path(&logo).to_string()
                                     }
                                     class="h-full w-full rounded-md object-contain"
                                     alt="Logo"

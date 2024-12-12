@@ -1,14 +1,13 @@
 use crate::components::header2::Header2;
 use crate::{
     outbound::get_pending_collection_requests::{
-        fetch_pending_requests_data, CollectionData, CollectionId,
+        fetch_pending_requests_data, CollectionData, 
     },
     state::canisters::Canisters,
 };
 use leptos::*;
 use log;
 use std::rc::Rc;
-use web_sys::window;
 /// Represents the metadata of a form.
 
 
@@ -47,13 +46,44 @@ pub fn CollectionListPage() -> impl IntoView {
         <Header2 />
         <div class="container mx-auto p-12">
             <h1 class="text-2xl font-bold mb-4">"Pending Requests"</h1>
-            <Suspense fallback=move || {
-                view! { <div>"Loading pending requests..."</div> }
-            }>
-                {move || match pending_requests.get() {
+            <Suspense fallback= move||view! { <div>"Loading pending requests..."</div> }>  
+            {move || match pending_requests.get() {
                     Some(Ok(requests)) => {
-                        log::debug!("requests: {:?}", requests);
-                        let filtered_requests = requests
+                        view! {
+                            // Add your filtering logic here
+                            <div>
+                            <CollectionTile requests />
+                            </div>
+                        }
+                    }
+                    Some(Err(e)) => {
+                        view! {
+                            // Display error message within a <div>
+                            <div>{format!("Error fetching pending requests: {}", e)}</div>
+                        }
+                    }
+                    None => {
+                        view! {
+                            // Display loading state within a <div>
+                            <div>
+                                <div class="container mx-auto p-4">
+                                    <h1 class="text-2xl font-bold mb-4">"Pending Requests"</h1>
+
+                                </div>
+                            </div>
+                        }
+                    }
+                }}
+            </Suspense>
+        </div>
+    }
+    
+}
+
+
+#[component]
+fn CollectionTile(requests: Vec<CollectionData> ) -> impl IntoView {
+    let filtered_requests = requests
                             .iter()
                             .filter(|request| { true })
                             .collect::<Vec<_>>();
@@ -98,7 +128,7 @@ pub fn CollectionListPage() -> impl IntoView {
                                                                             <div>
                                                                                 <img
                                                                                     class="h-12 w-12 flex-none rounded-full bg-gray-50 object-cover"
-                                                                                    src=logo_url.clone()
+                                                                                    src=format!("https://{}.icp0.io{}", crate::TEMP_ASSET_CANISTER_ID,logo_url.clone()) 
                                                                                     alt=name.clone()
 
                                                                                 />
@@ -142,26 +172,4 @@ pub fn CollectionListPage() -> impl IntoView {
                                 </ul>
                             </div>
                         }
-                    }
-                    Some(Err(e)) => {
-                        view! {
-                            // Display error message within a <div>
-                            <div>{format!("Error fetching pending requests: {}", e)}</div>
-                        }
-                    }
-                    None => {
-                        view! {
-                            // Display loading state within a <div>
-                            <div>
-                                <div class="container mx-auto p-4">
-                                    <h1 class="text-2xl font-bold mb-4">"Pending Requests"</h1>
-
-                                </div>
-                            }
-                        }
-                    }
-                }}
-            </Suspense>
-        </div>
-    }
 }

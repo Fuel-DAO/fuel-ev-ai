@@ -6,7 +6,11 @@ use candid::{Decode, Encode};
 use ic_agent::Agent;
 use serde::Serialize;
 
+use crate::canister::asset_proxy::{AssetProxy, StoreRet};
+
+
 pub struct AssetManager<'a> {
+   pub asset_proxy_canister: AssetProxy<'a>,
     upload_canister_id: Principal,
     // asset_canister_id: Principal,
     agent: &'a Agent,
@@ -19,6 +23,15 @@ struct StoreResponse {
     error: Option<String>,
 }
 
+#[derive(CandidType, Deserialize, serde::Serialize, Debug, Clone)]
+pub struct StoreArg {
+  pub key: String,
+  pub content: Vec<u8>,
+  pub sha256: Option<Vec<u8>>,
+  pub content_type: String,
+  pub content_encoding: String,
+}
+
 impl<'a> AssetManager<'a> {
     pub fn new(
         upload_canister_id: Principal,
@@ -27,43 +40,17 @@ impl<'a> AssetManager<'a> {
     ) -> Self {
         Self {
             upload_canister_id,
+            asset_proxy_canister: AssetProxy(upload_canister_id, &agent),
             // asset_canister_id,
             agent,
         }
     }
 
     /// Uploads a file to the upload canister and returns its URL.
-    pub async fn store(&self, file_data: Vec<u8>, file_name: String) -> Result<String, String> {
-        // Encode the arguments using Candid
-        let args =
-            Encode!(&file_name, &file_data).map_err(|e| format!("Candid encode error: {}", e))?;
-
-        // Make an update call to the 'store' method on the upload canister
-        let response = self
-            .agent
-            .update(&self.upload_canister_id, "store")
-            .with_arg(args)
-            .call_and_wait()
-            .await
-            .map_err(|e| format!("Agent update call failed: {}", e))?;
-
-        // Decode the response to extract the URL
-        let store_response: StoreResponse = Decode!(response.as_slice(), StoreResponse)
-            .map_err(|e| format!("Candid decode error: {}", e))?;
-
-        if store_response.success {
-            if let Some(key) = store_response.key {
-                Ok(key)
-            } else {
-                Err("Store succeeded but no key returned.".to_string())
-            }
-        } else {
-            if let Some(error) = store_response.error {
-                Err(error)
-            } else {
-                Err("Store failed without error message.".to_string())
-            }
-        }
+    pub async fn store(&self, arg0: StoreArg) -> Result<StoreRet, ic_agent::AgentError> {
+        let args = Encode!(&arg0)?;
+        let bytes = self.agent.update(&self.upload_canister_id, "store").with_arg(args).call_and_wait().await?;
+        Ok(Decode!(&bytes, StoreRet)?)
     }
     pub async fn delete(&self, url: String) -> Result<(), String> {
         // Encode the URL using Candid

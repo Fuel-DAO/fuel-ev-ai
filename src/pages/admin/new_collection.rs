@@ -1,13 +1,14 @@
-use crate::canister::provision::AddCollectionRequestArg;
+use crate::canister::{provision::AddCollectionRequestArg, ASSET_PROXY_ID};
 use crate::components::header2::Header2;
 use crate::outbound::add_collection_canister_calls::add_collection;
 use crate::state::canisters::Canisters;
+use crate::TEMP_ASSET_CANISTER_ID;
 use candid::{Nat, Principal};
-use dotenv_codegen::dotenv;
 use leptos::logging::log;
 use leptos::*;
 use std::rc::Rc;
 use web_sys::MouseEvent;
+
 
 // Import the subcomponents and ImagesInfoData
 use crate::components::admin::{
@@ -16,8 +17,9 @@ use crate::components::admin::{
     documents_info::DocumentsInfo,
     images_info::{ImagesInfo, ImagesInfoData},
 };
-use gloo_timers::future::TimeoutFuture;
-use std::env;
+
+const TOKEN_PRINCIPAL: &str = "ryjl3-tyaaa-aaaaa-aaaba-cai";
+const INDEX_PRINCIPAL: &str = "qhbym-qaaaa-aaaaa-aaafq-cai";
 
 #[component]
 pub fn NewCollectionForm() -> impl IntoView {
@@ -67,8 +69,8 @@ pub fn NewCollectionForm() -> impl IntoView {
     let selected_tab = create_rw_signal("basic".to_string());
 
     // ==== Event Handlers ====
-    let asset_proxy = dotenv!("ASSET_PROXY_CANISTER_ID");
-    let asset_canister = dotenv!("ASSET_PROXY_CANISTER_ID");
+    let asset_proxy =ASSET_PROXY_ID;
+    let asset_canister = Principal::from_text(TEMP_ASSET_CANISTER_ID).unwrap();
     let asset_proxy_canister_id: RwSignal<String> = create_rw_signal(asset_proxy.to_string());
     let asset_canister_id: RwSignal<String> = create_rw_signal(asset_canister.to_string());
     log!("asset_canister_id: {:?}", asset_canister_id.get());
@@ -152,7 +154,7 @@ pub fn NewCollectionForm() -> impl IntoView {
                         weight: weight.get(),
                         drive_type: drive_type.get(),
                         purchase_price: Nat::from(purchase_price.get() as u64),
-                        token: Principal::from_text(&treasury_principal)
+                        token: Principal::from_text(TOKEN_PRINCIPAL)
                             .expect("Invalid token principal"), // Adjust as necessary
                         documents: documents.get(),
                         supply_cap: Nat::from(supply_cap.get() as u64),
@@ -184,8 +186,8 @@ pub fn NewCollectionForm() -> impl IntoView {
                         treasury: Principal::from_text(&treasury_principal)
                             .expect("Invalid token principal"),
                         images: images_info_data.get().images.clone(),
-                        index: Principal::from_text(&treasury_principal)
-                            .expect("Invalid token principal"), // Adjust as necessary
+                        index: Principal::from_text(INDEX_PRINCIPAL)
+                            .expect("Invalid index principal"), // Adjust as necessary
                                                                 // Note: Ensure all required fields are included
                                                                 // If there are more fields in AddCollectionRequestArg, include them here
                     };
