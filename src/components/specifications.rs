@@ -1,5 +1,5 @@
 use leptos::*;
-use crate::canister::token::CollectionMetaData;
+use crate::canister::token::GetMetadataRet;
 // #[derive(Clone, Debug)]
 // pub struct CollectionMetadata {
 //     pub name: Option<String>,
@@ -68,7 +68,7 @@ use crate::canister::token::CollectionMetaData;
 // }
 
 #[component]
-pub fn SpecificationComponent(metadata: CollectionMetaData) -> impl IntoView {
+pub fn SpecificationComponent(metadata: GetMetadataRet) -> impl IntoView {
     // Default values for optional fields
     let description = metadata.description;
 let weight = metadata.weight;

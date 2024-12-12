@@ -2,17 +2,17 @@ use leptos::*;
 use crate::components::specifications::SpecificationComponent;
 use crate::components::collection_info_cards::CollectionInfoCards;
 use crate::components::tabs::Tabs;
-use crate::canister::token::CollectionMetaData;
+use crate::canister::token::GetMetadataRet;
 use crate::utils::share::ShareButtonWithFallbackPopup;
 #[component]
-pub fn CollectionHeader(metadata: CollectionMetaData, collection_id: String) -> impl IntoView {
+pub fn CollectionHeader(metadata: GetMetadataRet, collection_id: String) -> impl IntoView {
 
     // Define tabs and selected tab state
     let tabs = vec!["specifications".to_string(), "documents".to_string()];
     let selected = create_rw_signal( "specifications".to_string());
     let share_link_s =|| { format!("/collection/{}/{}", collection_id, metadata.asset_canister.to_text()) };
     let share_message_s = || {format!("{}
-Take a look at this car at FuelDAO!", metadata.name)};
+Take a look at this car at FuelEv!", metadata.name)};
 
 
     // Check if the user is logged in and is the collection owner

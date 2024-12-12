@@ -6,7 +6,7 @@ use candid::{Decode, Encode};
 use ic_agent::Agent;
 use serde::Serialize;
 
-use crate::canister::asset_proxy::{AssetProxy, StoreRet};
+use crate::canister::asset_proxy::{AssetProxy, Result_, };
 
 
 pub struct AssetManager<'a> {
@@ -47,10 +47,10 @@ impl<'a> AssetManager<'a> {
     }
 
     /// Uploads a file to the upload canister and returns its URL.
-    pub async fn store(&self, arg0: StoreArg) -> Result<StoreRet, ic_agent::AgentError> {
+    pub async fn store(&self, arg0: StoreArg) -> Result<Result_, ic_agent::AgentError> {
         let args = Encode!(&arg0)?;
         let bytes = self.agent.update(&self.upload_canister_id, "store").with_arg(args).call_and_wait().await?;
-        Ok(Decode!(&bytes, StoreRet)?)
+        Ok(Decode!(&bytes, Result_)?)
     }
     pub async fn delete(&self, url: String) -> Result<(), String> {
         // Encode the URL using Candid

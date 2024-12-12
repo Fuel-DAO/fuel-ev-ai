@@ -1,4 +1,4 @@
-use crate::canister::token::{CollectionMetaData, SaleStatusResponse};
+use crate::canister::token::{GetMetadataRet, SaleStatus};
 use crate::outbound::collection_canister_calls::{get_sale_status, get_total_booked_tokens};
 use crate::state::canisters::Canisters;
 use crate::utils::button::ButtonComponent;
@@ -9,13 +9,13 @@ use serde::{Deserialize, Serialize};
 use std::rc::Rc;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct InvestInfoMetaProps {
-    pub metadata: CollectionMetaData,
-    pub status: SaleStatusResponse,
+    pub metadata: GetMetadataRet,
+    pub status: SaleStatus,
     pub booked_tokens: Nat,
 }
 
 #[component]
-pub fn InvestInfo(metadata: CollectionMetaData, token_canister_id: Principal) -> impl IntoView {
+pub fn InvestInfo(metadata: GetMetadataRet, token_canister_id: Principal) -> impl IntoView {
     let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
         .expect("Canisters ReadWriteSignal must be provided");
 
@@ -96,7 +96,7 @@ fn InvenstInfoInner(props: InvestInfoMetaProps, token_canister_id: Principal) ->
 
         // Convert `Nat` to `u128` by parsing from string
         let booked_tokens_u128: u128 = booked_tokens.0.to_string().parse().unwrap_or(0);
-        let price_u128: u128 = metadata_price.0.to_string().parse().unwrap_or(0);
+        let price_u128: u128 = metadata_price.to_string().parse().unwrap_or(0);
 
         let booked_tokens_f64 = booked_tokens_u128 as f64;
         let price_f64 = price_u128 as u64;
@@ -107,7 +107,7 @@ fn InvenstInfoInner(props: InvestInfoMetaProps, token_canister_id: Principal) ->
     let prop_status = props.status.clone();
 
     let is_invest_disabled = move || {
-        &format!("{:?}", prop_status) != &format!("{:?}", SaleStatusResponse::Live)
+        &format!("{:?}", prop_status) != &format!("{:?}", SaleStatus::Live)
             || show_invest_popup.get()
     };
 
@@ -115,7 +115,7 @@ fn InvenstInfoInner(props: InvestInfoMetaProps, token_canister_id: Principal) ->
         <div class="shrink-0 bg-primary rounded-xl flex flex-col text-white gap-3 p-6 shadow-xl h-fit">
             <div class="font-bold text-5xl">
                 {match props.status.clone() {
-                    SaleStatusResponse::Live => "Open",
+                    SaleStatus::Live => "Open",
                     _ => "Closed",
                 }}
 
@@ -135,7 +135,7 @@ fn InvenstInfoInner(props: InvestInfoMetaProps, token_canister_id: Principal) ->
             <div class="text-md font-light">
                 "Funded " {invested_percentage_clone()} "% "
                 {match props.status {
-                    SaleStatusResponse::Live => "till now",
+                    SaleStatus::Live => "till now",
                     _ => "",
                 }}
 

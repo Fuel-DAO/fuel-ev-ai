@@ -1,10 +1,10 @@
 use leptos::*;
 
-use crate::canister::token::CollectionMetaData;
+use crate::canister::token::GetMetadataRet;
 
 #[component]
 pub fn CollectionImages(
-    metadata: CollectionMetaData,
+    metadata: GetMetadataRet,
     asset_can_id: String, // Canister ID for asset paths
 ) -> impl IntoView {
     let placeholder = "/public/icons/placeholder.png".to_string();

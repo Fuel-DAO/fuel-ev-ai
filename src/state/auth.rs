@@ -1,4 +1,3 @@
-use crate::{canister::BACKEND_ID, state::canisters::Canisters};
 use candid::Principal;
 use dotenv_codegen::dotenv;
 use futures::executor::block_on;
@@ -12,6 +11,8 @@ use std::error::Error;
 use std::rc::Rc;
 use std::time::Duration;
 use web_sys::Url;
+
+use crate::canister::PROVISION_ID;
 pub const TIMEOUT: Duration = Duration::from_secs(60 * 5);
 
 #[derive(Clone)]
@@ -38,7 +39,7 @@ impl AuthService {
         let identity_provider: Option<Url> = match dfx_network.as_str() {
             "LOCAL" => Some({
                 let port = 4943;
-                let canister_id = BACKEND_ID;
+                let canister_id = PROVISION_ID;
                 Url::new(&format!("http://{}.localhost:{}", canister_id, port)).unwrap()
             }),
             "LIVE" => Some(Url::new("https://identity.ic0.app/#authorize").unwrap()),

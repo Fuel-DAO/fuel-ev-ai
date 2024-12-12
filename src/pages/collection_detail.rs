@@ -1,10 +1,9 @@
 use candid::Principal;
 use leptos::*;
-
+use crate::canister::token::GetMetadataRet;
 use crate::components::admin::invest_info_admin::ConcludeSaleAdminComponent;
 use crate::state::canisters::Canisters;
 use crate::{
-    canister::token::CollectionMetaData,
     components::{
         collection_header::CollectionHeader, collection_images::CollectionImages, header::Header,
         invest_info::InvestInfo,
@@ -51,7 +50,16 @@ pub fn CollectionDetail() -> impl IntoView {
 
                 // Ensure Canisters is available
                 if let Some(cans_rc) = canisters.get() {
-                    get_collection_metadata_from_token_canister(cans_rc.as_ref(), principal).await
+                    let metadata = get_collection_metadata_from_token_canister(cans_rc.as_ref(), principal).await;
+                    match metadata {
+    Ok(meta) =>  {
+        match meta {
+    crate::canister::token::Result4::Ok(get_metadata_ret) => Ok(get_metadata_ret),
+    crate::canister::token::Result4::Err(e) => Err(e),
+}
+    },
+    Err(e) => Err(e),
+}
                 } else {
                     Err("Canisters not available. Please log in.".to_string())
                 }
@@ -94,7 +102,7 @@ pub fn CollectionDetail() -> impl IntoView {
 }
 
 #[component]
-fn CarDetailPage(metadata: CollectionMetaData) -> impl IntoView {
+fn CarDetailPage(metadata: GetMetadataRet) -> impl IntoView {
     let params = use_params::<CollectionParams>();
 
     let collection_id = params

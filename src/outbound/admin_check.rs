@@ -1,4 +1,4 @@
-use crate::{canister::token::CollectionMetaData, state::canisters::Canisters};
+use crate::{canister::token::GetMetadataRet, state::canisters::Canisters};
 use candid::Principal;
 use leptos::logging::log;
 

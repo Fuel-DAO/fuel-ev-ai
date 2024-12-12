@@ -1,6 +1,6 @@
 use candid::{Nat, Principal};
 use leptos::*;
-use crate::canister::token::{BookTokensArg, CollectionMetaData};
+use crate::canister::token::{BookTokensArg, Metadata};
 use crate::state::{auth::AuthService, canisters::Canisters};
 use crate::stores::auth_client::login;
 use crate::utils::button::ButtonComponent;
@@ -71,12 +71,11 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String) -> impl IntoView
     let current_investment = move || {
         metadata()
             .as_ref()
-            .map_or(0.0, |m: &Option<CollectionMetaData>| {
+            .map_or(0.0, |m:&Option<crate::canister::token::GetMetadataRet>| {
                 from_e8s(
                     m.as_ref()
                         .unwrap()
                         .price
-                        .0
                         .to_string()
                         .parse::<u64>()
                         .unwrap(),
@@ -141,11 +140,17 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String) -> impl IntoView
 
                     // Use `token_canister` directly
                     if let Ok(transfer_to_account) = token_canister.get_escrow_account().await {
-                        let metadata_data = token_canister.get_metadata().await.ok();
+                        let metadata_data = match token_canister.get_metadata().await.ok() {
+    Some(res) => match res {
+    crate::canister::token::Result4::Ok(get_metadata_ret) => Some(get_metadata_ret),
+    crate::canister::token::Result4::Err(_) => None,
+},
+    None => None,
+};
                         let current_investment_data =
                             token_canister.get_booked_tokens(Some(principal)).await;
 
-                        if let Ok(current_investment) = current_investment_data {
+                        if let (Ok(current_investment), crate::canister::token::Result2::Ok(transfer_to_account) ) = (current_investment_data, transfer_to_account) {
                             let token_count = current_investment
                                 .0
                                 .to_string()
@@ -154,13 +159,12 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String) -> impl IntoView
 
                             payment_info.set(PaymentInfo {
                                 loaded: true,
-                                transfer_to: transfer_to_account.accountId,
+                                transfer_to:  transfer_to_account.account_id,
                                 nft_price: metadata_data
                                     .as_ref()
                                     .map(|metadata| {
                                         metadata
                                             .price
-                                            .0
                                             .to_string()
                                             .parse::<u64>()
                                             .unwrap_or_default()
@@ -341,18 +345,19 @@ async fn check_payment_status(
     // Use `actor` directly
     if let Ok(res) = actor
         .book_tokens(BookTokensArg {
-            quantity: Nat::from(nft_to_buy),
+            quantity: nft_to_buy as u32,
         })
         .await
     {
         logging::log!("{:?}", res);
         match res {
-            crate::canister::token::BookTokensRet::Ok(_) => {
+            crate::canister::token::Result_::Ok(_) => {
                 payment_status.set("completed".to_string());
             }
-            crate::canister::token::BookTokensRet::Err(error) => {
+            crate::canister::token::Result_::Err(error) => {
                 payment_error.set(error);
             }
+           
         }
     } else {
         payment_error.set("Failed to book tokens.".to_string());

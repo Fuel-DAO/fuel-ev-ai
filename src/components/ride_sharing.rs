@@ -11,10 +11,10 @@ pub fn DecentralizedRidesharing() -> impl IntoView {
                     "Decentralized Ridesharing"
                 </h2>
                 <p class="mt-4 text-lg md:text-xl text-gray-600">
-                    "FuelDAO is a pioneering decentralized autonomous organization that offers eco-friendly transport services like electric scooter rentals, ride-sharing, and fuel-efficient vehicle leasing. We will be providing quality transport services to clients, starting with Barcelona and the surrounding area."
+                    "FuelEv is a pioneering decentralized autonomous organization that offers eco-friendly transport services like electric scooter rentals, ride-sharing, and fuel-efficient vehicle leasing. We will be providing quality transport services to clients, starting with Mumbai and the surrounding area."
                 </p>
                 <p class="mt-4 text-lg md:text-xl text-gray-600">
-                    "Built by a team that comes with 30+ years combined experience in Web3, FuelDAO aims to make your ride experience clean and simple."
+                    "Built by a team that comes with 30+ years combined experience in Web3, FuelEv aims to make your ride experience clean and simple."
                 </p>
                 
                 // Call-to-Action Button

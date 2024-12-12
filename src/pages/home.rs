@@ -9,7 +9,7 @@ use leptos_meta::Title;
 #[component]
 pub fn HomePage() -> impl IntoView {
     view! {
-        <Title text="FuelDao" />
+        <Title text="FuelEv" />
         <main>
             <Header />
             <HeroSection />

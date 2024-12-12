@@ -1,7 +1,6 @@
-use crate::{
-    canister::token::{CollectionMetaData, SaleStatusResponse},
-    state::canisters::Canisters,
-};
+use crate::canister::token;
+use crate::canister::token::SaleStatus;
+use crate::state::canisters::Canisters;
 
 use candid::Nat;
 use candid::Principal;
@@ -18,7 +17,7 @@ pub struct CollectionData {
     pub id: CollectionId,
     pub name: String,
     pub status: String,
-    pub metadata: Option<CollectionMetaData>,
+    pub metadata: Option<token::GetMetadataRet>,
 }
 
 // Modify the fetch_collections_data function to accept a reference to Canisters
@@ -44,13 +43,26 @@ pub async fn fetch_collections_data(canisters: &Canisters) -> Result<Vec<Collect
             get_collection_metadata_from_token_canister(canisters, collection.token_canister).await;
 
         match collection_meta_data {
-            Ok(metadata) => {
-                collections.push(CollectionData {
-                    id: collection_id.clone(),
-                    name: metadata.name.clone(),
-                    status: "Available".to_string(), // Adjust as needed based on actual status
-                    metadata: Some(metadata),
-                });
+            Ok(metadata)  => {
+                match metadata {
+                    token::Result4::Ok(metadata) => {
+                        collections.push(CollectionData {
+                            id: collection_id.clone(),
+                            name: metadata.name.clone(),
+                            status: "Available".to_string(), // Adjust as needed based on actual status
+                            metadata: Some(metadata),
+                        });
+                    },
+                    token::Result4::Err(e) =>  {
+                        log::error!(
+                            "Failed to fetch metadata for collection {:?}: {}",
+                            collection_id,
+                            e
+                        );
+                    },
+                }
+
+                
             }
             Err(e) => {
                 log::error!(
@@ -70,7 +82,7 @@ pub async fn fetch_collections_data(canisters: &Canisters) -> Result<Vec<Collect
 pub async fn get_collection_metadata_from_token_canister(
     canisters: &Canisters,
     token_canister_id: Principal,
-) -> Result<CollectionMetaData, String> {
+) -> Result<token::Result4, String>{
     let token_canister = canisters.token_canister(token_canister_id).await;
 
     token_canister
@@ -94,7 +106,7 @@ pub async fn get_total_booked_tokens(
 pub async fn get_sale_status(
     canisters: &Canisters,
     token_canister_id: Principal,
-) -> Result<SaleStatusResponse, String> {
+) -> Result<SaleStatus, String> {
     let token_canister = canisters.token_canister(token_canister_id).await;
 
     token_canister

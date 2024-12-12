@@ -1,4 +1,4 @@
-use crate::canister::{provision::AddCollectionRequestArg, ASSET_PROXY_ID};
+use crate::canister::{provision::CollectionRequest, ASSET_PROXY_ID};
 use crate::components::header2::Header2;
 use crate::outbound::add_collection_canister_calls::add_collection;
 use crate::state::canisters::Canisters;
@@ -150,7 +150,7 @@ pub fn NewCollectionForm() -> impl IntoView {
                         }
                     };
 
-                    let collection_data1 = AddCollectionRequestArg {
+                    let collection_data1 = CollectionRequest {
                         weight: weight.get(),
                         drive_type: drive_type.get(),
                         purchase_price: Nat::from(purchase_price.get() as u64),
@@ -181,7 +181,7 @@ pub fn NewCollectionForm() -> impl IntoView {
                         wheels: wheels.get() as f64,
                         brochure_url: brochure_url.get(),
                         battery: battery.get(),
-                        price: Nat::from(price.get() as u64),
+                        price: price.get() ,
                         symbol: symbol.get(),
                         treasury: Principal::from_text(&treasury_principal)
                             .expect("Invalid token principal"),

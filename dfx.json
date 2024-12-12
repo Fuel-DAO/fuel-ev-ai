@@ -1,7 +1,7 @@
 {
   "canisters": {
-    "fuel-dao-frontend-rs": {
-      "source": ["dist"],
+    "fuel-ev-ai": {
+      "source": ["dist", "static"],
       "type": "assets"
     }
   }

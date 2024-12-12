@@ -2,14 +2,21 @@
 dist = "dist"  # where to output the final files
 public_url = "/"
 release = true
-# minify = "on_release" # can be one of: never, on_release, always
+minify = "on_release" # can be one of: never, on_release, always
 
 [[copy-dir]]
 source = "public"
 destination = "public"
 
-# [[hooks]]
-# stage = "pre_build"
-# command = "sh"
-# command_arguments = ["-c", "npx tailwindcss -i style/tailwind.css -o style/output.css --minify"]
+[[copy-dir]]
+source = "static"
+destination = "static"
+
+[[hooks]]
+stage = "pre_build"
+command = "sh"
+command_arguments = ["-c", "npx tailwindcss -i style/tailwind.css -o style/output.css --minify"]
+# [[proxy]]
+# backend = "http://localhost:4943"
+# insecure = true
 

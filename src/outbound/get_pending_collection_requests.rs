@@ -1,10 +1,5 @@
-use crate::{
-    canister::provision::{
-        AddCollectionRequestArg, ApprovalStatus, ApproveRequestResponse, Metadata,
-        RejectRequestResponse, RequestInfo,
-    },
-    state::canisters::Canisters,
-};
+use crate::canister::provision::{self, Result1, Result2};
+use crate::state::canisters::Canisters;
 use candid::Nat;
 use candid::{CandidType, Principal};
 use leptos::logging::log;
@@ -23,12 +18,12 @@ pub struct CollectionId {
 /// Structure to represent collection data
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CollectionData {
-    pub id: CollectionId,
-    pub collection_id: Nat, // Changed from u32 to Nat
+    // pub id: CollectionId,
+    pub collection_id: u64, // Changed from u32 to Nat
 
     pub name: String,
     pub status: String,
-    pub metadata: Option<Metadata>,
+    pub metadata: Option<provision::CollectionRequest>,
 }
 
 pub async fn fetch_pending_requests_data(
@@ -67,7 +62,7 @@ pub async fn fetch_pending_requests_data(
 }
 pub async fn get_request_info_by_id(
     canisters: &Canisters,
-    collection_id: Nat,
+    collection_id: u64,
 ) -> Result<CollectionData, String> {
     let provision_canister = canisters.provision_canister().await;
 
@@ -83,19 +78,18 @@ pub async fn get_request_info_by_id(
                 request_info
             );
 
-            let collection_id_struct = CollectionId {
-                asset_canister: request_info
-                    .asset_canister
-                    .unwrap_or_else(Principal::anonymous),
-                token_canister: request_info
-                    .token_canister
-                    .unwrap_or_else(Principal::anonymous),
-            };
+            // let collection_id_struct = CollectionId {
+            //     asset_canister: request_info
+            //         .asset_canister
+            //         .unwrap_or_else(Principal::anonymous),
+            //     token_canister: request_info
+            //         .token_canister
+            //         .unwrap_or_else(Principal::anonymous),
+            // };
 
             let metadata = request_info
-                .metadata
                 .clone()
-                .map(|meta: Metadata| Metadata {
+               /*  .map(|meta: Metadata| Metadata {
                     weight: meta.weight,
                     drive_type: meta.drive_type,
                     purchase_price: meta.purchase_price,
@@ -126,21 +120,15 @@ pub async fn get_request_info_by_id(
                     symbol: meta.symbol,
                     treasury: meta.treasury,
                     images: meta.images,
-                });
+                }) */;
 
             Ok(CollectionData {
-                id: collection_id_struct,
                 collection_id, // Use the input collection_id
-                name: request_info
-                    .metadata
-                    .map_or("Unknown".to_string(), |meta| meta.name),
-                status: match request_info.approval_status {
-                    ApprovalStatus::Approved => "Approved",
-                    ApprovalStatus::Rejected => "Rejected",
-                    ApprovalStatus::Pending => "Pending",
-                }
+                name: request_info.name
+                    ,
+                status: "Pending"
                 .to_string(),
-                metadata,
+                metadata:  Some(metadata),
             })
         }
         Ok(None) => {
@@ -164,23 +152,23 @@ pub async fn get_request_info_by_id(
 
 pub async fn approve_request(
     canisters: &Canisters,
-    collection_id: Nat,
-) -> Result<(Nat, Principal, Principal), String> {
+    collection_id: u64,
+) -> Result<(u64, Principal, Principal), String> {
     let provision_canister = canisters.provision_canister().await;
 
     // Call the approve_request method on the canister
-    let response_result: Result<ApproveRequestResponse, AgentError> = provision_canister
+    let response_result: Result<Result1, AgentError> = provision_canister
         .approve_request(collection_id.clone())
         .await;
 
     // Handle the response
     match response_result {
         Ok(response) => match response {
-            ApproveRequestResponse::Ok {
+            Result1::Ok( provision::ListCollection{
                 id,
                 token_canister,
                 asset_canister,
-            } => {
+            } )=> {
                 log!(
                     "Request approved: id={}, token_canister={}, asset_canister={}",
                     id,
@@ -189,7 +177,7 @@ pub async fn approve_request(
                 );
                 Ok((id, token_canister, asset_canister))
             }
-            ApproveRequestResponse::Err(err_msg) => {
+            Result1::Err(err_msg) => {
                 let error_msg = format!("approve_request failed: {}", err_msg);
                 log!("{}", error_msg);
                 Err(error_msg)
@@ -202,17 +190,17 @@ pub async fn approve_request(
         }
     }
 }
-pub async fn reject_request(canisters: &Canisters, collection_id: Nat) -> Result<bool, String> {
+pub async fn reject_request(canisters: &Canisters, collection_id: u64) -> Result<bool, String> {
     let provision_canister = canisters.provision_canister().await;
 
     // Call the reject_request method on the canister
-    let response: RejectRequestResponse = provision_canister
+    let response:Result2 = provision_canister
         .reject_request(collection_id.clone())
         .await
         .map_err(|e| format!("Failed to call reject_request: {:?}", e))?;
 
     match response {
-        RejectRequestResponse::Ok(success) => {
+        Result2::Ok(success) => {
             if success {
                 log!(
                     "Request rejected successfully for collection_id: {}",
@@ -225,7 +213,7 @@ pub async fn reject_request(canisters: &Canisters, collection_id: Nat) -> Result
                 Err(error_msg)
             }
         }
-        RejectRequestResponse::Err(err_msg) => {
+        Result2::Err(err_msg) => {
             let error_msg = format!("reject_request failed: {}", err_msg);
             log!("{}", error_msg);
             Err(error_msg)

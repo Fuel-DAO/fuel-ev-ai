@@ -1,5 +1,5 @@
-use crate::{canister::provision::AddCollectionRequestArg, state::canisters::Canisters};
-use candid::{CandidType, Nat, Principal};
+use crate::{canister::provision::CollectionRequest, state::canisters::Canisters};
+use candid::CandidType;
 use leptos::logging::log;
 use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize, CandidType)]
@@ -7,10 +7,9 @@ pub struct Document {
     pub title: String,
     pub url: String,
 }
-pub struct AddCollectionRequestArg1 {}
 pub async fn add_collection(
     canisters: &Canisters,
-    collection_data: AddCollectionRequestArg,
+    collection_data: CollectionRequest,
 ) -> Result<(), String> {
     let auth_service = canisters.auth_service.borrow();
     if !auth_service.is_authenticated() {

@@ -13,7 +13,7 @@ pub fn Header2() -> impl IntoView {
 
             <div class="absolute z-0 inset-x-0 flex items-center pl-8 justify-center">
                 <a href="/">
-                    <img src="/public/img/fueldao.svg" alt="FuelDAO" class="lg:h-8 h-5" />
+                    <img src="/public/img/app.svg" alt="FuelEv" class="lg:h-8 h-5" />
                 </a>
             </div>
 

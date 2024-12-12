@@ -44,7 +44,7 @@ pub fn Login() -> impl IntoView {
             <div class="flex z-3 min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
                 <div class="bg-white/75 backdrop-blur-xl flex flex-col items-center gap-8 px-6 py-12 shadow-md rounded-lg sm:px-12 ">
                     <a href="/" class="flex justify-center items-center ">
-                        <img src="/public/img/fueldao.svg" alt="Fuel DAO Logo" />
+                        <img src="/public/img/app.svg" alt="Fuel DAO Logo" />
                     // class="h-full w-full"
                     </a>
 

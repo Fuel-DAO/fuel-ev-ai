@@ -133,11 +133,11 @@ pub fn DocumentsInfo(documents: RwSignal<Vec<(String, String)>>) -> impl IntoVie
                 match  future.await {
                     Ok(ret) => {
                         match ret {
-    crate::canister::asset_proxy::StoreRet::Ok(_) => {
+    crate::canister::asset_proxy::Result_::Ok(_) => {
         documents.update(|docs| docs.push((format!("/{}", &file_name), format!("/{}", &file_name))));
                         uploading_progress.set(100);
     },
-    crate::canister::asset_proxy::StoreRet::Err(e) => {
+    crate::canister::asset_proxy::Result_::Err(e) => {
         error_message.set(format!("Upload failed: {}", e));
         error_document.set(true);
     },

@@ -1,5 +1,5 @@
 [package]
-name = "fuel-dao-frontend-rs"
+name = "fuel-ev-ai"
 version = "0.1.0"
 edition = "2021"
 
@@ -90,7 +90,7 @@ codegen-units = 1
 panic = "abort"
 
 [package.metadata.leptos]
-output-name = "fuel-dao-frontend"
+output-name = "fuel-ev-ai"
 tailwind-input-file = "style/tailwind.css"
 tailwind-config-file = "tailwind.config.js"
 

@@ -1,5 +1,5 @@
 use leptos::*;
-use crate::canister::token::CollectionMetaData;
+use crate::canister::token::GetMetadataRet;
 use crate::state::canisters::Canisters;
 use crate::outbound::accept_or_reject_sale::{accept_sale, reject_sale};
 use crate::outbound::collection_canister_calls::get_total_booked_tokens;
@@ -11,7 +11,7 @@ use num_traits::{Zero, ToPrimitive};
 
 #[component]
 pub fn ConcludeSaleAdminComponent(
-    metadata: CollectionMetaData,
+    metadata: GetMetadataRet,
     token_canister_id: Principal,
 ) -> impl IntoView {
     // Reactive signals for loading states
