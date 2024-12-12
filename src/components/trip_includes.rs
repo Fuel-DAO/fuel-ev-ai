@@ -10,12 +10,12 @@ pub fn TripIncludes() -> impl IntoView {
 
             <div class="flex flex-col lg:flex-row justify-around items-center space-y-8 lg:space-y-0 lg:space-x-6">
                 <div class="flex flex-col items-center">
-                    <img src="/public/icons//icons.sprite.svg" alt="Free charging across Barcelona" class="w-12 h-12 mb-4"/>
+                    <img src="/public/icons//icons.sprite.svg" alt="Free charging across Mumbai" class="w-12 h-12 mb-4"/>
                     <p class="text-center text-lg">"Intelligent pricing"</p>
                 </div>
                 <div class="flex flex-col items-center">
-                    <img src="path/to/icon2.png" alt="Free charging across Barcelona" class="w-12 h-12 mb-4"/>
-                    <p class="text-center text-lg">"Free charging across Barcelona"</p>
+                    <img src="path/to/icon2.png" alt="Free charging across Mumbai" class="w-12 h-12 mb-4"/>
+                    <p class="text-center text-lg">"Free charging across Mumbai"</p>
                 </div>
                 <div class="flex flex-col items-center">
                     <img src="path/to/icon3.png" alt="Free parking" class="w-12 h-12 mb-4"/>

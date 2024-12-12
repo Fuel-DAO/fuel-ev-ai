@@ -1,45 +1,60 @@
-use candid::Principal;
-use ic_agent::Agent;
-use ic_auth_client::AuthClient;
-use ic_cdk::api::management_canister::main::canister_status;
-use leptos::leptos_dom::logging;
-use leptos::{expect_context, use_context, ReadSignal, SignalGet};
-use log::logger;
+// canisters.rs
 use crate::canister::provision::Provision;
 use crate::canister::token::Token;
-use crate::canister::PROVISION_ID;
-use crate::utils::ic::AgentWrapper;
+use crate::canister::{ASSET_PROXY_ID, PROVISION_ID};
+use crate::TEMP_ASSET_CANISTER_ID;
 
-
+use crate::state::asset_manager::AssetManager;
+use crate::state::auth::AuthService;
+use candid::Principal;
+use ic_agent::Agent;
+use std::cell::RefCell;
+use std::cmp::PartialEq;
+use std::rc::Rc;
 
 #[derive(Clone)]
 pub struct Canisters {
-    agent: AgentWrapper,
+    pub auth_service: Rc<RefCell<AuthService>>,
+    pub agent: Rc<Agent>,
     provision_principal: Principal,
 }
 
-impl Default for Canisters {
-    fn default() -> Self {
-        Self {
-            agent: AgentWrapper::build(),
-            provision_principal: PROVISION_ID,
-        }
-    }
-}
-
 impl Canisters {
-
-    pub fn agent() -> Agent {
-        AgentWrapper::refresh_agent()
+    pub async fn new(auth_service: Rc<RefCell<AuthService>>) -> Result<Self, String> {
+        let agent = {
+            let mut auth_service_borrow = auth_service.borrow_mut();
+            auth_service_borrow.get_agent().await?
+        };
+        Ok(Self {
+            auth_service,
+            agent,
+            provision_principal: PROVISION_ID,
+        })
     }
 
     pub async fn provision_canister(&self) -> Provision<'_> {
-        let agent = self.agent.get_agent().await;
-        Provision(self.provision_principal, &agent)
+        let agent_ref: &Agent = &self.agent;
+        Provision(self.provision_principal, agent_ref)
     }
 
-    pub async fn token_canister<'a>(&self,  canister_id: Principal, agent: &'a Agent,) -> Token<'a> {
-        // let agent = self.agent.get_agent().await;
-        Token(canister_id, agent)
+    pub async fn token_canister(&self, canister_id: Principal) -> Token<'_> {
+        let agent_ref: &Agent = &self.agent;
+        Token(canister_id, agent_ref)
+    }
+
+    pub fn asset_manager(&self) -> AssetManager<'_> {
+        dotenv::dotenv().ok();
+        // let asset_canister_id = Principal::from_text(TEMP_ASSET_CANISTER_ID).unwrap();
+        let asset_proxy_canister_id =
+                ASSET_PROXY_ID;
+
+        AssetManager::new(asset_proxy_canister_id, &self.agent)
+    }
+}
+
+impl PartialEq for Canisters {
+    fn eq(&self, other: &Self) -> bool {
+        Rc::ptr_eq(&self.agent, &other.agent)
+            && self.provision_principal == other.provision_principal
     }
 }

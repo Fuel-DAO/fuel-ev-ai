@@ -1,9 +1,9 @@
 use leptos::*;
 
-use crate::canister::token::CollectionMetaData;
+use crate::canister::token::GetMetadataRet;
 
 #[component]
-pub fn CollectionInfoCards( props: CollectionMetaData) -> impl IntoView {
+pub fn CollectionInfoCards( props: GetMetadataRet) -> impl IntoView {
     // Set default values for metadata fields
     let acceleration = props.acceleration.clone();
     let seating = props.seating.clone();

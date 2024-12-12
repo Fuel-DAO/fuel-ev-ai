@@ -1,14 +1,18 @@
 {
-  "backend": {
-    "ic": "s2pki-3iaaa-aaaaj-qa6fa-cai",
-    "local": "bd3sg-teaaa-aaaaa-qaaba-cai"
-  },
-  "provision": {
-    "ic": "7amc6-qqaaa-aaaam-acntq-cai",
-    "local": "bd3sg-teaaa-aaaaa-qaaba-cai"
-  },
   "token": {
     "ic": "7amc6-qqaaa-aaaam-acntq-cai",
     "local": "bd3sg-teaaa-aaaaa-qaaba-cai"
+  },
+  "asset": {
+    "ic": "4sc7j-7iaaa-aaaaj-qnfva-cai",
+    "local": "bd3sg-teaaa-aaaaa-qaaba-cai"
+  },
+  "asset_proxy": {
+    "ic": "43buv-jaaaa-aaaaj-qnfuq-cai",
+    "local": "bd3sg-teaaa-aaaaa-qaaba-cai"
+  },
+  "provision": {
+    "ic": "44asb-eyaaa-aaaaj-qnfua-cai",
+    "local": "bw4dl-smaaa-aaaaa-qaacq-cai"
   }
 }

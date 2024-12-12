@@ -1,29 +1,29 @@
-use candid::{Nat, Principal};
-use ic_agent::AgentError;
-use serde::{Deserialize, Serialize};
-use leptos::expect_context;
-use crate::{canister::token::{CollectionMetaData, GetSaleStatusRet}, state::canisters::Canisters};
+use crate::canister::token;
+use crate::canister::token::SaleStatus;
+use crate::state::canisters::Canisters;
 
+use candid::Nat;
+use candid::Principal;
+use serde::{Deserialize, Serialize};
 // Structure to hold both canister IDs
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CollectionId {
-   pub asset_canister: Principal,
-   pub token_canister: Principal,
+    pub asset_canister: Principal,
+    pub token_canister: Principal,
 }
 
-#[derive(Debug, Clone,  Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CollectionData {
-   pub id: CollectionId,
-   pub name: String,
-   pub status: String,
-   pub metadata: Option<CollectionMetaData>,
+    pub id: CollectionId,
+    pub name: String,
+    pub status: String,
+    pub metadata: Option<token::GetMetadataRet>,
 }
-// Modify the fetch_collections_data function to specify that it accepts an authenticated Canisters instance
-pub async fn fetch_collections_data() -> Result<Vec<CollectionData>, String> {
-    // Get provision canister actor
-    let cans: Canisters = expect_context();
 
-    let provision_canister = cans.provision_canister().await;
+// Modify the fetch_collections_data function to accept a reference to Canisters
+pub async fn fetch_collections_data(canisters: &Canisters) -> Result<Vec<CollectionData>, String> {
+    // Get provision canister actor
+    let provision_canister = canisters.provision_canister().await;
 
     // Fetch collections from provision canister
     let collections_list = provision_canister
@@ -39,25 +39,38 @@ pub async fn fetch_collections_data() -> Result<Vec<CollectionData>, String> {
             token_canister: collection.token_canister,
         };
 
-        let collection_meta_data = get_collection_metadata_from_token_canister(collection.token_canister).await;
+        let collection_meta_data =
+            get_collection_metadata_from_token_canister(canisters, collection.token_canister).await;
 
         match collection_meta_data {
-            Ok(metadata) => {
-                collections.push(CollectionData {
-                    id: collection_id.clone(),
-                    name: metadata.name.clone(),
-                    status: "Available".to_string(), // Adjust as needed based on actual status
-                    metadata: Some(metadata),
-                });
+            Ok(metadata)  => {
+                match metadata {
+                    token::Result4::Ok(metadata) => {
+                        collections.push(CollectionData {
+                            id: collection_id.clone(),
+                            name: metadata.name.clone(),
+                            status: "Available".to_string(), // Adjust as needed based on actual status
+                            metadata: Some(metadata),
+                        });
+                    },
+                    token::Result4::Err(e) =>  {
+                        log::error!(
+                            "Failed to fetch metadata for collection {:?}: {}",
+                            collection_id,
+                            e
+                        );
+                    },
+                }
+
+                
             }
             Err(e) => {
-                // Handle metadata fetch failure
-                // collections.push(CollectionData {
-                //     id: collection_id.clone(),
-                //     name: "Unknown".to_string(),
-                //     status: "Unavailable".to_string(),
-                //     metadata: None,
-                // });
+                log::error!(
+                    "Failed to fetch metadata for collection {:?}: {}",
+                    collection_id,
+                    e
+                );
+                // Optionally, you can push a CollectionData with partial information
             }
         }
     }
@@ -65,26 +78,39 @@ pub async fn fetch_collections_data() -> Result<Vec<CollectionData>, String> {
     Ok(collections)
 }
 
-pub async fn get_collection_metadata_from_token_canister(token_canister_id: Principal) -> Result<CollectionMetaData, String> {
-    let cans: Canisters = expect_context();
-    let agent = Canisters::agent();
-    let token_canister = cans.token_canister(token_canister_id, &agent).await;
+// Modify get_collection_metadata_from_token_canister similarly
+pub async fn get_collection_metadata_from_token_canister(
+    canisters: &Canisters,
+    token_canister_id: Principal,
+) -> Result<token::Result4, String>{
+    let token_canister = canisters.token_canister(token_canister_id,).await;
 
-         token_canister.get_metadata().await.map_err(|e| e.to_string()) 
+    token_canister
+        .get_metadata()
+        .await
+        .map_err(|e| e.to_string())
 }
 
-pub async fn get_total_booked_tokens(token_canister_id: Principal) -> Result<Nat, String> {
-    let cans: Canisters = expect_context();
-    let agent = Canisters::agent();
-    let token_canister = cans.token_canister(token_canister_id, &agent).await;
+pub async fn get_total_booked_tokens(
+    canisters: &Canisters,
+    token_canister_id: Principal,
+) -> Result<Nat, String> {
+    let token_canister = canisters.token_canister(token_canister_id, ).await;
 
-         token_canister.get_total_booked_tokens().await.map_err(|e| e.to_string()) 
+    token_canister
+        .get_total_booked_tokens()
+        .await
+        .map_err(|e| e.to_string())
 }
 
-pub async fn get_sale_status(token_canister_id: Principal) -> Result<GetSaleStatusRet, String> {
-    let cans: Canisters = expect_context();
-    let agent = Canisters::agent();
-    let token_canister = cans.token_canister(token_canister_id, &agent).await;
+pub async fn get_sale_status(
+    canisters: &Canisters,
+    token_canister_id: Principal,
+) -> Result<SaleStatus, String> {
+    let token_canister = canisters.token_canister(token_canister_id,).await;
 
-         token_canister.get_sale_status().await.map_err(|e| e.to_string()) 
+    token_canister
+        .get_sale_status()
+        .await
+        .map_err(|e| e.to_string())
 }

@@ -2,7 +2,7 @@ use leptos::*;
 
 #[component]
 pub fn PlusIcon( #[prop(optional)] class: Option<String>) -> impl IntoView {
-    view! { 
+    view! {
         <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -11,11 +11,7 @@ pub fn PlusIcon( #[prop(optional)] class: Option<String>) -> impl IntoView {
             stroke="currentColor"
             class=class.unwrap_or_default()
         >
-            <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M12 4.5v15m7.5-7.5h-15"
-            />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
         </svg>
     }
 }

@@ -1,0 +1,8 @@
+{
+  "canisters": {
+    "fuel-ev-ai": {
+      "source": ["dist", "static"],
+      "type": "assets"
+    }
+  }
+}

@@ -6,7 +6,7 @@ pub fn Footer() -> impl IntoView {
         <footer
 	class="flex flex-col items-start py-32 px-8 bg-zinc-800 text-white gap-16"
 >
-	<img src="/public/img/fueldao.svg" alt="FuelDAO" class="h-12" />
+	<img src="/public/img/app.svg" alt="FuelEv" class="h-12" />
 	<div
 		class="items-center w-full flex flex-col lg:flex-row border border-white lg:border-l-0 lg:border-r-0"
 	>
@@ -18,7 +18,7 @@ pub fn Footer() -> impl IntoView {
 		<div
 			class="lg:w-1/3 w-full flex justify-center items-start self-stretch p-8 flex-col lg:border-r border-white"
 		>
-			<div>Barcelona, Spain</div>
+			<div>Mumbai, India</div>
 		</div>
 		<div class="lg:w-1/3 lg:flex hidden justify-center items-start self-stretch p-8 flex-col"></div>
 	</div>

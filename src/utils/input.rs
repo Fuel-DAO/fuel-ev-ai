@@ -28,16 +28,10 @@ pub fn InputComponent(
     let input_ref = create_node_ref::<html::Input>();
 
 
-    view! { 
+    view! {
         <label class=label_classes>
             <span class="text-sm font-medium leading-6 text-gray-900">
-                {move || {
-                    if required {
-                        format!("{} *", label)
-                    } else {
-                        label.clone()
-                    }
-                }}
+                {move || { if required { format!("{} *", label) } else { label.clone() } }}
             </span>
             <input
                 type=input_type
@@ -48,13 +42,11 @@ pub fn InputComponent(
                 max=max.map(|m| m.to_string())
                 class=combined_classes
                 placeholder=placeholder
-                prop:value=move||{value.get_untracked()}
+                prop:value=move || { value.get_untracked() }
                 on:input=move |_| {
                     let Some(input_value) = input_ref() else {
                         return;
                     };
-                    // let value = input.value();
-                    // let input_value = event_target_value(&ev);
                     value.set(input_value.value());
                 }
             />

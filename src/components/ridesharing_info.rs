@@ -25,7 +25,7 @@ pub fn RideSharingInfo() -> impl IntoView {
                         <h2 class="font-bold lg:text-4xl text-3xl">"Premium experience, guaranteed"</h2>
                     </div>
                     <p class="text-gray-700 mt-4">
-                        "80% Premium Tesla cars, 20% high-end fuel cars; complete with 24/7 road assistance and insurance"
+                        "80% Premium Morris Garages cars, 20% high-end fuel cars; complete with 24/7 road assistance and insurance"
                     </p>
                 </div>
 
