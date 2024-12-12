@@ -15,7 +15,7 @@ pub fn HomePage() -> impl IntoView {
             <HeroSection />
             <DecentralizedRidesharing />
             <RideSharingInfo />
-            // <TripIncludes />
+            <TripIncludes />
             <PoweredBySection />
             <Footer />
         </main>

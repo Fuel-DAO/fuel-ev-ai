@@ -11,7 +11,7 @@ pub fn DecentralizedRidesharing() -> impl IntoView {
                     "Decentralized Ridesharing"
                 </h2>
                 <p class="mt-4 text-lg md:text-xl text-gray-600">
-                    "FuelEv is a pioneering decentralized autonomous organization that offers eco-friendly transport services like electric scooter rentals, ride-sharing, and fuel-efficient vehicle leasing. We will be providing quality transport services to clients, starting with Mumbai and the surrounding area."
+                    "FuelEv is a pioneering decentralized autonomous organization that offers eco-friendly transport services like electric car rentals, ride-sharing, and fuel-efficient vehicle leasing. We will be providing quality transport services to clients, starting with Mumbai and the surrounding area."
                 </p>
                 <p class="mt-4 text-lg md:text-xl text-gray-600">
                     "Built by a team that comes with 30+ years combined experience in Web3, FuelEv aims to make your ride experience clean and simple."
@@ -19,7 +19,7 @@ pub fn DecentralizedRidesharing() -> impl IntoView {
                 
                 // Call-to-Action Button
                 <div class="mt-6">
-                    <a href="https://fueldao.notion.site/FuelDAO-Whitepaper-8a43f3b69c04433fbc4499d25fd6aa28" target="_blank" class="bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full shadow-lg">
+                    <a href="https://fueldao.notion.site/FuelEV-Whitepaper-155aa15ad3e580dbb485c667b1f96a36" target="_blank" class="bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full shadow-lg">
                         "Our Whitepaper"
                     </a>
                 </div>
