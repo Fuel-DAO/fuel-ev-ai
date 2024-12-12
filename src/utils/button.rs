@@ -15,7 +15,7 @@ pub fn ButtonComponent(
     #[prop(optional)] classes: Option<String>,
     #[prop(into)] on_click: Callback<()>,
     children: Children,
-)  -> impl IntoView  
+)  -> impl IntoView
 
 {
 
@@ -41,58 +41,58 @@ pub fn ButtonComponent(
         {if let Some(link) = href {
             view! {
                 <div>
-                <A
-                    href=link
-                    target=target.unwrap_or("_self".to_string())
-                    class=button_classes
-                    // role="presentation"
-                    on:click=move |_| on_click(())
-                >
-                    <div class=if loading {
-                        "opacity-0 transition-opacity"
-                    } else {
-                        ""
-                    }>{children()}</div>
-                    {move || {
-                        if loading {
-                            view! {
-                                <div class="absolute inset-0 flex items-center justify-center">
-                                <PlusIcon class="w-5 h-5 animate-spin".into()/>
-                                </div>
-                            }
+                    <A
+                        href=link
+                        target=target.unwrap_or("_self".to_string())
+                        class=button_classes
+                        // role="presentation"
+                        on:click=move |_| on_click(())
+                    >
+                        <div class=if loading {
+                            "opacity-0 transition-opacity"
                         } else {
-                            view! { <div></div> }
-                        }
-                    }}
-                </A>
+                            ""
+                        }>{children()}</div>
+                        {move || {
+                            if loading {
+                                view! {
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <PlusIcon class="w-5 h-5 animate-spin".into() />
+                                    </div>
+                                }
+                            } else {
+                                view! { <div></div> }
+                            }
+                        }}
+                    </A>
                 </div>
             }
         } else {
             view! {
                 <div>
-                <button
-                    type=if submit { "submit" } else { "button" }
-                    disabled=disabled
-                    class=button_classes
-                    on:click=move |_| on_click(())
-                >
-                    <div class=if loading {
-                        "opacity-0 transition-opacity"
-                    } else {
-                        ""
-                    }>{children()}</div>
-                    {move || {
-                        if loading {
-                            view! {
-                                <div class="absolute inset-0 flex items-center justify-center">
-                                <PlusIcon class="w-5 h-5 animate-spin".into()/>
-                                </div>
-                            }
+                    <button
+                        type=if submit { "submit" } else { "button" }
+                        disabled=disabled
+                        class=button_classes
+                        on:click=move |_| on_click(())
+                    >
+                        <div class=if loading {
+                            "opacity-0 transition-opacity"
                         } else {
-                            view! { <div></div> }
-                        }
-                    }}
-                </button>
+                            ""
+                        }>{children()}</div>
+                        {move || {
+                            if loading {
+                                view! {
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <PlusIcon class="w-5 h-5 animate-spin".into() />
+                                    </div>
+                                }
+                            } else {
+                                view! { <div></div> }
+                            }
+                        }}
+                    </button>
                 </div>
             }
         }}

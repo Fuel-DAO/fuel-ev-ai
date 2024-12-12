@@ -1,17 +1,17 @@
 use candid::{Nat, Principal};
 use leptos::*;
-
-use crate::canister::token::{BookTokensArg, CollectionMetaData};
+use crate::canister::token::{BookTokensArg, Metadata};
+use crate::state::{auth::AuthService, canisters::Canisters};
 use crate::stores::auth_client::login;
+use crate::utils::button::ButtonComponent;
 use crate::utils::input::InputComponent;
 use crate::utils::plus_icon::PlusIcon;
 use crate::utils::web::copy_to_clipboard;
-use crate::{state::canisters::Canisters, stores::auth_client::get_current_user_principal};
-use crate::utils::button::ButtonComponent;
-
+use std::cell::RefCell;
+use std::rc::Rc;
 use crate::components::invest_info::from_e8s;
 
-
+// Struct for PaymentStatus
 #[derive(Default, Clone)]
 struct PaymentStatus {
     is_loading: RwSignal<bool>,
@@ -19,77 +19,183 @@ struct PaymentStatus {
     error: RwSignal<String>,
 }
 
+// Struct for PaymentInfo
+#[derive(Default, Clone)]
+struct PaymentInfo {
+    loaded: bool,
+    transfer_to: String,
+    nft_price: u64,
+}
 
 #[component]
-pub fn InvestPopup(
-     show: RwSignal<bool>,
-     minter_can_id: String,
-) -> impl IntoView {
+pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String) -> impl IntoView {
     const TRANSFER_PRICE: u64 = 10_000;
 
     let nft_to_buy = create_rw_signal(1u64.to_string());
+
+    // Retrieve Canisters from context
+    let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
+        .expect("Canisters ReadWriteSignal must be provided");
+
+    // Retrieve AuthService from context
+    let auth_service =
+        use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
+
+    // Reactive memo for authentication state
+    let is_authenticated = create_memo({
+        let auth_service = Rc::clone(&auth_service);
+        move |_| auth_service.borrow().is_authenticated()
+    });
+
+    // Reactive memo for principal
+    let principall = create_memo({
+        let auth_service = Rc::clone(&auth_service);
+        move |_| {
+            if is_authenticated() {
+                auth_service.borrow().get_principal().ok()
+            } else {
+                None
+            }
+        }
+    });
+
     let payment_info = create_rw_signal(PaymentInfo::default());
     let step = create_rw_signal(1);
     let payment_details = create_rw_signal(PaymentStatus::default());
-   
+
     let metadata = create_rw_signal(None);
     let token_balance = create_rw_signal(0);
 
     let minter_canister_id = minter_can_id.clone();
 
     let current_investment = move || {
-        metadata().as_ref().map_or(0.0, |m: &Option<CollectionMetaData>| {
-            from_e8s(m.as_ref().unwrap().price.0.to_string().parse::<u64>().unwrap()) as f64 * token_balance() as f64
-        })
+        metadata()
+            .as_ref()
+            .map_or(0.0, |m:&Option<crate::canister::token::GetMetadataRet>| {
+                from_e8s(
+                    m.as_ref()
+                        .unwrap()
+                        .price
+                        .to_string()
+                        .parse::<u64>()
+                        .unwrap(),
+                ) as f64
+                    * token_balance() as f64
+            })
     };
 
     let minter_canister_id_to_check_payment_status = minter_can_id.clone();
 
+    // Function to handle payment status check action
+    let check_payment_status_action = move || {
+        let canisters_signal = canisters_signal.clone();
+        let minter_canister_id_clone = minter_canister_id_to_check_payment_status.clone();
+        let buy = nft_to_buy.get().parse::<u64>().unwrap_or_default();
+        let payment_status = payment_details.get().status.clone();
+        let payment_error = payment_details.get().error.clone();
 
-    let create_payment_action = create_action( move|()|{
-        let can_id = minter_canister_id_to_check_payment_status.clone();
-        let buy = nft_to_buy.get().parse::<u64>().unwrap_or_default().clone();
-        let payment_status = payment_details.get().status;
-        let payment_error = payment_details.get().error;
-         async move {
-            payment_details.get().is_loading.set(true);
-            check_payment_status(can_id, buy, payment_status.clone(), payment_error ).await;
-            payment_details.get().is_loading.set(false);
-    }});
+        async move {
+            // Retrieve Canisters from context
+            if let Some(canisters_rc) = canisters_signal.get() {
+                // Check if user is authenticated and get principal
+                if let Some(_user_principal) = principall() {
+                    payment_details.get().is_loading.set(true);
 
-    create_payment_action.pending();
+                    // Call the `check_payment_status` function
+                    check_payment_status(
+                        &*canisters_rc, // Dereference Rc to &Canisters
+                        minter_canister_id_clone.clone(),
+                        buy,
+                        payment_status.clone(),
+                        payment_error.clone(),
+                    )
+                    .await;
 
+                    payment_details.get().is_loading.set(false);
+                } else {
+                    logging::log!("User is not authenticated.");
+                }
+            } else {
+                logging::log!("Canisters instance is not available in the context.");
+            }
+        }
+    };
+
+    // Create payment action
+    let create_payment_action = create_action(move |()| check_payment_status_action());
 
     // Function to get payment info
-    let get_payment_info = move |_|{
-    let minter_canister_id_clone = minter_canister_id.clone();
-        
-         async move {
-        let cansisters: Canisters = expect_context();
-        let agent  = Canisters::agent();
-        let actor = cansisters.token_canister(Principal::from_text(minter_canister_id_clone.clone()).unwrap(), &agent).await;
-        if let Ok(transfer_to_account) = actor.get_escrow_account().await {
-            let metadata_data = actor.get_metadata().await.ok();
-            let principal = get_current_user_principal();
-            let current_investment_data = actor.get_booked_tokens(principal).await;
-            let token_count = current_investment_data.unwrap().0.to_string().parse::<u64>().unwrap() as u64;
+    let get_payment_info = move |_| {
+        let minter_canister_id_clone = minter_canister_id.clone();
 
-            payment_info.set(PaymentInfo {
-                loaded: true,
-                transfer_to: transfer_to_account.accountId,
-                nft_price: metadata_data.clone().unwrap().price.0.to_string().parse::<u64>().unwrap() as u64,
-            });
-            metadata.set(Some(metadata_data.clone()));
-            token_balance.set(token_count);
+        async move {
+            // Get Canisters from context
+            if let Some(canisters_rc) = canisters_signal.get() {
+                if let Some(principal) = principall() {
+                    let token_canister = canisters_rc
+                        .token_canister(
+                            Principal::from_text(minter_canister_id_clone.clone()).unwrap(),
+                        )
+                        .await;
+
+                    // Use `token_canister` directly
+                    if let Ok(transfer_to_account) = token_canister.get_escrow_account().await {
+                        let metadata_data = match token_canister.get_metadata().await.ok() {
+    Some(res) => match res {
+    crate::canister::token::Result4::Ok(get_metadata_ret) => Some(get_metadata_ret),
+    crate::canister::token::Result4::Err(_) => None,
+},
+    None => None,
+};
+                        let current_investment_data =
+                            token_canister.get_booked_tokens(Some(principal)).await;
+
+                        if let (Ok(current_investment), crate::canister::token::Result2::Ok(transfer_to_account) ) = (current_investment_data, transfer_to_account) {
+                            let token_count = current_investment
+                                .0
+                                .to_string()
+                                .parse::<u64>()
+                                .unwrap_or_default();
+
+                            payment_info.set(PaymentInfo {
+                                loaded: true,
+                                transfer_to:  transfer_to_account.account_id,
+                                nft_price: metadata_data
+                                    .as_ref()
+                                    .map(|metadata| {
+                                        metadata
+                                            .price
+                                            .to_string()
+                                            .parse::<u64>()
+                                            .unwrap_or_default()
+                                    })
+                                    .unwrap_or_default(),
+                            });
+
+                            metadata.set(Some(metadata_data.clone()));
+                            token_balance.set(token_count);
+                        } else {
+                            logging::log!("Failed to get booked tokens.");
+                        }
+                    } else {
+                        logging::log!("Failed to get escrow account.");
+                    }
+                } else {
+                    logging::log!("User is not authenticated.");
+                }
+            } else {
+                logging::log!("Canisters instance is not available in the context.");
+            }
         }
-    }};
-
-    let get_payment_info_resource = create_resource(||(),get_payment_info );
-
+    };
+    let get_payment_info_resource = create_resource(|| (), get_payment_info);
 
     let transfer_price_e8s = 10_000; // Example transfer price in e8s
-    let amount = move || nft_to_buy.get().parse::<u64>().unwrap_or_default() as f64 * from_e8s(payment_info().nft_price) + from_e8s(transfer_price_e8s); 
-
+    let amount = move || {
+        nft_to_buy.get().parse::<u64>().unwrap_or_default() as f64
+            * from_e8s(payment_info().nft_price)
+            + from_e8s(transfer_price_e8s)
+    };
 
     // Derived view based on step
     let main_content = move || {
@@ -140,38 +246,49 @@ pub fn InvestPopup(
                         </div>
                         // Submit button for proceeding to payment
                         <ButtonComponent
-                            // classes="bg-white ring-1 ring-inset ring-gray-100 hover:bg-gray-50 outline-none active:bg-gray-200".into()
                             disabled=(move || !payment_info().loaded)()
                             submit=true
-                            on_click=|_|{}
+                            on_click=|_| {}
                         >
-                            Proceed to Pay
+                            "Proceed to Pay"
                         </ButtonComponent>
                     </form>
                 </div>
             },
             2 => view! {
                 <div>
-                    <Show when=move|| &payment_details.get().status.get() != "completed" fallback=move||view! {
-                        <div class="flex flex-col items-center justify-center gap-4 h-full w-full">
-						<div class="flex w-full items-start justify-between text-sm gap-4">
-							<div>Amount for NFT:</div>
-							<div class="font-bold text-xs w-1/2 break-all text-right">
-								{amount()} ICP
-							</div>
-						</div>
-						<div
-							class="bg-green-100 h-24 w-24 rounded-full text-xl flex items-center justify-center text-white"
-						>
-							"✅"
-						</div>
-						<div class="font-bold py-4 text-2xl">Transaction successful</div>
-						<ButtonComponent on_click= move |_| (show.set(false))>Close</ButtonComponent>
-					</div>
-                    } >
-                    <StepTwo amount=amount() payment_info payment_status=payment_details on_click=move ||{
-                        create_payment_action.dispatch(());
-                    }  />
+                    <Show
+                        when=move || payment_details.get().status.get() != "completed"
+                        fallback=move || {
+                            view! {
+                                <div class="flex flex-col items-center justify-center gap-4 h-full w-full">
+                                    <div class="flex w-full items-start justify-between text-sm gap-4">
+                                        <div>"Amount for NFT:"</div>
+                                        <div class="font-bold text-xs w-1/2 break-all text-right">
+                                            {format!("{} ICP", amount())}
+                                        </div>
+                                    </div>
+                                    <div class="bg-green-100 h-24 w-24 rounded-full text-xl flex items-center justify-center text-white">
+                                        "✅"
+                                    </div>
+                                    <div class="font-bold py-4 text-2xl">
+                                        "Transaction successful"
+                                    </div>
+                                    <ButtonComponent on_click=move |_| {
+                                        show.set(false);
+                                    }>"Close"</ButtonComponent>
+                                </div>
+                            }
+                        }
+                    >
+                        <StepTwo
+                            amount=amount()
+                            payment_info=payment_info
+                            payment_status=payment_details
+                            on_click=move || {
+                                create_payment_action.dispatch(());
+                            }
+                        />
                     </Show>
                 </div>
             },
@@ -192,20 +309,17 @@ pub fn InvestPopup(
                         {move || if step.get() == 3 { "Pay" } else { "Invest" }}
                     </div>
                     <Show
-                        when=move || get_current_user_principal().is_some()
-                        fallback=|| 
+                        when=move || principall().is_some()
+                        fallback=|| {
                             view! {
                                 <div class="flex flex-col gap-8 items-center">
-                                    <div>You need to login before you can invest</div>
-                                    <ButtonComponent /* href="/login".into() */ on_click=|_|{
-                                        // Remove once the login route has been added:
+                                    <div>"You need to login before you can invest"</div>
+                                    <ButtonComponent on_click=|_| {
                                         let _ = login();
-                                    }>
-                                        {|| view! { <div>Invest</div> }}
-                                    </ButtonComponent>
+                                    }>{|| view! { <div>Invest</div> }}</ButtonComponent>
                                 </div>
                             }
-                        
+                        }
                     >
                         {main_content}
                     </Show>
@@ -215,33 +329,39 @@ pub fn InvestPopup(
     }
 }
 
+// Updated check_payment_status function
+async fn check_payment_status(
+    canisters: &Canisters,
+    token_can_id: String,
+    nft_to_buy: u64,
+    payment_status: RwSignal<String>,
+    payment_error: RwSignal<String>,
+) {
+    // Retrieve the token canister actor
+    let actor = canisters
+        .token_canister(Principal::from_text(token_can_id.clone()).unwrap(),)
+        .await;
 
-
-// Struct for PaymentInfo
-#[derive(Default, Clone)]
-struct PaymentInfo {
-    loaded: bool,
-    transfer_to: String,
-    nft_price: u64,
-    
-}
-
-async fn check_payment_status(token_can_id: String, nft_to_buy: u64, payment_status: RwSignal<String>, payment_error: RwSignal<String> ) {
-    let cansisters: Canisters = expect_context();
-    let agent = Canisters::agent();
-        let actor = cansisters.token_canister(Principal::from_text(token_can_id.clone()).unwrap(), &agent).await;
-        if let Ok(res) = actor.book_tokens( BookTokensArg{ quantity: Nat::from( nft_to_buy)}).await {
-            logging::log!("{:?}", res);
-            match res {
-                crate::canister::token::BookTokensRet::Ok(_) => {
-                    payment_status.set("completed".to_string());
-                },
-                crate::canister::token::BookTokensRet::Err(error) => {
-                    // For testing only payment_status.set("completed".to_string());
-                    payment_error.set(error)},
+    // Use `actor` directly
+    if let Ok(res) = actor
+        .book_tokens(BookTokensArg {
+            quantity: nft_to_buy as u32,
+        })
+        .await
+    {
+        logging::log!("{:?}", res);
+        match res {
+            crate::canister::token::Result_::Ok(_) => {
+                payment_status.set("completed".to_string());
             }
-                
+            crate::canister::token::Result_::Err(error) => {
+                payment_error.set(error);
+            }
+           
         }
+    } else {
+        payment_error.set("Failed to book tokens.".to_string());
+    }
 }
 
 #[component]
@@ -251,7 +371,6 @@ fn StepTwo(
     payment_status: RwSignal<PaymentStatus>,
     on_click: impl Fn() + 'static,
 ) -> impl IntoView {
-    // Calculate amount to pay based on the provided formula
     view! {
         <div class="flex w-full items-start justify-between text-sm gap-4">
             <div>"Amount to pay:"</div>
@@ -260,12 +379,14 @@ fn StepTwo(
                     <span class="select-all">{amount.to_string()}</span>
                     <span class="opacity-50">" ICP"</span>
                 </div>
-            <button
-            on:click=move |_|{copy_to_clipboard(&amount.to_string());}
-            class="w-3 h-3"
-            >
-                <img src="/public/icons/copy_to_clipboard.svg" alt="Copy to clipboard" />
-            </button>
+                <button
+                    on:click=move |_| {
+                        copy_to_clipboard(&amount.to_string());
+                    }
+                    class="w-3 h-3"
+                >
+                    <img src="/public/icons/copy_to_clipboard.svg" alt="Copy to clipboard" />
+                </button>
             </div>
         </div>
 
@@ -276,39 +397,45 @@ fn StepTwo(
                     {payment_info.get().transfer_to.clone()}
                 </div>
                 <button
-                    on:click=move |_| {copy_to_clipboard(&payment_info.get().transfer_to.clone());}
+                    on:click=move |_| {
+                        copy_to_clipboard(&payment_info.get().transfer_to.clone());
+                    }
                     class="w-3 h-3"
                 >
-                <img src="/public/icons/copy_to_clipboard.svg" alt="Copy to clipboard" />
-                // CopyIcon SVG or component here
+                    <img src="/public/icons/copy_to_clipboard.svg" alt="Copy to clipboard" />
                 </button>
             </div>
         </div>
 
         <hr />
-        <Show  when=move||payment_status.get().is_loading.get()>
+        <Show when=move || payment_status.get().is_loading.get()>
             <div class="text-center mt-2 p-4 animate-pulse">Loading...</div>
-            
         </Show>
-        // <div class="h-4 w-4 animate-spin">// PlusIcon SVG or component here
-            
-        // </div>
 
-        <div class="text-red-500 mt-2 p-4 text-center">{move||payment_status.get().error.get()}</div>
+        <div class="text-red-500 mt-2 p-4 text-center">
+            {move || payment_status.get().error.get()}
+        </div>
         <div class="mt-2 p-4 text-center text-sm">
-        <a href="https://nns.ic0.app/wallet/?u=qoctq-giaaa-aaaaa-aaaea-cai" target="_blank" class="underline text-xs font-bold">
-        "Click here to invest via NNS"
-        </a>
+            <a
+                href="https://nns.ic0.app/wallet/?u=qoctq-giaaa-aaaaa-aaaea-cai"
+                target="_blank"
+                class="underline text-xs font-bold"
+            >
+                "Click here to invest via NNS"
+            </a>
         </div>
         <div class="text-center text-sm">
             <span>"Waiting for payment "</span>
-            <button on:click=move |_| {
-                payment_status.get().error.set("".into());
-                on_click()} class="underline text-xs font-bold">
+            <button
+                on:click=move |_| {
+                    payment_status.get().error.set("".into());
+                    on_click()
+                }
+                class="underline text-xs font-bold"
+            >
                 " Check now "
             </button>
         </div>
-                    
-        
     }
 }
+

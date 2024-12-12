@@ -7,7 +7,8 @@ use leptos_dom::logging::console_warn;
 use std::{env, sync::Arc};
 use web_sys::Url;
 
-use crate::{canister::BACKEND_ID, state::canisters::Canisters};
+use crate::canister::PROVISION_ID;
+
 
 /// Component that provides the AuthClient to the children components
 #[component]
@@ -72,7 +73,7 @@ pub fn login() -> Result<(), AuthClientError> {
     let identity_provider: Option<Url> = match dfx_network.as_str() {
         "LOCAL" => Some({
             let port = 4943;
-            let canister_id = BACKEND_ID ;
+            let canister_id = PROVISION_ID ;
             Url::new(&format!("http://{}.localhost:{}", canister_id, port)).unwrap()
         }),
         "LIVE" => None,
@@ -101,15 +102,11 @@ pub fn login() -> Result<(), AuthClientError> {
     
     auth_client()?.login_with_options(options);
 
-    provide_context(Canisters::default());
-
     Ok(())
 }
 
 pub async fn logout() -> Result<(), AuthClientError> {
     auth_client()?.logout(Some(window().location())).await;
-    window().location().reload().unwrap();
-    provide_context(Canisters::default());
     Ok(())
 }
 
