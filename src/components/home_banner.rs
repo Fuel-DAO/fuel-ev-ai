@@ -15,9 +15,11 @@ pub fn HeroSection() -> impl IntoView {
                     "Clean & Decentralized"
                 </h1>
                 <div class="mt-6">
+                    <a href="/collections">
                     <button class="bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full shadow-lg">
                         "Invest Now"
                     </button>
+                    </a>
                 </div>
             </div>
 

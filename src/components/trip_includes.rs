@@ -10,23 +10,23 @@ pub fn TripIncludes() -> impl IntoView {
 
             <div class="flex flex-col lg:flex-row justify-around items-center space-y-8 lg:space-y-0 lg:space-x-6">
                 <div class="flex flex-col items-center">
-                    <img src="/public/icons//icons.sprite.svg" alt="Free charging across Mumbai" class="w-12 h-12 mb-4"/>
+                    <img src="/public/icons/price.svg" alt="Free charging across Mumbai" class="w-12 h-12 mb-4"/>
                     <p class="text-center text-lg">"Intelligent pricing"</p>
                 </div>
                 <div class="flex flex-col items-center">
-                    <img src="path/to/icon2.png" alt="Free charging across Mumbai" class="w-12 h-12 mb-4"/>
+                    <img src="/public/icons/free.svg" alt="Free charging across Mumbai" class="w-12 h-12 mb-4"/>
                     <p class="text-center text-lg">"Free charging across Mumbai"</p>
                 </div>
                 <div class="flex flex-col items-center">
-                    <img src="path/to/icon3.png" alt="Free parking" class="w-12 h-12 mb-4"/>
+                    <img src="/public/icons/parking.svg" alt="Free parking" class="w-12 h-12 mb-4"/>
                     <p class="text-center text-lg">"Free parking"</p>
                 </div>
                 <div class="flex flex-col items-center">
-                    <img src="path/to/icon4.png" alt="Safety, 24/7" class="w-12 h-12 mb-4"/>
+                    <img src="/public/icons/safety.svg" alt="Safety, 24/7" class="w-12 h-12 mb-4"/>
                     <p class="text-center text-lg">"Safety, 24/7"</p>
                 </div>
                 <div class="flex flex-col items-center">
-                    <img src="path/to/icon5.png" alt="Premium cars only" class="w-12 h-12 mb-4"/>
+                    <img src="/public/icons/cars.svg" alt="Premium cars only" class="w-12 h-12 mb-4"/>
                     <p class="text-center text-lg">"Premium cars only"</p>
                 </div>
             </div>
