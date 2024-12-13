@@ -128,7 +128,7 @@ fn CollectionTile(requests: Vec<CollectionData> ) -> impl IntoView {
                                                                             <div>
                                                                                 <img
                                                                                     class="h-12 w-12 flex-none rounded-full bg-gray-50 object-cover"
-                                                                                    src=format!("https://{}.icp0.io{}", crate::TEMP_ASSET_CANISTER_ID,logo_url.clone()) 
+                                                                                    src=format!("https://{}.icp0.io{}", crate::TEMP_ASSET_CANISTER_ID.to_text(),logo_url.clone()) 
                                                                                     alt=name.clone()
 
                                                                                 />

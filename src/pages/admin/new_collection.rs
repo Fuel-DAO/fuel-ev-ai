@@ -70,7 +70,7 @@ pub fn NewCollectionForm() -> impl IntoView {
 
     // ==== Event Handlers ====
     let asset_proxy =ASSET_PROXY_ID;
-    let asset_canister = Principal::from_text(TEMP_ASSET_CANISTER_ID).unwrap();
+    let asset_canister = TEMP_ASSET_CANISTER_ID;
     let asset_proxy_canister_id: RwSignal<String> = create_rw_signal(asset_proxy.to_string());
     let asset_canister_id: RwSignal<String> = create_rw_signal(asset_canister.to_string());
     log!("asset_canister_id: {:?}", asset_canister_id.get());

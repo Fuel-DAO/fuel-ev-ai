@@ -245,7 +245,7 @@ pub fn ImagesInfo(
 
     // Function to construct the full asset path
     // let asset_path = move |path: &str| format!("{}/{}", asset_canister_id, path);
-    let asset_path = move |path: &str| format!("https://{}.icp0.io{}", TEMP_ASSET_CANISTER_ID,  &path);
+    let asset_path = move |path: &str| format!("https://{}.icp0.io{}", TEMP_ASSET_CANISTER_ID.to_text(),  &path);
 
     // Clone necessary variables for rendering
     let data_clone = data.clone();
