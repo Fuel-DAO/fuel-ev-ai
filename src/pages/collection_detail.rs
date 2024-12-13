@@ -83,7 +83,7 @@ pub fn CollectionDetail() -> impl IntoView {
                                             <CollectionImages metadata=metadata.clone() asset_can_id />
                                             <div class="w-full flex flex-col items-center justify-center  gap-4 pb-8">
                                                 <CarDetailPage metadata />
-                                                <div>"check"</div>
+                                                // <div>"check"</div>
 
                                             </div>
                                         </div>
