@@ -1,11 +1,20 @@
 use leptos::*;
+use web_sys::window;
 
 #[component]
 pub fn Header2() -> impl IntoView {
+
+    let go_back = || {
+        if let Some(win) = window() {
+            win.history().unwrap().back().unwrap();
+        }
+    };
+
     view! {
         <div class="w-full fixed z-50 h-20 shadow-sm flex items-center justify-between px-8 font-light transition-all bg-white/90 backdrop-blur-md">
 
-            <button class="z-[1] hidden lg:block text-gray-700 hover:text-gray-900">
+            <button on:click=move |_| go_back()
+             class="z-[1] hidden lg:block text-gray-700 hover:text-gray-900">
                 "← Go back"
             </button>
 

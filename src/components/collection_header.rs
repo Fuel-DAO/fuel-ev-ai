@@ -1,5 +1,6 @@
 use leptos::*;
 use crate::components::specifications::SpecificationComponent;
+use crate::components::documents::DocumentList;
 use crate::components::collection_info_cards::CollectionInfoCards;
 use crate::components::tabs::Tabs;
 use crate::canister::token::GetMetadataRet;
@@ -60,11 +61,13 @@ Take a look at this car at FuelEV!", metadata.name)};
                     <SpecificationComponent metadata=metadata.clone() />
                     </div>
                 }
-            } /* else if selected() == "documents" {
-                view! {  
-                    <Documents metadata=props.metadata.clone() />
+            } else if selected() == "documents" {
+                view! {
+                    <div>
+                    <DocumentList metadata=metadata.clone() />
+                    </div>
                 }
-            } */ else {
+            } else {
                 view! {  
                     <div>{ "No content available." }</div>
                 }
