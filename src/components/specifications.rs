@@ -87,7 +87,7 @@ let range_per_charge = metadata.range_per_charge;
 let acceleration = metadata.acceleration;
 let charging_speed = metadata.charging_speed;
 let wheels = metadata.wheels;
-let purchase_price = format!("€ {}", metadata.purchase_price.to_string());
+let purchase_price = format!("₹ {}", metadata.purchase_price.to_string());
 let brochure_url = metadata.brochure_url.clone();
 let battery = metadata.battery;
 

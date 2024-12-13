@@ -123,15 +123,15 @@ fn CarDetailPage(metadata: GetMetadataRet) -> impl IntoView {
                 <div class="flex flex-col gap-8">
                     <InvestInfo metadata=metadata.clone() token_canister_id />
 
-                    <ConcludeSaleAdminComponent metadata=metadata.clone() token_canister_id />
+                    // <ConcludeSaleAdminComponent metadata=metadata.clone() token_canister_id />
 
                 </div>
-                <div>"check"</div>
+                // <div>"check"</div>
             // <div class="flex flex-col gap-8">
             // <SpecificationComponent />
             // </div>
             </div>
-            <div>"check"</div>
+            // <div>"check"</div>
 
         </div>
     }
