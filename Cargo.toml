@@ -95,3 +95,10 @@ tailwind-input-file = "style/tailwind.css"
 tailwind-config-file = "tailwind.config.js"
 
 assets-dir = "public"
+
+
+[profile.release]
+opt-level = 'z'
+lto = true
+
+
