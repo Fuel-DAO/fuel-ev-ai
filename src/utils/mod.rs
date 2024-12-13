@@ -9,3 +9,4 @@ pub mod button;
 pub mod invest_popup;
 pub mod input;
 pub mod plus_icon;
+pub mod file_type;

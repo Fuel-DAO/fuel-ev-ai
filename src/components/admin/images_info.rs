@@ -1,5 +1,5 @@
 // images_info.rs
-use crate::canister::PROVISION_ID;
+use crate::{canister::PROVISION_ID, utils::file_type::get_content_type};
 use crate::state::asset_manager::*;
 use crate::state::canisters::Canisters;
 use crate::TEMP_ASSET_CANISTER_ID;
@@ -141,7 +141,7 @@ pub fn ImagesInfo(
                     };
 
 
-                let future =  manager.store(StoreArg{key: format!("/{}", &file_name), content: file_data, sha256: None, content_type: "image/png".to_string(), content_encoding: "identity".to_string() });
+                let future =  manager.store(StoreArg{key: format!("/{}", &file_name), content: file_data, sha256: None, content_type: get_content_type(&file_name).to_string(), content_encoding: "identity".to_string() });
                     // Upload the file
                     match future.await {
                         Ok(ret) => {

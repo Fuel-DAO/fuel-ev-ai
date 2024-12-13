@@ -1,5 +1,6 @@
 // documents_info.rs
 
+use crate::utils::file_type::get_content_type;
 use crate::{canister::ASSET_PROXY_ID, state::asset_manager::*};
 use crate::state::canisters::Canisters;
 use candid::Principal;
@@ -128,7 +129,7 @@ pub fn DocumentsInfo(documents: RwSignal<Vec<(String, String)>>) -> impl IntoVie
                     }
                 };
 
-                let future =  manager.store(StoreArg{key: format!("/{}", &file_name), content: file_data, sha256: None, content_type: "application/pdf".to_string(), content_encoding: "identity".to_string() });
+                let future =  manager.store(StoreArg{key: format!("/{}", &file_name), content: file_data, sha256: None, content_type: get_content_type(&file_name).to_string(), content_encoding: "identity".to_string() });
                 // Upload the file
                 match  future.await {
                     Ok(ret) => {
