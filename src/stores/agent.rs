@@ -1,11 +1,8 @@
-use crate::stores::auth_client::get_identity;
-use candid::{CandidType, Decode, Deserialize, Encode};
-use dotenv_codegen::dotenv;
-use ic_agent::{export::Principal, Agent};
+use ic_agent::Agent;
 use leptos::*;
-use std::{env, time::Duration};
+use std::time::Duration;
 
-pub const TIMEOUT: Duration = Duration::from_secs(60 * 5);
+// pub const TIMEOUT: Duration = Duration::from_secs(60 * 5);
 
 #[component]
 pub fn AgentProvider(children: Children) -> impl IntoView {

@@ -1,6 +1,5 @@
-use crate::{canister::token::GetMetadataRet, state::canisters::Canisters};
+use crate::state::canisters::Canisters;
 use candid::Principal;
-use leptos::logging::log;
 
 pub async fn is_admin(canisters: &Canisters, principal: Option<Principal>) -> Result<bool, String> {
     let provision_canister = canisters.provision_canister().await;

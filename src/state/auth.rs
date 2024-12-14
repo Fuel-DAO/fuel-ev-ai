@@ -5,7 +5,7 @@ use ic_agent::{identity::Identity, Agent};
 use ic_auth_client::{AuthClient, AuthClientLoginOptions};
 use leptos::logging;
 use leptos::window;
-use log::{error, info};
+use log::info;
 use std::env;
 use std::error::Error;
 use std::rc::Rc;

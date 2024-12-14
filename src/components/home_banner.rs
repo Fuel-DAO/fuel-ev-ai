@@ -24,9 +24,9 @@ pub fn HeroSection() -> impl IntoView {
             </div>
 
             // Car Image
-            <div class="mt-8 md:mt-0 md:max-w-md lg:max-w-lg">
-                <img src="/img/car-charging.png" alt="Car Charging" class="w-full h-auto"/>
-            </div>
+            // <div class="mt-8 md:mt-0 md:max-w-md lg:max-w-lg">
+            //     <img src="/public/img/car-charging.png" class="w-full h-auto"/>
+            // </div>
         </section>
     }
 }
