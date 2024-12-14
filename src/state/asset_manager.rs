@@ -6,11 +6,11 @@ use candid::{Decode, Encode};
 use ic_agent::Agent;
 use serde::Serialize;
 
-use crate::canister::asset_proxy::{AssetProxy, Result_, };
+use crate::canister::asset_proxy::Result_;
 
 
 pub struct AssetManager<'a> {
-   pub asset_proxy_canister: AssetProxy<'a>,
+//    pub asset_proxy_canister: AssetProxy<'a>,
     upload_canister_id: Principal,
     // asset_canister_id: Principal,
     agent: &'a Agent,
@@ -40,7 +40,7 @@ impl<'a> AssetManager<'a> {
     ) -> Self {
         Self {
             upload_canister_id,
-            asset_proxy_canister: AssetProxy(upload_canister_id, &agent),
+            // asset_proxy_canister: AssetProxy(upload_canister_id, &agent),
             // asset_canister_id,
             agent,
         }

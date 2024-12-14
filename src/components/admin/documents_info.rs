@@ -11,10 +11,10 @@ use std::rc::Rc;
 use wasm_bindgen::JsCast;
 use web_sys::{Event, HtmlInputElement};
 
-#[derive(Default, Debug, Clone)]
-pub struct DocumentsInfoData {
-    pub documents: Vec<(String, String)>, // (Document Name, URL)
-}
+// #[derive(Default, Debug, Clone)]
+// pub struct DocumentsInfoData {
+//     pub documents: Vec<(String, String)>, // (Document Name, URL)
+// }
 
 #[component]
 pub fn DocumentsInfo(documents: RwSignal<Vec<(String, String)>>) -> impl IntoView {

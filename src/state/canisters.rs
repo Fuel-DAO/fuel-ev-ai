@@ -2,7 +2,6 @@
 use crate::canister::provision::Provision;
 use crate::canister::token::Token;
 use crate::canister::{ASSET_PROXY_ID, PROVISION_ID};
-use crate::TEMP_ASSET_CANISTER_ID;
 
 use crate::state::asset_manager::AssetManager;
 use crate::state::auth::AuthService;

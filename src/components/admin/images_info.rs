@@ -1,12 +1,12 @@
 // images_info.rs
-use crate::{canister::PROVISION_ID, utils::file_type::get_content_type};
+use crate::utils::file_type::get_content_type;
 use crate::state::asset_manager::*;
 use crate::state::canisters::Canisters;
 use crate::TEMP_ASSET_CANISTER_ID;
-use candid::Principal;
+// use candid::Principal;
 use gloo::file::futures::read_as_bytes;
 use gloo_file::Blob;
-use leptos::logging::log;
+// use leptos::logging::log;
 use leptos::*;
 use std::rc::Rc;
 use wasm_bindgen::JsCast;
@@ -22,8 +22,8 @@ pub struct ImagesInfoData {
 pub fn ImagesInfo(
     data: RwSignal<ImagesInfoData>,
     absolute_logo_path: bool,
-    upload_canister_id: String,
-    asset_canister_id: String,
+    // upload_canister_id: String,
+    // asset_canister_id: String,
 ) -> impl IntoView {
     // Access the Canisters context as RwSignal<Option<Rc<Canisters>>>
     let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
@@ -49,8 +49,8 @@ pub fn ImagesInfo(
         let error_logo = error_logo.clone();
         let error_message = error_message.clone();
         let canisters_signal = canisters_signal.clone();
-        let upload_canister_id = upload_canister_id.clone();
-        let asset_canister_id = asset_canister_id.clone();
+        // let upload_canister_id = upload_canister_id.clone();
+        // let asset_canister_id = asset_canister_id.clone();
 
         Rc::new(move |event: Event, file_type: &'static str| {
             // Reset error states based on file type
@@ -93,8 +93,8 @@ pub fn ImagesInfo(
             let error_asset = error_asset.clone();
             let error_logo = error_logo.clone();
             let error_message = error_message.clone();
-            let upload_canister_id = upload_canister_id.clone();
-            let asset_canister_id = asset_canister_id.clone();
+            // let upload_canister_id = upload_canister_id.clone();
+            // let asset_canister_id = asset_canister_id.clone();
 
             // Perform the upload asynchronously
             spawn_local(async move {
@@ -190,8 +190,8 @@ pub fn ImagesInfo(
         let error_logo = error_logo.clone();
         let error_message = error_message.clone();
         let canisters_signal = canisters_signal.clone();
-        let upload_canister_id = upload_canister_id.clone();
-        let asset_canister_id = asset_canister_id.clone();
+        // let upload_canister_id = upload_canister_id.clone();
+        // let asset_canister_id = asset_canister_id.clone();
 
         Rc::new(move |path: String, file_type: &'static str| {
             let data = data.clone();
@@ -199,8 +199,8 @@ pub fn ImagesInfo(
             let error_logo = error_logo.clone();
             let error_message = error_message.clone();
             let canisters_signal = canisters_signal.clone();
-            let upload_canister_id = upload_canister_id.clone();
-            let asset_canister_id = asset_canister_id.clone();
+            // let upload_canister_id = upload_canister_id.clone();
+            // let asset_canister_id = asset_canister_id.clone();
             let file_type = file_type.to_string();
 
             spawn_local(async move {
@@ -341,7 +341,7 @@ pub fn ImagesInfo(
                     {
                         let remove_image_clone = remove_image.clone();
                         let disabled_clone = disabled.clone();
-                        let asset_path_clone = asset_path.clone();
+                        // let asset_path_clone = asset_path.clone();
                         let path_clone = path.clone();
                         view! {
                             <div class=move || {

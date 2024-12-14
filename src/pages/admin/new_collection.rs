@@ -373,8 +373,8 @@ pub fn NewCollectionForm() -> impl IntoView {
                                         <ImagesInfo
                                             data=images_info_data
                                             absolute_logo_path=false
-                                            upload_canister_id=asset_proxy_canister_id.get()
-                                            asset_canister_id=asset_canister_id.get()
+                                            // upload_canister_id=asset_proxy_canister_id.get()
+                                            // asset_canister_id=asset_canister_id.get()
                                         />
                                     </Show>
 
