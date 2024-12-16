@@ -1,0 +1,1 @@
+dfx deploy --specified-id tms2j-daaaa-aaaai-q3nta-cai fuel-ev-ai
