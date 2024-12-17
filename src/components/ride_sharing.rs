@@ -24,7 +24,7 @@ pub fn DecentralizedRidesharing() -> impl IntoView {
 
             // Image Section
             <div class="h-96 lg:h-full w-full lg:w-1/2 bg-center bg-cover shrink-0"
-                 style="background-image: url('/public/img/ridesharing.webp');">
+                 style="background-image: url('/public/img/rideshare.jpg');">
             </div>
         </section>
 

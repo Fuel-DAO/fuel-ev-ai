@@ -23,8 +23,8 @@ pub fn Footer() -> impl IntoView {
 		<div
 		class="lg:w-1/3 lg:flex justify-center items-center self-stretch p-8 flex-row gap-2 border border-white lg:border-l-0 lg:border-r-0"
 	>
-		<div>Made with "❤️" using</div>
-		<img src="/public/img/internet-computer.svg" alt="Internet Computer" class="w-24" />
+		<div>Made with " ❤️ " using</div>
+		<img src="/public/icons/icp.png" alt="Internet Computer" class="h-6 m-1" />
 	</div>
 	</div>
 
