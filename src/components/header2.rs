@@ -18,7 +18,7 @@ pub fn Header2() -> impl IntoView {
                 "← Go back"
             </button>
 
-            <button class="z-[1] lg:hidden pr-4 text-gray-700 hover:text-gray-900">"←"</button>
+            <button on:click=move |_| go_back() class="z-[1] lg:hidden pr-4 text-gray-700 hover:text-gray-900">"←"</button>
 
             <div class="absolute z-0 inset-x-0 flex items-center pl-8 justify-center">
                 <a href="/">
