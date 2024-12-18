@@ -52,6 +52,13 @@ fn App() -> impl IntoView {
 }
 #[component]
 fn AuthServiceProvider(children: Children) -> impl IntoView {
+    set_up_auth_context();
+
+    // Provide AuthService as a context
+    children()
+}
+
+pub fn set_up_auth_context() {
     let auth_service = Rc::new(RefCell::new(
         AuthService::new().expect("Failed to create AuthService"),
     ));
@@ -71,9 +78,6 @@ fn AuthServiceProvider(children: Children) -> impl IntoView {
             }
         }
     });
-
-    // Provide AuthService as a context
-    children()
 }
 #[component]
 fn Providers() -> impl IntoView {

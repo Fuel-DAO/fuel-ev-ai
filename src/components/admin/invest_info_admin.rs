@@ -150,7 +150,7 @@ pub fn ConcludeSaleAdminComponent(
             view! { <div>"Loading..."</div> }
         }>
             {booked_tokens_resource
-                .read()
+                .get()
                 .map(|booked_tokens_result| match booked_tokens_result {
                     Ok(booked_tokens) => {
                         let supply_cap_biguint: BigUint = metadata.supply_cap.clone().into();
@@ -249,7 +249,7 @@ pub fn ConcludeSaleAdminComponent(
                                             <button
                                                 role="presentation"
                                                 type="button"
-                                                class="bg-white ring-1 ring-inset ring-gray-100 hover:bg-gray-50 outline-none active:bg-gray-200 text-black ring-0 px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
+                                                class="bg-white ring-inset ring-gray-100 hover:bg-gray-50 outline-none active:bg-gray-200 text-black ring-0 px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
                                                 on:click=move |_| cancel_action()
                                             >
                                                 "Cancel"

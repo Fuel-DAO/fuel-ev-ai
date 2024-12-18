@@ -16,8 +16,8 @@ use std::cmp::PartialEq;
 use std::rc::Rc;
 #[derive(Debug, Clone, Params, PartialEq)]
 pub struct CollectionParams {
-    token_id: String,
-    asset_id: String,
+    pub  token_id: String,
+    pub asset_id: String,
 }
 
 #[component]

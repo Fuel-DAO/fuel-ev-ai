@@ -10,3 +10,4 @@ pub mod invest_popup;
 pub mod input;
 pub mod plus_icon;
 pub mod file_type;
+pub mod go_back_and_come_back;

@@ -146,7 +146,7 @@ pub fn ImagesInfo(
                     match future.await {
                         Ok(ret) => {
                             match ret {
-    crate::canister::asset_proxy::Result_::Ok(_) => {
+    crate::canister::provision::Result2::Ok(_) => {
         if file_type == "logo" {
             data.update(|d| d.logo = format!("/{}", &file_name));
         } else {
@@ -154,7 +154,7 @@ pub fn ImagesInfo(
         }
         uploading_progress.set(100);
     },
-    crate::canister::asset_proxy::Result_::Err(e) => {
+    crate::canister::provision::Result2::Err(e) => {
         log::error!("Upload failed: {}", e);
                             error_message.set(format!("Upload failed: {}", e));
                             if file_type == "logo" {

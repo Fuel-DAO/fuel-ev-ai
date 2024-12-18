@@ -13,6 +13,7 @@ use std::time::Duration;
 use web_sys::Url;
 
 use crate::canister::PROVISION_ID;
+use crate::utils::go_back_and_come_back::*;
 pub const TIMEOUT: Duration = Duration::from_secs(60 * 5);
 
 #[derive(Clone)]
@@ -63,7 +64,7 @@ impl AuthService {
             builder = builder.identity_provider(provider);
         }
 
-        let options = builder.build();
+        let options = builder.on_success(|_| {go_back_and_come_back();}).build();
 
         // Initiate the login process
         self.auth_client.login_with_options(options);
@@ -96,18 +97,22 @@ impl AuthService {
     pub async fn logout(&mut self) -> Result<(), String> {
         // Call the logout method on the AuthClient
         self.auth_client
-            .logout(Some(web_sys::window().unwrap().location()))
+            .logout(None)
             .await;
 
         // Clear the agent
         self.agent = None;
 
+
+        // go_back_and_come_back();
+
+
         // Reload the page
-        web_sys::window()
-            .unwrap()
-            .location()
-            .reload()
-            .map_err(|_| "Failed to reload page".to_string())?;
+        // web_sys::window()
+        //     .unwrap()
+        //     .location()
+        //     .reload()
+        //     .map_err(|_| "Failed to reload page".to_string())?;
 
         // Log the logout action
         info!("Logout successful");
