@@ -7,7 +7,7 @@ use leptos_dom::logging::console_warn;
 use std::{env, sync::Arc};
 use web_sys::Url;
 
-use crate::canister::PROVISION_ID;
+use crate::{canister::PROVISION_ID, set_up_auth_context, utils::go_back_and_come_back::{clear_localstorage, go_back_and_come_back}};
 
 
 /// Component that provides the AuthClient to the children components
@@ -22,7 +22,6 @@ pub fn AuthClientProvider(children: Children) -> impl IntoView {
                 .on_idle(|| {
                     spawn_local(async move {
                         logout().await.unwrap();
-                        window().location().reload().unwrap();
                     });
                 })
                 .idle_timeout(20 * 60 * 1000) // 20 minutes
@@ -81,7 +80,10 @@ pub fn login() -> Result<(), AuthClientError> {
     };
 
     let on_success = |_| {
-        window().location().reload().unwrap();
+        // window().location().reload().unwrap();
+        go_back_and_come_back();
+        set_up_auth_context();
+
     };
     let on_error = |e| {
         if let Some(e) = e {
@@ -106,7 +108,8 @@ pub fn login() -> Result<(), AuthClientError> {
 }
 
 pub async fn logout() -> Result<(), AuthClientError> {
-    auth_client()?.logout(Some(window().location())).await;
+    auth_client()?.logout(None).await;
+    // clear_localstorage();
     Ok(())
 }
 

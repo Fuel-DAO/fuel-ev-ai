@@ -1,9 +1,10 @@
-use candid::{Nat, Principal};
+use candid::Principal;
 use leptos::*;
-use crate::canister::token::{BookTokensArg, Metadata};
+use crate::canister::token::BookTokensArg;
+use crate::state::auth_actions::create_login_action;
 use crate::state::{auth::AuthService, canisters::Canisters};
-use crate::stores::auth_client::login;
 use crate::utils::button::ButtonComponent;
+use crate::utils::go_back_and_come_back::go_back_and_come_back;
 use crate::utils::input::InputComponent;
 use crate::utils::plus_icon::PlusIcon;
 use crate::utils::web::copy_to_clipboard;
@@ -28,10 +29,12 @@ struct PaymentInfo {
 }
 
 #[component]
-pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String) -> impl IntoView {
+pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: String) -> impl IntoView {
     const TRANSFER_PRICE: u64 = 10_000;
 
     let nft_to_buy = create_rw_signal(1u64.to_string());
+
+    let show_clone = RwSignal::new(show.get_untracked());
 
     // Retrieve Canisters from context
     let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
@@ -41,14 +44,22 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String) -> impl IntoView
     let auth_service =
         use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
 
+    let handle_login = create_login_action(Rc::clone(&auth_service));
+
+
+        let is_authenticated = RwSignal::new(auth_service.borrow().is_authenticated());
     // Reactive memo for authentication state
-    let is_authenticated = create_memo({
-        let auth_service = Rc::clone(&auth_service);
-        move |_| auth_service.borrow().is_authenticated()
+    create_effect(move |_| {
+        let is_show = show.get();
+        show_clone.set(is_show);
+
+    is_authenticated.set(auth_service.borrow().is_authenticated());
     });
 
     // Reactive memo for principal
     let principall = create_memo({
+        let auth_service =
+        use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
         let auth_service = Rc::clone(&auth_service);
         move |_| {
             if is_authenticated() {
@@ -197,8 +208,12 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String) -> impl IntoView
             + from_e8s(transfer_price_e8s)
     };
 
+
+
+    
     // Derived view based on step
     let main_content = move || {
+        let show = show.clone();
         match step.get() {
             1 => view! {
                 <div class="w-full">
@@ -276,6 +291,7 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String) -> impl IntoView
                                     </div>
                                     <ButtonComponent on_click=move |_| {
                                         show.set(false);
+                                        go_back_and_come_back();
                                     }>"Close"</ButtonComponent>
                                 </div>
                             }
@@ -309,17 +325,8 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String) -> impl IntoView
                         {move || if step.get() == 3 { "Pay" } else { "Invest" }}
                     </div>
                     <Show
-                        when=move || principall().is_some()
-                        fallback=|| {
-                            view! {
-                                <div class="flex flex-col gap-8 items-center">
-                                    <div>"You need to login before you can invest"</div>
-                                    <ButtonComponent on_click=|_| {
-                                        let _ = login();
-                                    }>{|| view! { <div>Invest</div> }}</ButtonComponent>
-                                </div>
-                            }
-                        }
+                        when=move || is_authenticated()
+                        fallback=||view! {<LoginStep />}
                     >
                         {main_content}
                     </Show>
@@ -329,6 +336,51 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String) -> impl IntoView
     }
 }
 
+
+#[component] 
+fn LoginStep() -> impl IntoView {
+    let auth_service =
+    use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
+
+    let handle_login = create_login_action(Rc::clone(&auth_service));
+    view! {
+        <div class="flex flex-col gap-8 items-center">
+            <div>"You need to login before you can invest"</div>
+            <button on:click= move|_| {
+                handle_login.dispatch(());
+            } class="bg-green-500 hover:bg-green-700 text-white font-bold xl:text-2xl xl:px-8 xl:py-3 px-6 py-3 rounded-full shadow-lg">
+                        "Click to Login"
+            </button>
+        </div>
+    }
+}
+// fn go_back_and_come_back() {
+//     if let Some(win) = web_sys::window() {
+
+//         let current_url = window().location().href().ok();
+//         if current_url.is_some() {
+
+//             let current_loc = current_url.unwrap();
+
+//         let navigator = use_navigate();
+
+//         // Go back to the previous page
+//         win.history().unwrap().back().unwrap();
+
+//         // Use setTimeout to navigate back to the current location after a short delay
+//         let closure = Closure::wrap(Box::new(move || {
+//             navigator(&current_loc, Default::default());
+//         }) as Box<dyn Fn()>);
+
+//         win.set_timeout_with_callback_and_timeout_and_arguments_0(closure.as_ref().unchecked_ref(), 1000).unwrap();
+//         closure.forget(); 
+
+//         } 
+    
+//         // Prevent the closure from being dropped immediately
+//     }
+// }
+ 
 // Updated check_payment_status function
 async fn check_payment_status(
     canisters: &Canisters,
@@ -371,6 +423,7 @@ fn StepTwo(
     payment_status: RwSignal<PaymentStatus>,
     on_click: impl Fn() + 'static,
 ) -> impl IntoView {
+
     view! {
         <div class="flex w-full items-start justify-between text-sm gap-4">
             <div>"Amount to pay:"</div>
@@ -429,7 +482,7 @@ fn StepTwo(
             <button
                 on:click=move |_| {
                     payment_status.get().error.set("".into());
-                    on_click()
+                    on_click();
                 }
                 class="underline text-xs font-bold"
             >

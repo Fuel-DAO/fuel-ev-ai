@@ -65,7 +65,7 @@ fn InvenstInfoInner(props: InvestInfoMetaProps, token_canister_id: Principal) ->
     let booked_tokens = props.booked_tokens.clone();
     let booked_tokens_value = booked_tokens.clone();
 
-    let show_invest_popup = RwSignal::new(false);
+    let show_invest_popup: RwSignal<bool> = RwSignal::new(false);
 
     logging::log!("Booked tokens{:?} ", booked_tokens);
 
@@ -155,6 +155,7 @@ fn InvenstInfoInner(props: InvestInfoMetaProps, token_canister_id: Principal) ->
                 <InvestPopup
                     show=show_invest_popup.clone()
                     minter_can_id=token_canister_id.to_string()
+                    asset_can_id=props.metadata.asset_canister.to_text()
                 />
             </Show>
 

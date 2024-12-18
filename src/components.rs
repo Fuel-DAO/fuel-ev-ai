@@ -1,4 +1,3 @@
-pub mod account;
 pub mod admin;
 pub mod collection_header;
 pub mod collection_images;

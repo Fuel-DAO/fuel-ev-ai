@@ -1,9 +1,7 @@
 use crate::canister::provision::{self, Result1, Result2};
 use crate::state::canisters::Canisters;
-use candid::Nat;
-use candid::{CandidType, Principal};
+use candid::Principal;
 use leptos::logging::log;
-use leptos::*;
 use serde::{Deserialize, Serialize};
 // Import the new types
 use ic_agent::AgentError;

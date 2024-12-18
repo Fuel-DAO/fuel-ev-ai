@@ -3,7 +3,6 @@ use crate::state::{
     auth_actions::{create_login_action, create_logout_action},
 };
 use leptos::*;
-use leptos_dom::logging::{console_error, console_log};
 use std::cell::RefCell;
 use std::rc::Rc;
 #[component]
@@ -47,7 +46,7 @@ fn UserPrincipal() -> impl IntoView {
     });
 
     // Reactive signal for principal
-    let principal = create_memo({
+    let _ = create_memo({
         let auth_service = Rc::clone(&auth_service);
         move |_| {
             if is_authenticated() {
@@ -59,8 +58,8 @@ fn UserPrincipal() -> impl IntoView {
     });
 
     // Use the reusable actions from auth_actions.rs
-    let handle_login = create_login_action(Rc::clone(&auth_service));
-    let handle_logout = create_logout_action(Rc::clone(&auth_service));
+    let _handle_login = create_login_action(Rc::clone(&auth_service));
+    let _handle_logout = create_logout_action(Rc::clone(&auth_service));
     view! {
         <Show
             when=move || is_authenticated()
@@ -70,7 +69,7 @@ fn UserPrincipal() -> impl IntoView {
                         // on:click=move |_| handle_login.dispatch(())
                         href="/login"
                         class="bg-black text-white rounded-full p-2"
-                        target="_blank"
+                        // target="_blank"
                     >
 
                         <svg
@@ -99,7 +98,7 @@ fn UserPrincipal() -> impl IntoView {
                     // on:click=move |_| handle_logout.dispatch(())
                     href="/login"
                     class="h-10 w-10 bg-black flex items-center text-xl select-none justify-center font-light text-white rounded-full uppercase"
-                    target="_blank"
+                    // target="_blank"
                 >
 
                     U
