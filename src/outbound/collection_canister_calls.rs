@@ -41,6 +41,13 @@ pub async fn fetch_collections_data(canisters: &Canisters) -> Result<Vec<Collect
 
         let collection_meta_data =
             get_collection_metadata_from_token_canister(canisters, collection.token_canister).await;
+        let sale_status =
+            canisters.token_canister(collection.token_canister).await.get_sale_status().await.ok();
+
+        let status = sale_status.map(|f| match f {
+            SaleStatus::Live => "Open",
+            _ => "Closed",
+        } ).unwrap_or("Open").to_string() ;
 
         match collection_meta_data {
             Ok(metadata)  => {
@@ -49,7 +56,7 @@ pub async fn fetch_collections_data(canisters: &Canisters) -> Result<Vec<Collect
                         collections.push(CollectionData {
                             id: collection_id.clone(),
                             name: metadata.name.clone(),
-                            status: "Available".to_string(), // Adjust as needed based on actual status
+                            status: status, // Adjust as needed based on actual status
                             metadata: Some(metadata),
                         });
                     },

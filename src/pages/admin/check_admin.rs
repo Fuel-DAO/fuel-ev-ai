@@ -49,7 +49,7 @@ pub fn AdminRoute() -> impl IntoView {
                         Admin::get().is_admin.set(is);
                         Admin::get().principal.set(maybe_principal);
                     }, 
-                    Err(ref e) => {}
+                    Err(_) => {}
                 }
                 admin
                 
