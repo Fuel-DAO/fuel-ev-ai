@@ -5,7 +5,6 @@ use crate::state::{
     auth::AuthService,
     auth_actions::{create_login_action, create_logout_action},
 };
-use candid::Principal;
 use leptos::*;
 use std::cell::RefCell;
 use std::rc::Rc;

@@ -19,6 +19,7 @@ use pages::{
 };
 pub mod constants;
 pub use constants::TEMP_ASSET_CANISTER_ID;
+use state::admin::Admin;
 use std::cell::RefCell;
 use std::rc::Rc;
 mod canister;
@@ -53,7 +54,7 @@ fn App() -> impl IntoView {
 #[component]
 fn AuthServiceProvider(children: Children) -> impl IntoView {
     set_up_auth_context();
-
+    Admin::set_global();
     // Provide AuthService as a context
     children()
 }
@@ -82,6 +83,7 @@ pub fn set_up_auth_context() {
 #[component]
 fn Providers() -> impl IntoView {
     provide_meta_context();
+    Admin::set_global();
     // provide_context(Canisters::default());
 
     console_error_panic_hook::set_once();
