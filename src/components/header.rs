@@ -1,7 +1,7 @@
-use crate::state::{
+use crate::{pages::admin::check_admin::AdminRoute, state::{
     auth::AuthService,
     auth_actions::{create_login_action, create_logout_action},
-};
+}};
 use leptos::*;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -18,6 +18,7 @@ pub fn Header() -> impl IntoView {
 
             // Collections and Profile
             <div class="absolute z-[1] lg:flex hidden right-8 items-center gap-8">
+                <AdminRoute />
                 <a href="/collections">
 
                     <span class="text-black font-medium">"Collections"</span>

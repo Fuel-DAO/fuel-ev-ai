@@ -1,7 +1,6 @@
 use crate::components::{
     footer::Footer, header::Header, home_banner::HeroSection, powered_by::PoweredBySection,
-    ride_sharing::DecentralizedRidesharing, ridesharing_info::RideSharingInfo,
-    trip_includes::TripIncludes,
+    ride_sharing::DecentralizedRidesharing, trip_includes::TripIncludes,
 };
 use leptos::*;
 use leptos_meta::Title;

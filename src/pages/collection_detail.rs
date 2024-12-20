@@ -2,6 +2,7 @@ use candid::Principal;
 use leptos::*;
 use crate::canister::token::GetMetadataRet;
 use crate::components::admin::invest_info_admin::ConcludeSaleAdminComponent;
+use crate::state::admin::Admin;
 use crate::state::canisters::Canisters;
 use crate::{
     components::{
@@ -122,9 +123,9 @@ fn CarDetailPage(metadata: GetMetadataRet) -> impl IntoView {
                 <CollectionHeader metadata=metadata.clone() collection_id />
                 <div class="flex flex-col gap-8">
                     <InvestInfo metadata=metadata.clone() token_canister_id />
-
-                    // <ConcludeSaleAdminComponent metadata=metadata.clone() token_canister_id />
-
+                    <Show when=move||(Admin::get().principal.get().is_some() && Admin::get().principal.get().unwrap() == metadata.collection_owner )>
+                        <ConcludeSaleAdminComponent metadata=metadata.clone() token_canister_id />
+                    </Show>
                 </div>
                 // <div>"check"</div>
             // <div class="flex flex-col gap-8">
