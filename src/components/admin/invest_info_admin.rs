@@ -13,6 +13,7 @@ use num_traits::{Zero, ToPrimitive};
 pub fn ConcludeSaleAdminComponent(
     metadata: GetMetadataRet,
     token_canister_id: Principal,
+    is_active: bool
 ) -> impl IntoView {
     // Reactive signals for loading states
     let loading_accept = create_rw_signal(false);
@@ -179,7 +180,7 @@ pub fn ConcludeSaleAdminComponent(
                                         "Warning: Sale has not been completed fully yet"
                                     </div>
                                 </Show>
-
+                                <Show when=move || is_active>
                                 <div class="flex gap-2">
                                     // Accept Sale Button
                                     <button
@@ -235,6 +236,7 @@ pub fn ConcludeSaleAdminComponent(
                                         }}
                                     </button>
                                 </div>
+                                </Show>
 
                                 <Show when=show_confirmation.clone() fallback=|| ()>
                                     <div class="border border-yellow-500 bg-yellow-100 p-4 rounded-lg">

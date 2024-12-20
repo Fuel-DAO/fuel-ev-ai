@@ -1,7 +1,9 @@
 use candid::Principal;
 use leptos::*;
+use crate::canister::token::{self, SaleStatus};
 use crate::canister::token::GetMetadataRet;
 use crate::components::admin::invest_info_admin::ConcludeSaleAdminComponent;
+use crate::outbound::accept_or_reject_sale::get_sale_status;
 use crate::state::admin::Admin;
 use crate::state::canisters::Canisters;
 use crate::{
@@ -52,10 +54,12 @@ pub fn CollectionDetail() -> impl IntoView {
                 // Ensure Canisters is available
                 if let Some(cans_rc) = canisters.get() {
                     let metadata = get_collection_metadata_from_token_canister( &cans_rc, principal).await;
+                    let status = get_sale_status( &cans_rc,principal).await.ok();
+
                     match metadata {
     Ok(meta) =>  {
         match meta {
-    crate::canister::token::Result4::Ok(get_metadata_ret) => Ok(get_metadata_ret),
+    crate::canister::token::Result4::Ok(get_metadata_ret) => Ok((get_metadata_ret, status)),
     crate::canister::token::Result4::Err(e) => Err(e),
 }
     },
@@ -81,9 +85,9 @@ pub fn CollectionDetail() -> impl IntoView {
                                     <div>
                                         <Header />
                                         <div class="w-full max-w-6xl pt-32 mx-auto px-8 lg:px-0">
-                                            <CollectionImages metadata=metadata.clone() asset_can_id />
+                                            <CollectionImages metadata=metadata.0.clone() asset_can_id />
                                             <div class="w-full flex flex-col items-center justify-center  gap-4 pb-8">
-                                                <CarDetailPage metadata />
+                                                <CarDetailPage  metadata=metadata.0 status=metadata.1 />
                                                 // <div>"check"</div>
 
                                             </div>
@@ -103,8 +107,8 @@ pub fn CollectionDetail() -> impl IntoView {
 }
 
 #[component]
-fn CarDetailPage(metadata: GetMetadataRet) -> impl IntoView {
-    let params = use_params::<CollectionParams>();
+fn CarDetailPage(metadata: GetMetadataRet, status: Option<SaleStatus>) -> impl IntoView {
+    let params: Memo<Result<CollectionParams, leptos_router::ParamsError>> = use_params::<CollectionParams>();
 
     let collection_id = params
         .get()
@@ -116,6 +120,7 @@ fn CarDetailPage(metadata: GetMetadataRet) -> impl IntoView {
         .unwrap_or_else(|_| "unknown".to_string());
 
     let token_canister_id = Principal::from_text(collection_id.clone()).unwrap();
+    
 
     view! {
         <div class="w-full flex flex-col items-center gap-4 pb-8">
@@ -124,7 +129,7 @@ fn CarDetailPage(metadata: GetMetadataRet) -> impl IntoView {
                 <div class="flex flex-col gap-8">
                     <InvestInfo metadata=metadata.clone() token_canister_id />
                     <Show when=move||(Admin::get().principal.get().is_some() && Admin::get().principal.get().unwrap() == metadata.collection_owner )>
-                        <ConcludeSaleAdminComponent metadata=metadata.clone() token_canister_id />
+                        <ConcludeSaleAdminComponent metadata=metadata.clone() token_canister_id is_active=status.is_some() && status.clone().unwrap() == SaleStatus::Live />
                     </Show>
                 </div>
                 // <div>"check"</div>
