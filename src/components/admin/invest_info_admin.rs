@@ -174,8 +174,12 @@ pub fn ConcludeSaleAdminComponent(
 
                             <div class="shrink-0 border border-primary bg-green-50 border-dashed rounded-xl flex flex-col text-black gap-3 p-6 shadow-xl h-fit">
                                 <div class="font-bold text-xl">"Admin"</div>
+                                <Show when=move||!is_active fallback=||view! {
+                                    <div class="text-lg font-medium">"Sale has been concluded"</div>
+                                }>
                                 <div class="text-lg font-medium">"Conclude sale"</div>
-                                <Show when=move || invested_percentage() < 100.0 fallback=|| ()>
+                                </Show>
+                                <Show when=move || invested_percentage() < 100.0 && is_active fallback=|| ()>
                                     <div class="text-xs text-red-600">
                                         "Warning: Sale has not been completed fully yet"
                                     </div>

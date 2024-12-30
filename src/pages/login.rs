@@ -1,9 +1,9 @@
 // src/components/login.rs
 
-use crate::state::{
+use crate::{pages::admin::check_admin::AdminRoute, state::{
     auth::AuthService,
     auth_actions::{create_login_action, create_logout_action},
-};
+}};
 use leptos::*;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -123,7 +123,7 @@ pub fn Login() -> impl IntoView {
                                     "View all collections"
                                 </button>
                             </a>
-
+                            <div class="flex items-center justify-evenly gap-2">
                             <button
                                 role="presentation"
                                 type="button"
@@ -146,8 +146,14 @@ pub fn Login() -> impl IntoView {
                                         />
                                     </svg>
                                     <span class="whitespace-nowrap">"Logout"</span>
+                                    
                                 </div>
                             </button>
+                            
+                                // <div class="flex items-center justify-center gap-2">
+                                //     <AdminRoute />
+                                // </div>
+                            </div>
                         </>
                     </Show>
                 </div>
