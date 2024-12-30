@@ -208,7 +208,7 @@ pub fn Collections() -> impl IntoView {
                             }
                         }
                         Some(Err(e)) => {
-                            view! { <div>{format!("Error fetching collections: {}", e)}</div> }
+                            view! { <div>{format!("Error fetching Fleet Investments: {}", e)}</div> }
                         }
                         None => view! { <div>"Loading..."</div> },
                     }}

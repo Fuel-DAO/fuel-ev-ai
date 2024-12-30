@@ -14,3 +14,4 @@ pub mod specifications;
 pub mod tabs;
 pub mod trip_includes;
 pub mod documents;
+pub mod car_rental;

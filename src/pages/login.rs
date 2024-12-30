@@ -120,7 +120,7 @@ pub fn Login() -> impl IntoView {
                                     type="button"
                                     class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30 w-min"
                                 >
-                                    "View all collections"
+                                    "View all Fleet Investments"
                                 </button>
                             </a>
                             <div class="flex items-center justify-evenly gap-2">
