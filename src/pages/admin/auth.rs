@@ -87,7 +87,7 @@ pub fn AdminComponent() -> impl IntoView {
                                                 class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30 "
                                             >
                                                 <div class=" transition-opacity">
-                                                    Submit a new collection
+                                                Submit a new vehicle for tokenization
                                                 </div>
                                             </a>
 
@@ -98,7 +98,7 @@ pub fn AdminComponent() -> impl IntoView {
                                                 class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30 "
                                             >
                                                 <div class=" transition-opacity">
-                                                    Manage submitted collections
+                                                Manage submitted listings
                                                 </div>
                                             </a>
                                         </div>
@@ -122,7 +122,7 @@ pub fn AdminComponent() -> impl IntoView {
                                                 class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30 "
                                             >
                                                 <div class=" transition-opacity">
-                                                    Submit a new collection
+                                                Submit a new vehicle for tokenization
                                                 </div>
                                             </a>
 
@@ -133,7 +133,7 @@ pub fn AdminComponent() -> impl IntoView {
                                                 class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30 "
                                             >
                                                 <div class=" transition-opacity">
-                                                    Manage submitted collections
+                                                Manage submitted listings
                                                 </div>
                                             </a>
                                         </div>

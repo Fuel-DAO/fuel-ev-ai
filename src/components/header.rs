@@ -19,9 +19,12 @@ pub fn Header() -> impl IntoView {
             // Collections and Profile
             <div class="absolute z-[1] lg:flex hidden right-8 items-center gap-8">
                 <AdminRoute />
+                <a href="https://fuelev.in" target="_blank">
+                    <span class="text-black font-medium">EV Rentals</span>
+                </a>
                 <a href="/collections">
 
-                    <span class="text-black font-medium">"Collections"</span>
+                    <span class="text-black font-medium">Fleet Investments</span>
                 </a>
                 <UserPrincipal />
             // <button class="bg-black text-white rounded-full p-2">

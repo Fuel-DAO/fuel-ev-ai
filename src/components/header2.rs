@@ -46,7 +46,10 @@ pub fn Header2() -> impl IntoView {
             </div>
 
             <div class="absolute z-[1] lg:flex hidden right-8 items-center gap-8">
-                <a href="/collections">Collections</a>
+                <a href="https://fuelev.in" target="_blank">
+                    <span class="text-black font-medium">EV Rentals</span>
+                </a>
+                <a href="/collections" class="text-black font-medium">Fleet Investments</a>
                 <a
                     role="presentation"
                     href="/login"
