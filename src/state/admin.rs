@@ -1,5 +1,5 @@
 use candid::Principal;
-use leptos::{expect_context, provide_context, RwSignal};
+use leptos::*;
 
 
 
@@ -17,5 +17,9 @@ impl Admin {
 
     pub fn get() -> Self {
         expect_context()
+    }
+
+    pub fn is_admin(&self) -> bool {
+        self.is_admin.get()
     }
 }

@@ -6,7 +6,8 @@ use leptos::*;
 use leptos_dom::logging::console_error;
 use leptos_meta::*;
 
-use leptos_router::{Route, Router, Routes};
+use leptos_router::{Route, Router, Routes, ProtectedRoute};
+use pages::admin::check_admin::AdminProvider;
 use pages::{
     admin::{
         auth::AdminComponent, collection_list::CollectionListPage,
@@ -34,6 +35,7 @@ mod utils;
 fn App() -> impl IntoView {
     // provide_context(Canisters::default());
     view! {
+        <AdminProvider>
         <Router>
             <main>
                 <Routes>
@@ -42,13 +44,36 @@ fn App() -> impl IntoView {
 
                     <Route path="/collections" view=Collections />
                     <Route path="/collections/:token_id/:asset_id" view=CollectionDetail />
-                    <Route path="/admin" view=AdminComponent />
-                    <Route path="/admin/new-collection" view=NewCollectionForm />
-                    <Route path="/admin/manage/list" view=CollectionListPage />
-                    <Route path="/admin/manage/:id" view=ManageCollectionPage />
+                    // <ProtectedRoute 
+                    //     path="/admin" 
+                    //     redirect_path="/login"
+                    //     condition=move || (Admin::get().is_admin)()
+                    //     view=AdminComponent />
+                    <Route path="/admin" view=move || view! {
+                        <Show when=move || (Admin::get().is_admin)() fallback=Login>
+                        <AdminComponent />
+                        </Show>
+                    } />
+                    <Route path="/admin/new-collection" view=move || view! {
+                        <Show when=move || (Admin::get().is_admin)() fallback=Login>
+                        <NewCollectionForm />
+                        </Show>
+                    } />
+                    <Route path="/admin/manage/list" view=move || view! {
+                        <Show when=move || (Admin::get().is_admin)() fallback=Login>
+                        <CollectionListPage />
+                        </Show>
+                    } />
+                    <Route path="/admin/manage/:id" view=move || view! {
+                        <Show when=move || (Admin::get().is_admin)() fallback=Login>
+                        <ManageCollectionPage />
+                        </Show>
+                    } />
+                    
                 </Routes>
             </main>
         </Router>
+        </AdminProvider>
     }
 }
 #[component]
@@ -88,9 +113,11 @@ fn Providers() -> impl IntoView {
 
     console_error_panic_hook::set_once();
     view! {
+        <>
         <AuthClientProvider>
             <AgentProvider>
                 <AuthServiceProvider>
+                    
                     <App />
                 </AuthServiceProvider>
             </AgentProvider>

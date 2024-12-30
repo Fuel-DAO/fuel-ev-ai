@@ -6,9 +6,9 @@ use crate::{outbound::admin_check::is_admin, state::{admin::Admin, auth::AuthSer
 
 
 
-
 #[component]
-pub fn AdminRoute() -> impl IntoView {
+pub fn AdminProvider(children: Children) -> impl IntoView {
+
     let auth_service =
         use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
 
@@ -34,44 +34,37 @@ pub fn AdminRoute() -> impl IntoView {
         }
     });
 
-
-    let is_admin_resource = create_resource(
-        move || {
-            let maybe_canisters = canisters.get();
-            let maybe_principal = principal();
-            (maybe_canisters, maybe_principal)
-        },
-        move |(maybe_canisters, maybe_principal)| async move {
-            if let Some(rc_canisters) = maybe_canisters {
-                let admin =  is_admin(&rc_canisters, maybe_principal).await;
-                match admin {
-                    Ok(is) => {
-                        Admin::get().is_admin.set(is);
-                        Admin::get().principal.set(maybe_principal);
-                    }, 
-                    Err(_) => {}
-                }
-                admin
-                
-            } else {
-                Err("Canisters are not available".to_string())
+    spawn_local(async move {
+        let is_authenticated = is_authenticated();
+        let principal = principal();
+        if let Some(rc_canisters) = canisters.get() {
+            let admin =  is_admin(&rc_canisters, principal).await;
+            match admin {
+                Ok(is) => {
+                    Admin::get().is_admin.set(is);
+                    Admin::get().principal.set(principal);
+                }, 
+                Err(_) => {}
             }
-        },
-    );
+            
+            
+        }
+    });
+    children()  
+}
+
+
+#[component]
+pub fn AdminRoute() -> impl IntoView {
 
     view! {
-        <Suspense>
-        {
-            move || is_admin_resource.get().map(|_| view! {
-                <div></div>
-            } )
-        }
+        <AdminProvider>
         <Show when=move || (Admin::get().is_admin)()>
                 <a href="/admin">
                     <span class="text-black font-medium">"Admin"</span>
                 </a>
         </Show>
-        </Suspense>
+        </AdminProvider>
     }
 
 }
