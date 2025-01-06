@@ -77,7 +77,8 @@ mod build_common {
     fn build_did_intf() -> Result<()> {
         println!("cargo:rerun-if-changed=./did/*");
 
-        let is_dev = dotenv!("BACKEND") == "LOCAL";
+        let is_dev =false;
+        // let is_dev = dotenv!("BACKEND") == "LOCAL";
 
         let mut candid_config: candid_parser::bindings::rust::Config = candid_parser::bindings::rust::Config::new();
         candid_config.set_target(candid_parser::bindings::rust::Target::Agent);

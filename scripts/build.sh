@@ -2,6 +2,8 @@
 
 set -e
 
+export BACKEND="LIVE"
+echo "Using BACKEND: $BACKEND"
 # Define output directory
 BUILD_DIR="dist"
 WASM_FILE=$(find "$BUILD_DIR" -name "*.wasm")
