@@ -63,11 +63,11 @@ pub fn get_identity() -> Arc<dyn Identity> {
 }
 
 pub fn login() -> Result<(), AuthClientError> {
-    dotenv::dotenv().ok();
-        let mut dfx_network = "LIVE".to_string();
-        if dfx_network.is_empty() {
-            dfx_network = env::var("BACKEND").unwrap_or("LIVE".to_owned());
-        }
+    // dotenv::dotenv().ok();
+        let  dfx_network = "LIVE".to_string();
+        // if dfx_network.is_empty() {
+        //     dfx_network = env::var("BACKEND").unwrap_or("LIVE".to_owned());
+        // }
 
     let identity_provider: Option<Url> = match dfx_network.as_str() {
         "LOCAL" => Some({

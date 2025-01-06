@@ -31,11 +31,11 @@ impl AuthService {
     }
 
     pub async fn login(&mut self) -> Result<(), String> {
-        dotenv::dotenv().ok();
-        let mut dfx_network = "LIVE".to_string();
-        if dfx_network.is_empty() {
-            dfx_network = env::var("BACKEND").unwrap_or("LIVE".to_owned());
-        }
+        // dotenv::dotenv().ok();
+        let  dfx_network = "LIVE".to_string();
+        // if dfx_network.is_empty() {
+        //     dfx_network = env::var("BACKEND").unwrap_or("LIVE".to_owned());
+        // }
 
         let identity_provider: Option<Url> = match dfx_network.as_str() {
             "LOCAL" => Some({
@@ -123,11 +123,11 @@ impl AuthService {
 
 async fn create_agent(auth_client: &AuthClient) -> Result<Agent, String> {
     let identity = auth_client.identity();
-    dotenv::dotenv().ok();
-    let mut dfx_network = "LIVE".to_string();
-    if dfx_network.is_empty() {
-        dfx_network = env::var("BACKEND").unwrap_or("LIVE".to_owned());
-    }
+    // dotenv::dotenv().ok();
+    let  dfx_network = "LIVE".to_string();
+    // if dfx_network.is_empty() {
+    //     dfx_network = env::var("BACKEND").unwrap_or("LIVE".to_owned());
+    // }
 
     let url = match dfx_network.as_str() {
         "LOCAL" => "http://127.0.0.1:4943".to_string(),
