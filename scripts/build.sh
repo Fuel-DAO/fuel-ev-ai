@@ -4,9 +4,21 @@ set -e
 
 export BACKEND="LIVE"
 echo "Using BACKEND: $BACKEND"
-# Define output directory
-BUILD_DIR="dist"
 
+# Step 0: Ensure wasm-opt is installed
+if ! command -v wasm-opt &> /dev/null; then
+    echo "Installing wasm-opt..."
+    cargo install wasm-opt
+else
+    echo "wasm-opt is already installed."
+fi
+
+
+# Define output directory clear existing output directory
+BUILD_DIR="dist"
+echo "Cleaning build directory..."
+rm -rf "$BUILD_DIR"
+mkdir -p "$BUILD_DIR"
 # Step 1: Build the project using trunk
 echo "Building the Leptos CSR project with Trunk..."
 trunk build --release || { echo "Trunk build failed"; exit 1; }
