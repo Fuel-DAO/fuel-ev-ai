@@ -51,7 +51,7 @@ jobs:
         run: |
          nix-shell --run "
           cargo install wasm-opt && \
-          source .env && ./scripts/build.sh"
+          ./scripts/build.sh"
 
       - name: Import DFX Identity # Import DFX identity using secret key
         run: |
