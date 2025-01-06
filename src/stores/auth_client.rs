@@ -3,7 +3,7 @@ use ic_agent::{identity::AnonymousIdentity, Identity};
 use ic_auth_client::{AuthClient, AuthClientLoginOptions};
 use leptos::*;
 use leptos_dom::logging::console_warn;
-use std::{env, sync::Arc};
+use std::sync::Arc;
 use web_sys::Url;
 
 use crate::{canister::PROVISION_ID, set_up_auth_context, utils::go_back_and_come_back::{clear_localstorage, go_back_and_come_back}};

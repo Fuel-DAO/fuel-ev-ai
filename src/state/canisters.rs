@@ -54,7 +54,6 @@ impl Canisters {
     }
 
     pub fn asset_manager(&self) -> AssetManager<'_> {
-        dotenv::dotenv().ok();
         // let asset_canister_id = Principal::from_text(TEMP_ASSET_CANISTER_ID).unwrap();
         let asset_proxy_canister_id =
                 ASSET_PROXY_ID;
