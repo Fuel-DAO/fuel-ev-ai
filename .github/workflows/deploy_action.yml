@@ -45,11 +45,11 @@ jobs:
             .dfx/
           key: rust-test-${{ hashFiles('**/Cargo.lock') }}
       # Install wasm-opt by cargo install wasm-opt and then run trunk build from ./scripts/build.sh
-      - name: Install wasm-opt and run build script
-        env:
-          BACKEND: LIVE
-        run: |
-         nix-shell --run "./scripts/build.sh"
+      # - name: Install wasm-opt and run build script
+      #   env:
+      #     BACKEND: LIVE
+      #   run: |
+      #    nix-shell --run "./scripts/build.sh"
 
       - name: Import DFX Identity # Import DFX identity using secret key
         run: |
