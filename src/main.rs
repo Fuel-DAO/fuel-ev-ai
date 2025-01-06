@@ -1,6 +1,7 @@
 extern crate console_error_panic_hook;
 use crate::state::auth::AuthService;
 use crate::state::canisters::Canisters;
+mod time;
 use crate::stores::{agent::AgentProvider, auth_client::AuthClientProvider};
 use leptos::*;
 use leptos_dom::logging::console_error;
@@ -8,6 +9,7 @@ use leptos_meta::*;
 
 use leptos_router::{Route, Router, Routes, ProtectedRoute};
 use pages::admin::check_admin::AdminProvider;
+use pages::investors_business::InvestorsBookingDashboard;
 use pages::{
     admin::{
         auth::AdminComponent, collection_list::CollectionListPage,
@@ -40,6 +42,7 @@ fn App() -> impl IntoView {
             <main>
                 <Routes>
                     <Route path="/" view=HomePage />
+                    <Route path="/business" view=InvestorsBookingDashboard />
                     <Route path="/login" view=Login />
 
                     <Route path="/collections" view=Collections />

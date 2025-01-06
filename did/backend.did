@@ -1,0 +1,63 @@
+type CarTravelStats = record {
+    total_distance_travelled : float64;
+    total_investment : float64;
+    rentals : vec RentalTransaction;
+    total_revenue : float64;
+  };
+  type CustomerDetials = record {
+    age : nat8;
+    pan : text;
+    mobile_number : text;
+    name : text;
+    email : text;
+    country_code : text;
+    caller : principal;
+    aadhar : text;
+  };
+  type EventMoniter = variant {
+    CarCheckout : record {
+      user_principal : principal;
+      car_booking_id : nat64;
+      car_id : nat64;
+      current_timestamp : nat64;
+    };
+    SelectedCar : record {
+      user_principal : principal;
+      car_id : nat64;
+      current_timestamp : nat64;
+    };
+    SearchInitiate : record {
+      user_principal : principal;
+      current_timestamp : nat64;
+    };
+  };
+  type FuelType = variant { Petrol; Electric; Hybrid; Diesel };
+  type Location = record {
+    latitude : float64;
+    longitude : float64;
+    address : text;
+  };
+  type PaymentStatus = variant {
+    Paid : record { payment : RazorpayPayment };
+    Unpaid;
+  };
+  type RazorpayPayment = record {
+    payment_link_id : opt text;
+    payment_id : text;
+    ref_id : text;
+  };
+  type RentalTransaction = record {
+    end_timestamp : nat64;
+    total_amount : float64;
+    customer : opt CustomerDetials;
+    start_timestamp : nat64;
+    customer_principal_id : principal;
+    payment_status : PaymentStatus;
+    car_id : nat64;
+    booking_id : nat64;
+  };
+  type TransmissionType = variant { Manual; Automatic };
+  service : () -> {
+    car_stats : () -> (CarTravelStats) query;
+  }
+  
