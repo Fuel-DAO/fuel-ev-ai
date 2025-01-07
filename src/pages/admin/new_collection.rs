@@ -73,24 +73,24 @@ pub fn NewCollectionForm() -> impl IntoView {
     let asset_canister = TEMP_ASSET_CANISTER_ID;
     let asset_proxy_canister_id: RwSignal<String> = create_rw_signal(asset_proxy.to_string());
     let asset_canister_id: RwSignal<String> = create_rw_signal(asset_canister.to_string());
-    log!("asset_canister_id: {:?}", asset_canister_id.get());
-    log!(
-        "asset_proxy_canister_id: {:?}",
-        asset_proxy_canister_id.get()
-    );
-    log!("asset_canister_id: {:?} ", asset_canister_id);
-    let on_cancel = move |_e: MouseEvent| {
-        // Implement your cancel logic here
-        log::info!("Cancel button clicked");
-        // Example: Reset form fields
-        name.set("".to_string());
-        treasury.set("".to_string());
-        price.set(1.0);
-        supply_cap.set(1000);
-        symbol.set("ICP".to_string());
-        description.set("".to_string());
-        // Reset other signals as needed
-    };
+    // log!("asset_canister_id: {:?}", asset_canister_id.get());
+    // log!(
+    //     "asset_proxy_canister_id: {:?}",
+    //     asset_proxy_canister_id.get()
+    // );
+    // log!("asset_canister_id: {:?} ", asset_canister_id);
+    // let on_cancel = move |_e: MouseEvent| {
+    //     // Implement your cancel logic here
+    //     log::info!("Cancel button clicked");
+    //     // Example: Reset form fields
+    //     name.set("".to_string());
+    //     treasury.set("".to_string());
+    //     price.set(1.0);
+    //     supply_cap.set(1000);
+    //     symbol.set("ICP".to_string());
+    //     description.set("".to_string());
+    //     // Reset other signals as needed
+    // };
 
     let on_submit = {
         // Clone all the signals used in the async block
@@ -248,13 +248,6 @@ pub fn NewCollectionForm() -> impl IntoView {
                                                 {success_message.get()}
                                             </div>
                                         </Show>
-                                        <button
-                                            class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
-                                            on:click=on_cancel
-                                            disabled=loading.get()
-                                        >
-                                            {"Cancel"}
-                                        </button>
                                         <button
                                             class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
                                             on:click=on_submit

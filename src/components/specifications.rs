@@ -88,8 +88,11 @@ let acceleration = metadata.acceleration;
 let charging_speed = metadata.charging_speed;
 let wheels = metadata.wheels;
 let purchase_price = format!("₹ {}/ $ {}", metadata.purchase_price.0.to_string(), metadata.purchase_price.0 / 84u64);
+let price_in_icp = format!("{}", metadata.price / 1e8);
+let total_supply = format!("{}", metadata.supply_cap).replace("_", ",");
 let brochure_url = metadata.brochure_url.clone();
 let battery = metadata.battery;
+let disclaimer  = format!("Thank you for your continued support of the FuelEV ecosystem! Please note that you are investing in the city network of Mumbai, India. Your ownership will be calculated as a percentage of the total investment value of the city network. Your ownership will be subject to dilution as we expand the fleet size in your city network.");
 
 
     view! {
@@ -97,6 +100,8 @@ let battery = metadata.battery;
             <div class="grid grid-cols-3 gap-4">
                 // Purchase price
                 <SpecDetail title="Purchase price" value=purchase_price.clone() />
+                <SpecDetail title="Price in ICP" value=price_in_icp.clone() />
+                <SpecDetail title="Total Supply" value=total_supply.clone() />
                 <SpecDetail title="Weight" value=format!("{} Kg", weight) />
                 <SpecDetail title="Drive Type" value=drive_type />
                 <SpecDetail title="Displays" value=displays />
@@ -106,9 +111,9 @@ let battery = metadata.battery;
                 <SpecDetail title="Overall Width" value=format!("{} mm", overall_width) />
                 <SpecDetail title="Overall Length" value=format!("{} mm", overall_length) />
                 <SpecDetail title="Ground Clearance" value=format!("{} mm", ground_clearance) />
+                <SpecDetail title="Key Features" value=key_features.join(", ") />
                 <SpecDetail title="Track Front" value=format!("{} mm", track_front) />
                 <SpecDetail title="Track Rear" value=format!("{} mm", track_rear) />
-                <SpecDetail title="Key Features" value=key_features.join(", ") />
                 <SpecDetail title="Range Per Charge" value=format!("{} KM", range_per_charge) />
                 <SpecDetail title="Acceleration" value=acceleration />
                 <SpecDetail title="Charging Speed" value=format!("{} V", charging_speed) />
@@ -131,6 +136,10 @@ let battery = metadata.battery;
             <div class="flex flex-col">
                 <div class="font-bold">"Description"</div>
                 <div class="font-light">{description}</div>
+            </div>
+            <div class="flex flex-col">
+                <div class="font-bold">"Disclaimer"</div>
+                <div class="font-light">{disclaimer}</div>
             </div>
         </div>
     }

@@ -1,12 +1,10 @@
 use candid::Principal;
-use dotenv_codegen::dotenv;
 use futures::executor::block_on;
 use ic_agent::{identity::Identity, Agent};
 use ic_auth_client::{AuthClient, AuthClientLoginOptions};
 use leptos::logging;
 use leptos::window;
 use log::info;
-use std::env;
 use std::error::Error;
 use std::rc::Rc;
 use std::time::Duration;
@@ -32,10 +30,11 @@ impl AuthService {
     }
 
     pub async fn login(&mut self) -> Result<(), String> {
-        let mut dfx_network = dotenv!("BACKEND").to_string();
-        if dfx_network.is_empty() {
-            dfx_network = env::var("BACKEND").expect("BACKEND must be set");
-        }
+        // dotenv::dotenv().ok();
+        let  dfx_network = "LIVE".to_string();
+        // if dfx_network.is_empty() {
+        //     dfx_network = env::var("BACKEND").unwrap_or("LIVE".to_owned());
+        // }
 
         let identity_provider: Option<Url> = match dfx_network.as_str() {
             "LOCAL" => Some({
@@ -123,11 +122,11 @@ impl AuthService {
 
 async fn create_agent(auth_client: &AuthClient) -> Result<Agent, String> {
     let identity = auth_client.identity();
-
-    let mut dfx_network = dotenv!("BACKEND").to_string();
-    if dfx_network.is_empty() {
-        dfx_network = env::var("DFX_NETWORK").expect("DFX_NETWORK must be set");
-    }
+    // dotenv::dotenv().ok();
+    let  dfx_network = "LIVE".to_string();
+    // if dfx_network.is_empty() {
+    //     dfx_network = env::var("BACKEND").unwrap_or("LIVE".to_owned());
+    // }
 
     let url = match dfx_network.as_str() {
         "LOCAL" => "http://127.0.0.1:4943".to_string(),

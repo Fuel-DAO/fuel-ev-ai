@@ -21,7 +21,7 @@ pub fn CarRental() -> impl IntoView {
 
                 <a target="_blank" href="https://fuelev.in">
                     <button class="bg-green-500 hover:bg-green-700 text-white font-bold xl:text-2xl xl:px-8 xl:py-3 px-6 py-3 rounded-full shadow-lg">
-                        "Invest Now"
+                        "Book Now"
                     </button>
                 </a>
             </div>

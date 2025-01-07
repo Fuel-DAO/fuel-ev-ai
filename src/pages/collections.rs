@@ -1,4 +1,3 @@
-use crate::components::header::Header;
 // use crate::state::canisters::{fetch_collections_data, Canisters, CollectionData};
 use crate::components::header2::Header2;
 use crate::{
@@ -6,14 +5,14 @@ use crate::{
 };
 use std::rc::Rc;
 
-use candid::{Nat, Principal};
+use candid::Principal;
 use leptos::*;
 use serde::{Deserialize, Serialize};
 #[derive(Clone, PartialEq)]
 enum Tab {
     All,
     Available,
-    Upcoming,
+    Closed,
 }
 use num_bigint::BigUint;
 // Define a structure for the token metadata
@@ -92,29 +91,29 @@ pub fn Collections() -> impl IntoView {
                     <div class="flex space-x-4">
                         <Tabs selected_tab tab=Tab::All label="All".to_string() />
                         <Tabs selected_tab tab=Tab::Available label="Available".to_string() />
-                        <Tabs selected_tab tab=Tab::Upcoming label="Upcoming".to_string() />
+                        <Tabs selected_tab tab=Tab::Closed label="Closed".to_string() />
                     </div>
 
                     // Sort Button (For future sorting functionality)
-                    <div>
-                        <button class="flex items-center px-4 py-2 bg-white text-black rounded-full shadow-md font-medium">
-                            "Sort"
-                            <svg
-                                class="w-4 h-4 ml-2"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M19 9l-7 7-7-7"
-                                ></path>
-                            </svg>
-                        </button>
-                    </div>
+                    // <div>
+                    //     <button class="flex items-center px-4 py-2 bg-white text-black rounded-full shadow-md font-medium">
+                    //         "Sort"
+                    //         <svg
+                    //             class="w-4 h-4 ml-2"
+                    //             fill="none"
+                    //             stroke="currentColor"
+                    //             viewBox="0 0 24 24"
+                    //             xmlns="http://www.w3.org/2000/svg"
+                    //         >
+                    //             <path
+                    //                 stroke-linecap="round"
+                    //                 stroke-linejoin="round"
+                    //                 stroke-width="2"
+                    //                 d="M19 9l-7 7-7-7"
+                    //             ></path>
+                    //         </svg>
+                    //     </button>
+                    // </div>
                 </div>
 
                 // Card Grid
@@ -126,10 +125,11 @@ pub fn Collections() -> impl IntoView {
                             let filtered_cars = collections
                                 .iter()
                                 .filter(|collection| {
+                                    logging::log!("{}", collection.status);
                                     match selected_tab.get() {
                                         Tab::All => true,
-                                        Tab::Available => collection.status == "Available",
-                                        Tab::Upcoming => collection.status == "Upcoming",
+                                        Tab::Available => collection.status == "Open",
+                                        Tab::Closed => collection.status == "Closed",
                                     }
                                 })
                                 .collect::<Vec<_>>();

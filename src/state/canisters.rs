@@ -1,12 +1,14 @@
+use crate::canister::backend::Backend;
 // canisters.rs
 use crate::canister::provision::Provision;
 use crate::canister::token::Token;
-use crate::canister::{ASSET_PROXY_ID, PROVISION_ID};
+use crate::canister::{ASSET_PROXY_ID, BACKEND_ID, PROVISION_ID};
 
 use crate::state::asset_manager::AssetManager;
 use crate::state::auth::AuthService;
 use candid::Principal;
 use ic_agent::Agent;
+use leptos::{expect_context, RwSignal, SignalGet};
 use std::cell::RefCell;
 use std::cmp::PartialEq;
 use std::rc::Rc;
@@ -31,9 +33,19 @@ impl Canisters {
         })
     }
 
+    pub fn get() -> Option<Self> {
+        let this:RwSignal<Option<Rc<Self>>>  = expect_context();
+        this.get().map(|x| x.as_ref().clone())
+    }
+
     pub async fn provision_canister(&self) -> Provision<'_> {
         let agent_ref: &Agent = &self.agent;
         Provision(self.provision_principal, agent_ref)
+    }
+
+    pub async fn backend_canister(&self) -> Backend<'_> {
+        let agent_ref: &Agent = &self.agent;
+        Backend(BACKEND_ID, agent_ref)
     }
 
     pub async fn token_canister(&self, canister_id: Principal) -> Token<'_> {
@@ -42,7 +54,6 @@ impl Canisters {
     }
 
     pub fn asset_manager(&self) -> AssetManager<'_> {
-        dotenv::dotenv().ok();
         // let asset_canister_id = Principal::from_text(TEMP_ASSET_CANISTER_ID).unwrap();
         let asset_proxy_canister_id =
                 ASSET_PROXY_ID;
