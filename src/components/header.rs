@@ -1,12 +1,17 @@
-use crate::{pages::admin::check_admin::AdminRoute, state::{
-    auth::AuthService,
-    auth_actions::{create_login_action, create_logout_action},
-}};
+use crate::{
+    pages::admin::check_admin::AdminRoute,
+    state::{
+        auth::AuthService,
+        auth_actions::{create_login_action, create_logout_action},
+    },
+};
 use leptos::*;
 use std::cell::RefCell;
 use std::rc::Rc;
 #[component]
 pub fn Header() -> impl IntoView {
+    let (menu_open, set_menu_open) = create_signal(false);
+
     view! {
         <div class="w-full fixed z-50 h-20 shadow-sm flex items-center justify-between px-8 font-light transition-all bg-white/90 backdrop-blur-md">
             // Logo Section
@@ -16,26 +21,122 @@ pub fn Header() -> impl IntoView {
                 </a>
             </div>
 
-            // Collections and Profile
-            <div class="absolute z-[1] lg:flex hidden right-8 items-center gap-8">
-                <AdminRoute />
-                <a href="https://fuelev.in" target="_blank">
-                    <span class="text-black font-medium">EV Rentals</span>
-                </a>
-                <a href="/collections">
+            // Hamburger Button
+            <button
+                class="lg:hidden bg-black text-white rounded-full p-2"
+                on:click=move |_| set_menu_open.update(|open| *open = !*open)
+            >
+                {move || {
+                    if menu_open() {
+                        view! {
+                            // Close icon when the menu is open
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-6 w-6"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M6 18L18 6M6 6l12 12"
+                                />
+                            </svg>
+                        }
+                    } else {
+                        view! {
+                            // Hamburger icon when the menu is closed
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-6 w-6"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M4 6h16M4 12h16M4 18h16"
+                                />
+                            </svg>
+                        }
+                    }
+                }}
+            </button>
 
-                    <span class="text-black font-medium">Fleet Investments</span>
-                </a>
-                <UserPrincipal />
-            // <button class="bg-black text-white rounded-full p-2">
-            // <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            // <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 7l9-5-9-5-9 5 9 5z"/>
-            // </svg>
-            // </button>
+            // Drawer Menu
+            <div
+                class=move || {
+                    format!(
+                        "fixed top-0 right-0 h-full w-64 bg-white shadow-lg z-40 transition-transform transform {}",
+                        if menu_open.get() { "translate-x-0" } else { "translate-x-full" }
+                    )
+                }
+            >
+                <div class="flex flex-col h-full p-6 space-y-6 h-screen bg-white">
+                    <button
+                        class="self-end bg-gray-200 p-2 rounded-full"
+                        on:click=move |_| set_menu_open.set(false)
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-6 w-6"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M6 18L18 6M6 6l12 12"
+                            />
+                        </svg>
+                    </button>
+                    <div class="flex flex-col items-start space-y-4">
+    <TrailingButton />
+</div>
+                </div>
+            </div>
+
+            // Overlay (optional)
+            {move || if menu_open() {
+                view! {
+                    <div
+                        class="fixed inset-0 bg-black bg-opacity-50 z-30"
+                        on:click=move |_| set_menu_open.set(false)
+                    ></div>
+                }
+            } else {
+                view! { <div></div> }
+            }}
+
+            // Desktop Navigation
+            <div class="hidden lg:flex gap-8 items-center">
+                <TrailingButton />
             </div>
         </div>
     }
 }
+
+#[component]
+fn TrailingButton() -> impl IntoView {
+    view! {
+        <AdminRoute />
+
+        <a href="https://fuelev.in" target="_blank">
+            <span class="text-black font-medium">EV Rentals</span>
+        </a>
+        <a href="/collections">
+            <span class="text-black font-medium">Fleet Investments</span>
+        </a>
+        <UserPrincipal />
+    }
+}
+
 
 #[component]
 fn UserPrincipal() -> impl IntoView {
@@ -73,8 +174,8 @@ fn UserPrincipal() -> impl IntoView {
                         // on:click=move |_| handle_login.dispatch(())
                         href="/login"
                         class="bg-black text-white rounded-full p-2"
-                        // target="_blank"
                     >
+                        // target="_blank"
 
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -102,8 +203,8 @@ fn UserPrincipal() -> impl IntoView {
                     // on:click=move |_| handle_logout.dispatch(())
                     href="/login"
                     class="h-10 w-10 bg-black flex items-center text-xl select-none justify-center font-light text-white rounded-full uppercase"
-                    // target="_blank"
                 >
+                    // target="_blank"
 
                     U
                 </a>
