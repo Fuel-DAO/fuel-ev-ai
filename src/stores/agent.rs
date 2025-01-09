@@ -1,6 +1,5 @@
 use ic_agent::Agent;
 use leptos::*;
-use std::time::Duration;
 
 // pub const TIMEOUT: Duration = Duration::from_secs(60 * 5);
 

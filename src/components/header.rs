@@ -15,15 +15,18 @@ pub fn Header() -> impl IntoView {
     view! {
         <div class="w-full fixed z-50 h-20 shadow-sm flex items-center justify-between px-8 font-light transition-all bg-white/90 backdrop-blur-md">
             // Logo Section
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center justify-between space-x-2">
                 <a href="/">
                     <img src="/public/img/app.svg" alt="Fuel DAO Logo" class="h-8" />
                 </a>
             </div>
 
             // Hamburger Button
+            <div class="lg:hidden flex  gap-2 items-center justify-end">
+            <UserPrincipal />
+
             <button
-                class="lg:hidden bg-black text-white rounded-full p-2"
+                class=" text-black rounded-full h-8 "
                 on:click=move |_| set_menu_open.update(|open| *open = !*open)
             >
                 {move || {
@@ -66,6 +69,7 @@ pub fn Header() -> impl IntoView {
                     }
                 }}
             </button>
+            </div>
 
             // Drawer Menu
             <div
@@ -111,12 +115,19 @@ pub fn Header() -> impl IntoView {
                     ></div>
                 }
             } else {
-                view! { <div></div> }
+                view! { <div class="hidden lg:flex gap-8 items-center">
+                    </div> }
             }}
+
+
+
+
 
             // Desktop Navigation
             <div class="hidden lg:flex gap-8 items-center">
                 <TrailingButton />
+                <UserPrincipal />
+
             </div>
         </div>
     }
@@ -133,7 +144,6 @@ fn TrailingButton() -> impl IntoView {
         <a href="/collections">
             <span class="text-black font-medium">Fleet Investments</span>
         </a>
-        <UserPrincipal />
     }
 }
 

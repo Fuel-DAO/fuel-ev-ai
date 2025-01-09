@@ -20,3 +20,5 @@ command_arguments = ["-c", "npx tailwindcss -i style/tailwind.css -o style/outpu
 # backend = "http://localhost:4943"
 # insecure = true
 
+[serve]
+port = 3000
