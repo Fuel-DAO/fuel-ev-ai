@@ -110,6 +110,25 @@ pub async fn get_total_booked_tokens(
         .map_err(|e| e.to_string())
 }
 
+pub async fn update_annonymous_principal(
+    canisters: &Canisters,
+    token_canister_id: Principal,
+    principal: Principal
+) -> Result<(), String> {
+    let token_canister = canisters.token_canister(token_canister_id, ).await;
+
+    let res = token_canister
+        .update_annonymous_investor(principal)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    match res {
+        token::Result5::Ok => Ok(()),
+        token::Result5::Err(e) => Err(e),
+    }
+
+}
+
 pub async fn get_sale_status(
     canisters: &Canisters,
     token_canister_id: Principal,

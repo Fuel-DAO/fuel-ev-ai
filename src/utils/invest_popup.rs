@@ -250,7 +250,7 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
                                 min=0.0
                                 label="Number of NFTs to buy".to_string()
                                 input_type="number".to_string()
-                                placeholder="(in USD)".to_string()
+                                placeholder="(in ICP)".to_string()
                             />
                             <hr />
                             // Amount to pay display
@@ -425,23 +425,8 @@ fn StepTwo(
 ) -> impl IntoView {
 
     view! {
-        <div class="flex w-full items-start justify-between text-sm gap-4">
-            <div>"Amount to pay:"</div>
-            <div class="flex items-center gap-2 justify-end">
-                <div class="font-bold whitespace-nowrap text-xs break-all text-right">
-                    <span class="select-all">{amount.to_string()}</span>
-                    <span class="opacity-50">" ICP"</span>
-                </div>
-                <button
-                    on:click=move |_| {
-                        copy_to_clipboard(&amount.to_string());
-                    }
-                    class="w-3 h-3"
-                >
-                    <img src="/public/icons/copy_to_clipboard.svg" alt="Copy to clipboard" />
-                </button>
-            </div>
-        </div>
+
+        <div class="flex flex-col gap-4">
 
         <div class="flex w-full items-start justify-between text-sm gap-4">
             <div class="text-nowrap">"Transferring to:"</div>
@@ -460,6 +445,26 @@ fn StepTwo(
             </div>
         </div>
 
+        <div class="flex w-full items-start justify-between text-sm gap-4">
+            <div>"Amount to pay:"</div>
+            <div class="flex items-center gap-2 justify-end">
+                <div class="font-bold whitespace-nowrap text-xs break-all text-right">
+                    <span class="select-all">{amount.to_string()}</span>
+                    <span class="opacity-50">" ICP"</span>
+                </div>
+                <button
+                    on:click=move |_| {
+                        copy_to_clipboard(&amount.to_string());
+                    }
+                    class="w-3 h-3"
+                >
+                    <img src="/public/icons/copy_to_clipboard.svg" alt="Copy to clipboard" />
+                </button>
+            </div>
+        </div>
+
+        </div>
+
         <hr />
         <Show when=move || payment_status.get().is_loading.get()>
             <div class="text-center mt-2 p-4 animate-pulse">Loading...</div>
@@ -468,15 +473,7 @@ fn StepTwo(
         <div class="text-red-500 mt-2 p-4 text-center">
             {move || payment_status.get().error.get()}
         </div>
-        <div class="mt-2 p-4 text-center text-sm">
-            <a
-                href="https://nns.ic0.app/wallet/?u=qoctq-giaaa-aaaaa-aaaea-cai"
-                target="_blank"
-                class="underline text-xs font-bold"
-            >
-                "Click here to invest via NNS"
-            </a>
-        </div>
+       
         <div class="text-center text-sm">
             <span>"Waiting for payment "</span>
             <button
@@ -489,6 +486,16 @@ fn StepTwo(
                 " Check now "
             </button>
         </div>
+
+        <div class="mt-2 p-4 text-center text-sm">
+        <a
+            href="https://nns.ic0.app/wallet/?u=qoctq-giaaa-aaaaa-aaaea-cai"
+            target="_blank"
+            class="underline text-xs font-bold"
+        >
+            "Click here to invest via NNS"
+        </a>
+    </div>
     }
 }
 

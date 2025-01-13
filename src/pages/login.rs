@@ -1,12 +1,14 @@
 // src/components/login.rs
 
-use crate::{pages::admin::check_admin::AdminRoute, state::{
+use crate::state::{
     auth::AuthService,
     auth_actions::{create_login_action, create_logout_action},
-}};
+};
 use leptos::*;
 use std::cell::RefCell;
 use std::rc::Rc;
+use crate::utils::web::copy_to_clipboard;
+
 
 /// The Login component handles user authentication.
 /// It displays login options when the user is not authenticated
@@ -108,9 +110,19 @@ pub fn Login() -> impl IntoView {
                             </h2>
                             <div class="text-center text-sm text-gray-500">
                                 <div class="pb-2 text-base">Your principal ID:</div>
+                                <div class="flex flex-row gap-2 items-center">
                                 <div class=" font-mono bg-gray-200 p-2 rounded-md max-w-sm select-all leading-relaxed text-pretty">
 
                                     {move || principal().map(|p| p.to_text()).unwrap_or_default()}
+                                </div>
+                                <button
+                                on:click=move |_| {
+                                    copy_to_clipboard(&principal().map(|p| p.to_text()).unwrap_or_default());
+                                }
+                                class="w-3 h-3"
+                            >
+                                <img src="/public/icons/copy_to_clipboard.svg" alt="Copy to clipboard" />
+                                    </button>
                                 </div>
                             </div>
 

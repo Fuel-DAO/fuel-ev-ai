@@ -78,10 +78,12 @@ type Result_1 = variant { Ok : nat; Err : text };
 type Result_2 = variant { Ok : GetEscrowAccountRet; Err : text };
 type Result_3 = variant { Ok : vec principal; Err : text };
 type Result_4 = variant { Ok : GetMetadataRet; Err : text };
+type Result_5 = variant { Ok; Err : text };
 type SaleStatus = variant { Live; Rejected; Accepted };
 type BookTokensArg = record { quantity : nat32 };
 service : (CanisterArgs) -> {
   accept_sale : () -> (Result);
+  update_annonymous_investor : (principal) -> (Result_5);
   reject_sale : () -> (Result);
   book_tokens : (BookTokensArg) -> (Result);
   get_booked_tokens : (opt principal) -> (nat) query;
