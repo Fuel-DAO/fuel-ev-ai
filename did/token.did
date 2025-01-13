@@ -1,6 +1,10 @@
 type CanisterArgs = variant { Upgrade; Init : record { metadata : Metadata } };
 type GetEscrowAccountRet = record {
   account_id : text;
+  account : GetEscrowAccountRetAccount;
+};
+type GetEscrowAccountRetAccount = record {
+  owner : principal;
 };
 
 type GetMetadataRet = record {
@@ -91,4 +95,5 @@ service : (CanisterArgs) -> {
   get_metadata : () -> (Result_4) query;
   get_sale_status : () -> (SaleStatus) query;
   get_total_booked_tokens : () -> (nat) query;
+  refund_icp_amount_after_sale_from_annonymous : (float64) -> (Result);
 }

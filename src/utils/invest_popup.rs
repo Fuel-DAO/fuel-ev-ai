@@ -143,6 +143,9 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
             // Get Canisters from context
             if let Some(canisters_rc) = canisters_signal.get() {
                 if let Some(principal) = principall() {
+                    if principal == Principal::anonymous() {
+                        return ;
+                    }
                     let token_canister = canisters_rc
                         .token_canister(
                             Principal::from_text(minter_canister_id_clone.clone()).unwrap(),
@@ -158,6 +161,9 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
 },
     None => None,
 };
+
+
+
                         let current_investment_data =
                             token_canister.get_booked_tokens(Some(principal)).await;
 
@@ -167,6 +173,10 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
                                 .to_string()
                                 .parse::<u64>()
                                 .unwrap_or_default();
+
+                            if transfer_to_account.account.owner != principal {
+                                return ;
+                            }
 
                             payment_info.set(PaymentInfo {
                                 loaded: true,
