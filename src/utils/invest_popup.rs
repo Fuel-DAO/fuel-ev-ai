@@ -463,9 +463,9 @@ fn StepTwo(
             </div>
         </div>
 
+        <hr />
         </div>
 
-        <hr />
         <Show when=move || payment_status.get().is_loading.get()>
             <div class="text-center mt-2 p-4 animate-pulse">Loading...</div>
         </Show>
