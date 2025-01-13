@@ -2,7 +2,7 @@ use candid::Principal;
 use leptos::*;
 use crate::canister::token::{self, SaleStatus};
 use crate::canister::token::GetMetadataRet;
-use crate::components::admin::invest_info_admin::{AddFallbackPrincipalForAnnonymousInvestor, ConcludeSaleAdminComponent};
+use crate::components::admin::invest_info_admin::{AddFallbackPrincipalForAnnonymousInvestor, ConcludeSaleAdminComponent, RefundICPsToAnnonymous};
 use crate::outbound::accept_or_reject_sale::get_sale_status;
 use crate::state::admin::Admin;
 use crate::state::canisters::Canisters;
@@ -133,6 +133,9 @@ fn CarDetailPage(metadata: GetMetadataRet, status: Option<SaleStatus>) -> impl I
                     </Show>
                     <Show when=move||(Admin::get().principal.get().is_some() && Admin::get().principal.get().unwrap() == metadata.collection_owner )>
                         <AddFallbackPrincipalForAnnonymousInvestor  token_canister_id />
+                    </Show>
+                    <Show when=move||(Admin::get().principal.get().is_some() && Admin::get().principal.get().unwrap() == metadata.collection_owner )>
+                        <RefundICPsToAnnonymous  token_canister_id />
                     </Show>
                 </div>
                 // <div>"check"</div>

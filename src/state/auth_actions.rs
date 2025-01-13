@@ -14,7 +14,7 @@ pub fn create_login_action(auth_service: Rc<RefCell<AuthService>>) -> Action<(),
         async move {
             match auth_service.borrow_mut().login().await {
                 Ok(_) => {
-                    // window().location().reload().unwrap();
+                    window().location().reload().unwrap();
                     console_log("Login successful.")
                 }
                 Err(e) => console_error(&format!("Login failed: {:?}", e)),
