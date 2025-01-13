@@ -426,7 +426,7 @@ fn StepTwo(
 
     view! {
 
-        <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-8">
 
         <div class="flex w-full items-start justify-between text-sm gap-4">
             <div class="text-nowrap">"Transferring to:"</div>
