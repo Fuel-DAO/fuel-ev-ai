@@ -147,6 +147,25 @@ pub async fn refund_icps_to_annonymous(
     }
 
 }
+pub async fn transfer_amount_from_annonymous_to_investor(
+    canisters: &Canisters,
+    token_canister_id: Principal,
+    icp: f64,
+    investor: Principal
+) -> Result<(), String> {
+    let token_canister = canisters.token_canister(token_canister_id, ).await;
+
+    let res = token_canister
+        .transfer_icp_amount_from_annonymous_to_investor(icp, investor)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    match res {
+        token::Result_::Ok(val) => Ok(()),
+        token::Result_::Err(e) => Err(e),
+    }
+
+}
 
 pub async fn get_sale_status(
     canisters: &Canisters,

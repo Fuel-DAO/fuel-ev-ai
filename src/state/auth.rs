@@ -63,7 +63,9 @@ impl AuthService {
             builder = builder.identity_provider(provider);
         }
 
-        let options = builder.on_success(|_| {go_back_and_come_back();}).build();
+        let options = builder.on_success(|_| {
+            window().location().reload().unwrap();
+            go_back_and_come_back();}).build();
 
         // Initiate the login process
         self.auth_client.login_with_options(options);
