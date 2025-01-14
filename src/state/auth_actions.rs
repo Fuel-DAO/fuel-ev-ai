@@ -1,7 +1,7 @@
 // src/state/auth/auth_actions.rs
 
 use crate::state::auth::AuthService;
-use crate::utils::go_back_and_come_back::{clear_localstorage, go_to_home};
+use crate::utils::go_back_and_come_back::go_to_home;
 use leptos::*;
 use leptos_dom::logging::{console_error, console_log};
 use std::cell::RefCell;

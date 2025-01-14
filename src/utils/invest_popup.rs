@@ -215,7 +215,7 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
     let amount = move || {
         nft_to_buy.get().parse::<u64>().unwrap_or_default() as f64
             * from_e8s(payment_info().nft_price)
-            + from_e8s(transfer_price_e8s)
+            + if token_balance.get() >= 1 {from_e8s(0)} else {from_e8s(transfer_price_e8s)}
     };
 
 
@@ -356,11 +356,11 @@ fn LoginStep() -> impl IntoView {
     view! {
         <div class="flex flex-col gap-8 items-center">
             <div>"You need to login before you can invest"</div>
-            <button on:click= move|_| {
+            <a on:click= move|_| {
                 handle_login.dispatch(());
             } class="bg-green-500 hover:bg-green-700 text-white font-bold xl:text-2xl xl:px-8 xl:py-3 px-6 py-3 rounded-full shadow-lg">
                         "Click to Login"
-            </button>
+            </a>
         </div>
     }
 }
