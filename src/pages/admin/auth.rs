@@ -37,8 +37,8 @@ pub fn AdminComponent() -> impl IntoView {
         }
     });
     // Use the reusable actions from auth_actions.rs
-    let handle_login = create_login_action(Rc::clone(&auth_service));
-    let handle_logout = create_logout_action(Rc::clone(&auth_service));
+    let handle_login = create_login_action();
+    let handle_logout = create_logout_action();
     // Create a resource to fetch admin status
     let is_admin_resource = create_resource(
         move || {

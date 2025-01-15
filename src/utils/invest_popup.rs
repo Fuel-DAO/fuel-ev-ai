@@ -34,41 +34,39 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
 
     let nft_to_buy = create_rw_signal(1u64.to_string());
 
-    let show_clone = RwSignal::new(show.get_untracked());
+    // let show_clone = RwSignal::new(show.get_untracked());
 
     // Retrieve Canisters from context
-    let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
-        .expect("Canisters ReadWriteSignal must be provided");
+    // let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
+    //     .expect("Canisters ReadWriteSignal must be provided");
 
-    // Retrieve AuthService from context
-    let auth_service =
-        use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
-
-    let handle_login = create_login_action(Rc::clone(&auth_service));
+    // // Retrieve AuthService from context
+    // let auth_service =
+    //     use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
 
 
-        let is_authenticated = RwSignal::new(auth_service.borrow().is_authenticated());
-    // Reactive memo for authentication state
-    create_effect(move |_| {
-        let is_show = show.get();
-        show_clone.set(is_show);
+    //     let is_authenticated = RwSignal::new(auth_service.borrow().is_authenticated());
+    // // Reactive memo for authentication state
+    // create_effect(move |_| {
+    //     let is_show = show.get();
+    //     show_clone.set(is_show);
 
-    is_authenticated.set(auth_service.borrow().is_authenticated());
-    });
+    // is_authenticated.set(auth_service.borrow().is_authenticated());
+    // });
 
     // Reactive memo for principal
-    let principall = create_memo({
-        let auth_service =
-        use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
-        let auth_service = Rc::clone(&auth_service);
-        move |_| {
-            if is_authenticated() {
-                auth_service.borrow().get_principal().ok()
-            } else {
-                None
-            }
-        }
-    });
+    // let principall = create_memo({
+    //     let auth_service =
+    //     use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
+    //     let auth_service = Rc::clone(&auth_service);
+    //     move |_| {
+    //         if is_authenticated() {
+    //             auth_service.borrow().get_principal().ok()
+    //         } else {
+    //             None
+    //         }
+    //     }
+    // });
 
     let payment_info = create_rw_signal(PaymentInfo::default());
     let step = create_rw_signal(1);
@@ -99,7 +97,8 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
 
     // Function to handle payment status check action
     let check_payment_status_action = move || {
-        let canisters_signal = canisters_signal.clone();
+        // let canisters = Canisters::get_authenticated().unwrap();
+        // let canisters_signal = canisters.clone();
         let minter_canister_id_clone = minter_canister_id_to_check_payment_status.clone();
         let buy = nft_to_buy.get().parse::<u64>().unwrap_or_default();
         let payment_status = payment_details.get().status.clone();
@@ -107,14 +106,14 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
 
         async move {
             // Retrieve Canisters from context
-            if let Some(canisters_rc) = canisters_signal.get() {
+            if let Some(canisters_rc) = Canisters::get_authenticated().ok() {
                 // Check if user is authenticated and get principal
-                if let Some(_user_principal) = principall() {
+                if let Some(_user_principal) = Canisters::principal() {
                     payment_details.get().is_loading.set(true);
 
                     // Call the `check_payment_status` function
                     check_payment_status(
-                        &*canisters_rc, // Dereference Rc to &Canisters
+                        &canisters_rc, // Dereference Rc to &Canisters
                         minter_canister_id_clone.clone(),
                         buy,
                         payment_status.clone(),
@@ -141,11 +140,13 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
 
         async move {
             // Get Canisters from context
-            if let Some(canisters_rc) = canisters_signal.get() {
-                if let Some(principal) = principall() {
+            if let Some(canisters_rc) = Canisters::get_authenticated().ok() {
+                if let Some(principal) = Canisters::principal() {
                     if principal == Principal::anonymous() {
                         return ;
                     }
+                    logging::log!("Logged in User {}", principal.to_text());
+
                     let token_canister = canisters_rc
                         .token_canister(
                             Principal::from_text(minter_canister_id_clone.clone()).unwrap(),
@@ -199,10 +200,10 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
                             logging::log!("Failed to get booked tokens.");
                         }
                     } else {
-                        logging::log!("Failed to get escrow account.");
+                        logging::log!("Failed to get escrow account. {:?}", Canisters::principal().map(|f| f.to_text()));
                     }
                 } else {
-                    logging::log!("User is not authenticated.");
+                    logging::log!("User is not authenticated. Auth Status: {:?}", Canisters::is_authenticated());
                 }
             } else {
                 logging::log!("Canisters instance is not available in the context.");
@@ -335,8 +336,8 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
                         {move || if step.get() == 3 { "Pay" } else { "Invest" }}
                     </div>
                     <Show
-                        when=move || is_authenticated()
-                        fallback=||view! {<LoginStep />}
+                        when=move || Canisters::is_authenticated()
+                        fallback=|| view! { <LoginStep /> }
                     >
                         {main_content}
                     </Show>
@@ -349,17 +350,18 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
 
 #[component] 
 fn LoginStep() -> impl IntoView {
-    let auth_service =
-    use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
 
-    let handle_login = create_login_action(Rc::clone(&auth_service));
+    let handle_login = create_login_action();
     view! {
         <div class="flex flex-col gap-8 items-center">
             <div>"You need to login before you can invest"</div>
-            <a on:click= move|_| {
-                handle_login.dispatch(());
-            } class="bg-green-500 hover:bg-green-700 text-white font-bold xl:text-2xl xl:px-8 xl:py-3 px-6 py-3 rounded-full shadow-lg">
-                        "Click to Login"
+            <a
+                on:click=move |_| {
+                    handle_login.dispatch(());
+                }
+                class="bg-green-500 hover:bg-green-700 text-white font-bold xl:text-2xl xl:px-8 xl:py-3 px-6 py-3 rounded-full shadow-lg"
+            >
+                "Click to Login"
             </a>
         </div>
     }
@@ -435,45 +437,44 @@ fn StepTwo(
 ) -> impl IntoView {
 
     view! {
-
         <div class="flex flex-col gap-8">
 
-        <div class="flex w-full items-start justify-between text-sm gap-4">
-            <div class="text-nowrap">"Transferring to:"</div>
-            <div class="flex items-center gap-2 justify-end">
-                <div class="font-bold text-xs break-all select-all text-right w-1/2">
-                    {payment_info.get().transfer_to.clone()}
+            <div class="flex w-full items-start justify-between text-sm gap-4">
+                <div class="text-nowrap">"Transferring to:"</div>
+                <div class="flex items-center gap-2 justify-end">
+                    <div class="font-bold text-xs break-all select-all text-right w-1/2">
+                        {payment_info.get().transfer_to.clone()}
+                    </div>
+                    <button
+                        on:click=move |_| {
+                            copy_to_clipboard(&payment_info.get().transfer_to.clone());
+                        }
+                        class="w-3 h-3"
+                    >
+                        <img src="/public/icons/copy_to_clipboard.svg" alt="Copy to clipboard" />
+                    </button>
                 </div>
-                <button
-                    on:click=move |_| {
-                        copy_to_clipboard(&payment_info.get().transfer_to.clone());
-                    }
-                    class="w-3 h-3"
-                >
-                    <img src="/public/icons/copy_to_clipboard.svg" alt="Copy to clipboard" />
-                </button>
             </div>
-        </div>
 
-        <div class="flex w-full items-start justify-between text-sm gap-4">
-            <div>"Amount to pay:"</div>
-            <div class="flex items-center gap-2 justify-end">
-                <div class="font-bold whitespace-nowrap text-xs break-all text-right">
-                    <span class="select-all">{amount.to_string()}</span>
-                    <span class="opacity-50">" ICP"</span>
+            <div class="flex w-full items-start justify-between text-sm gap-4">
+                <div>"Amount to pay:"</div>
+                <div class="flex items-center gap-2 justify-end">
+                    <div class="font-bold whitespace-nowrap text-xs break-all text-right">
+                        <span class="select-all">{amount.to_string()}</span>
+                        <span class="opacity-50">" ICP"</span>
+                    </div>
+                    <button
+                        on:click=move |_| {
+                            copy_to_clipboard(&amount.to_string());
+                        }
+                        class="w-3 h-3"
+                    >
+                        <img src="/public/icons/copy_to_clipboard.svg" alt="Copy to clipboard" />
+                    </button>
                 </div>
-                <button
-                    on:click=move |_| {
-                        copy_to_clipboard(&amount.to_string());
-                    }
-                    class="w-3 h-3"
-                >
-                    <img src="/public/icons/copy_to_clipboard.svg" alt="Copy to clipboard" />
-                </button>
             </div>
-        </div>
 
-        <hr />
+            <hr />
         </div>
 
         <Show when=move || payment_status.get().is_loading.get()>
@@ -483,7 +484,7 @@ fn StepTwo(
         <div class="text-red-500 mt-2 p-4 text-center">
             {move || payment_status.get().error.get()}
         </div>
-       
+
         <div class="text-center text-sm">
             <span>"Waiting for payment "</span>
             <button
@@ -498,14 +499,14 @@ fn StepTwo(
         </div>
 
         <div class="mt-2 p-4 text-center text-sm">
-        <a
-            href="https://nns.ic0.app/wallet/?u=qoctq-giaaa-aaaaa-aaaea-cai"
-            target="_blank"
-            class="underline text-xs font-bold"
-        >
-            "Click here to invest via NNS"
-        </a>
-    </div>
+            <a
+                href="https://nns.ic0.app/wallet/?u=qoctq-giaaa-aaaaa-aaaea-cai"
+                target="_blank"
+                class="underline text-xs font-bold"
+            >
+                "Click here to invest via NNS"
+            </a>
+        </div>
     }
 }
 

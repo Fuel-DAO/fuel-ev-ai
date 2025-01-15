@@ -92,7 +92,6 @@ pub async fn get_sale_status(
     // Handle the response
     match response_result {
         Ok(status) => {
-            log!("Retrieved sale status: {:?}", status);
             Ok(status)
         }
         Err(e) => {

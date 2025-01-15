@@ -11,6 +11,7 @@ use std::time::Duration;
 use web_sys::Url;
 
 use crate::canister::PROVISION_ID;
+use crate::set_up_auth_context;
 use crate::utils::go_back_and_come_back::*;
 pub const TIMEOUT: Duration = Duration::from_secs(60 * 5);
 
@@ -52,6 +53,8 @@ impl AuthService {
                 // Handle successful login
                 info!("Login successful");
                 window().location().reload().unwrap();
+                go_back_and_come_back();
+                set_up_auth_context();
             })
             .on_error(|error| {
                 // Handle login error
@@ -63,9 +66,12 @@ impl AuthService {
             builder = builder.identity_provider(provider);
         }
 
-        let options = builder.on_success(|_| {
+        let options = builder.on_success(|f| {
+            info!("Login successful");
             window().location().reload().unwrap();
-            go_back_and_come_back();}).build();
+            go_back_and_come_back();
+            set_up_auth_context();
+        }).build();
 
         // Initiate the login process
         self.auth_client.login_with_options(options);
@@ -138,7 +144,7 @@ async fn create_agent(auth_client: &AuthClient) -> Result<Agent, String> {
 
     let agent = Agent::builder()
         .with_url(url)
-        .with_identity(identity)
+        .with_arc_identity(identity)
         .with_ingress_expiry(Some(TIMEOUT))
         .build()
         .map_err(|e| format!("Failed to build agent: {}", e))?;

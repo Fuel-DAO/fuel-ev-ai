@@ -173,8 +173,8 @@ fn UserPrincipal() -> impl IntoView {
     });
 
     // Use the reusable actions from auth_actions.rs
-    let _handle_login = create_login_action(Rc::clone(&auth_service));
-    let _handle_logout = create_logout_action(Rc::clone(&auth_service));
+    let _handle_login = create_login_action();
+    let _handle_logout = create_logout_action();
     view! {
         <Show
             when=move || is_authenticated()

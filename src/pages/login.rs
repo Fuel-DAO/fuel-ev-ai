@@ -1,6 +1,7 @@
 // src/components/login.rs
 
 use crate::state::{
+    canisters::Canisters,
     auth::AuthService,
     auth_actions::{create_login_action, create_logout_action},
 };
@@ -19,27 +20,27 @@ pub fn Login() -> impl IntoView {
     let auth_service =
         use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
 
-    // Reactive signal to track authentication state
-    let is_authenticated = create_memo({
-        let auth_service = Rc::clone(&auth_service);
-        move |_| auth_service.borrow().is_authenticated()
-    });
+    // // Reactive signal to track authentication state
+    // let is_authenticated = create_memo({
+    //     let auth_service = Rc::clone(&auth_service);
+    //     move |_| auth_service.borrow().is_authenticated()
+    // });
 
     // Reactive signal to track the user's principal ID
-    let principal = create_memo({
-        let auth_service = Rc::clone(&auth_service);
-        move |_| {
-            if is_authenticated() {
-                auth_service.borrow().get_principal().ok()
-            } else {
-                None
-            }
-        }
-    });
+    // let principal = create_memo({
+    //     let auth_service = Rc::clone(&auth_service);
+    //     move |_| {
+    //         if is_authenticated() {
+    //             auth_service.borrow().get_principal().ok()
+    //         } else {
+    //             None
+    //         }
+    //     }
+    // });
 
     // Create login and logout actions
-    let handle_login = create_login_action(Rc::clone(&auth_service));
-    let handle_logout = create_logout_action(Rc::clone(&auth_service));
+    let handle_login = create_login_action();
+    let handle_logout = create_logout_action();
 
     view! {
         <div class="flex flex-col overflow-hidden h-screen w-full items-center justify-center pb-20 gap-4 relative">
@@ -51,7 +52,7 @@ pub fn Login() -> impl IntoView {
                     </a>
 
                     <Show
-                        when=move || is_authenticated()
+                        when=move || Canisters::is_authenticated()
                         fallback=move || {
                             view! {
                                 <>
@@ -113,11 +114,11 @@ pub fn Login() -> impl IntoView {
                                 <div class="flex flex-row gap-2 items-center">
                                 <div class=" font-mono bg-gray-200 p-2 rounded-md max-w-sm select-all leading-relaxed text-pretty">
 
-                                    {move || principal().map(|p| p.to_text()).unwrap_or_default()}
+                                    {move || Canisters::principal().map(|p| p.to_text()).unwrap_or_default()}
                                 </div>
                                 <button
                                 on:click=move |_| {
-                                    let text = &principal().map(|p| p.to_text()).unwrap_or_default();
+                                    let text = &Canisters::principal().map(|p| p.to_text()).unwrap_or_default();
                                     copy_to_clipboard(text);
                                     
                                 }
