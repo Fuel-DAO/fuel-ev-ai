@@ -117,7 +117,9 @@ pub fn Login() -> impl IntoView {
                                 </div>
                                 <button
                                 on:click=move |_| {
-                                    copy_to_clipboard(&principal().map(|p| p.to_text()).unwrap_or_default());
+                                    let text = &principal().map(|p| p.to_text()).unwrap_or_default();
+                                    copy_to_clipboard(text);
+                                    
                                 }
                                 class="w-3 h-3"
                             >
