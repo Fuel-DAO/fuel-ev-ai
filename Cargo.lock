@@ -962,6 +962,7 @@ dependencies = [
  "ic-auth-client",
  "icondata",
  "icondata_core",
+ "leptoaster",
  "leptos",
  "leptos-use",
  "leptos_icons",
@@ -1990,6 +1991,16 @@ name = "leb128"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "884e2677b40cc8c339eaefcb701c32ef1fd2493d71118dc0ca4b6a736c93bd67"
+
+[[package]]
+name = "leptoaster"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d8d5ddaf53b6a840372747f7aa245f35ae30b7b68fbf342dfd284ac19c25ace5"
+dependencies = [
+ "gloo-timers",
+ "leptos",
+]
 
 [[package]]
 name = "leptos"

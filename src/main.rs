@@ -4,6 +4,7 @@ use crate::state::canisters::Canisters;
 mod time;
 use crate::stores::{agent::AgentProvider, auth_client::AuthClientProvider};
 use leptos::*;
+use leptoaster::*;
 use leptos_dom::logging::console_error;
 use leptos_meta::*;
 
@@ -35,8 +36,10 @@ mod stores;
 mod utils;
 #[component]
 fn App() -> impl IntoView {
+    provide_toaster();
     // provide_context(Canisters::default());
     view! {
+        <Toaster />
         <AdminProvider>
         <Router>
             <main>
