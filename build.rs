@@ -1,5 +1,4 @@
 use anyhow::Result;
-#[macro_use]
 extern crate dotenv_codegen;
 
 mod build_common {

@@ -8,7 +8,7 @@ use leptoaster::*;
 use leptos_dom::logging::console_error;
 use leptos_meta::*;
 
-use leptos_router::{Route, Router, Routes, ProtectedRoute};
+use leptos_router::{Route, Router, Routes};
 use pages::admin::check_admin::AdminProvider;
 use pages::investors_business::InvestorsBookingDashboard;
 use pages::{
@@ -24,6 +24,7 @@ use pages::{
 pub mod constants;
 pub use constants::TEMP_ASSET_CANISTER_ID;
 use state::admin::Admin;
+use state::sale_status::SaleStatusState;
 use std::cell::RefCell;
 use std::rc::Rc;
 mod canister;
@@ -86,6 +87,7 @@ fn App() -> impl IntoView {
 fn AuthServiceProvider(children: Children) -> impl IntoView {
     set_up_auth_context();
     Admin::set_global();
+    SaleStatusState::set_global();
     // Provide AuthService as a context
     children()
 }

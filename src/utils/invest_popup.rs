@@ -2,14 +2,12 @@ use candid::Principal;
 use leptos::*;
 use crate::canister::token::BookTokensArg;
 use crate::state::auth_actions::create_login_action;
-use crate::state::{auth::AuthService, canisters::Canisters};
+use crate::state::canisters::Canisters;
 use crate::utils::button::ButtonComponent;
 use crate::utils::go_back_and_come_back::go_back_and_come_back;
 use crate::utils::input::InputComponent;
 use crate::utils::plus_icon::PlusIcon;
 use crate::utils::web::copy_to_clipboard;
-use std::cell::RefCell;
-use std::rc::Rc;
 use crate::components::invest_info::from_e8s;
 
 // Struct for PaymentStatus
@@ -33,40 +31,6 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
     const TRANSFER_PRICE: u64 = 10_000;
 
     let nft_to_buy = create_rw_signal(1u64.to_string());
-
-    // let show_clone = RwSignal::new(show.get_untracked());
-
-    // Retrieve Canisters from context
-    // let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
-    //     .expect("Canisters ReadWriteSignal must be provided");
-
-    // // Retrieve AuthService from context
-    // let auth_service =
-    //     use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
-
-
-    //     let is_authenticated = RwSignal::new(auth_service.borrow().is_authenticated());
-    // // Reactive memo for authentication state
-    // create_effect(move |_| {
-    //     let is_show = show.get();
-    //     show_clone.set(is_show);
-
-    // is_authenticated.set(auth_service.borrow().is_authenticated());
-    // });
-
-    // Reactive memo for principal
-    // let principall = create_memo({
-    //     let auth_service =
-    //     use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
-    //     let auth_service = Rc::clone(&auth_service);
-    //     move |_| {
-    //         if is_authenticated() {
-    //             auth_service.borrow().get_principal().ok()
-    //         } else {
-    //             None
-    //         }
-    //     }
-    // });
 
     let payment_info = create_rw_signal(PaymentInfo::default());
     let step = create_rw_signal(1);

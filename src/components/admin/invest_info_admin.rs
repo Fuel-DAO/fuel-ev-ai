@@ -1,10 +1,8 @@
-use web_sys::MouseEvent;
 use leptos::*;
 use crate::canister::token::GetMetadataRet;
 use crate::state::canisters::Canisters;
 use crate::outbound::accept_or_reject_sale::{accept_sale, reject_sale};
-use crate::outbound::collection_canister_calls::{get_total_booked_tokens, refund_icps_to_annonymous, transfer_amount_from_annonymous_to_investor, update_annonymous_principal};
-use std::rc::Rc;
+use crate::outbound::collection_canister_calls::{get_total_booked_tokens, refund_excess_after_sale, refund_icps_to_annonymous, transfer_amount_from_annonymous_to_investor, update_annonymous_principal};
 use candid::{Principal, Nat};
 use leptos::logging::log;
 use num_bigint::BigUint;
@@ -30,19 +28,14 @@ pub fn ConcludeSaleAdminComponent(
     let show_confirmation = create_rw_signal(false);
     let action_type = create_rw_signal(String::new()); // "accept" or "reject"
 
-    // Access Canisters from context
-    let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
-        .expect("Canisters ReadWriteSignal must be provided");
-
     // Fetch booked_tokens
     let booked_tokens_resource = create_resource(
         || (),
         move |_| {
             let token_canister_id = token_canister_id.clone();
-            let canisters_signal = canisters_signal.clone();
 
             async move {
-                if let Some(canisters) = canisters_signal.get() {
+                if let Some(canisters) = Canisters::get_authenticated().ok() {
                     let booked_tokens = get_total_booked_tokens(&canisters, token_canister_id).await?;
                     Ok::<Nat, String>(booked_tokens)
                 } else {
@@ -66,7 +59,6 @@ pub fn ConcludeSaleAdminComponent(
         let error_message_reject = error_message_reject.clone();
         let success_message_accept = success_message_accept.clone();
         let success_message_reject = success_message_reject.clone();
-        let canisters_signal = canisters_signal.clone();
         let action_type = action_type.clone();
         let show_confirmation = show_confirmation.clone();
         let token_canister_id = token_canister_id.clone();
@@ -81,7 +73,7 @@ pub fn ConcludeSaleAdminComponent(
                     error_message_accept.set(String::new());
                     success_message_accept.set(String::new());
 
-                    let canisters = match canisters_signal.get().as_ref() {
+                    let canisters = match Canisters::get_authenticated().ok().as_ref() {
                         Some(cans) => cans.clone(),
                         None => {
                             error_message_accept
@@ -111,7 +103,7 @@ pub fn ConcludeSaleAdminComponent(
                     error_message_reject.set(String::new());
                     success_message_reject.set(String::new());
 
-                    let canisters = match canisters_signal.get().as_ref() {
+                    let canisters = match Canisters::get_authenticated().ok().as_ref() {
                         Some(cans) => cans.clone(),
                         None => {
                             error_message_reject
@@ -322,7 +314,7 @@ pub fn ConcludeSaleAdminComponent(
                                             fallback=|| ()
                                         >
                                             <div class="text-xs text-green-600 mt-2">
-                                                {success_message_accept.get()}
+                                                {move || success_message_accept.get()}
                                             </div>
                                         </Show>
                                         <Show
@@ -330,7 +322,7 @@ pub fn ConcludeSaleAdminComponent(
                                             fallback=|| ()
                                         >
                                             <div class="text-xs text-green-600 mt-2">
-                                                {success_message_reject.get()}
+                                                {move || success_message_reject.get()}
                                             </div>
                                         </Show>
                                         <Show
@@ -338,7 +330,7 @@ pub fn ConcludeSaleAdminComponent(
                                             fallback=|| ()
                                         >
                                             <div class="text-xs text-red-600 mt-2">
-                                                {error_message_accept.get()}
+                                                {move ||error_message_accept.get()}
                                             </div>
                                         </Show>
                                         <Show
@@ -346,7 +338,7 @@ pub fn ConcludeSaleAdminComponent(
                                             fallback=|| ()
                                         >
                                             <div class="text-xs text-red-600 mt-2">
-                                                {error_message_reject.get()}
+                                                {move ||error_message_reject.get()}
                                             </div>
                                         </Show>
                                     </Show>
@@ -375,21 +367,18 @@ pub fn TransferAmountFromAnnonymousToInvestor(
     let err = create_rw_signal(Some(String::new()));
     let fallback_principal = create_rw_signal(String::new());
     let amount = create_rw_signal(0.0);
-    let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
-        .expect("Canisters ReadWriteSignal must be provided");
     let call_api =create_action(move|&()|  {
 
         
             let token_canister_id = token_canister_id.clone();
             let principal = fallback_principal.get();
             let amount_icp = amount.get();
-            let canisters_signal = canisters_signal.clone();
             err.set(None);
            async move {
 
 
 
-                if let Some(canisters) = canisters_signal.get() {
+                if let Some(canisters) = Canisters::get_authenticated().ok() {
 
                    let principal = match Principal::from_text(principal) {
                     Ok(p) => p, 
@@ -452,7 +441,7 @@ pub fn TransferAmountFromAnnonymousToInvestor(
                {move || if err.get().is_some() { err.get().unwrap() } else { String::new() }}
            </div>
            <button
-               class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
+               class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
                on:click=move |_| call_api.dispatch(())
                disabled=loading.get()
            >
@@ -462,6 +451,80 @@ pub fn TransferAmountFromAnnonymousToInvestor(
    }
 }
 #[component]
+pub fn RefundExcessAfterSale(
+    token_canister_id: Principal,
+) -> impl IntoView {
+    let loading = create_rw_signal(false);
+    let is_updated = create_rw_signal(false);
+    let err = create_rw_signal(Some(String::new()));
+    let fallback_principal = create_rw_signal(String::new());
+    let call_api =create_action(move|&()|  {
+
+        
+            let token_canister_id = token_canister_id.clone();
+            let principal = fallback_principal.get();
+            err.set(None);
+           async move {
+
+
+
+                if let Some(canisters) = Canisters::get_authenticated().ok() {
+
+                   let principal = match Principal::from_text(principal) {
+                    Ok(p) => p, 
+                    Err(_) => {
+                        err.set(Some("Invalid principal".into()));
+                        return;
+                    }
+                   };
+                   loading.set(true);
+
+                   let res = match refund_excess_after_sale(&canisters, token_canister_id, principal).await {
+                    Ok(f) => Ok(f),
+                    Err(e) => {
+                        err.set(Some(e.clone()));
+                        Err(e)
+                    } 
+                   };
+
+                   is_updated.set(res.is_ok());
+                   loading.set(false);
+                }else {
+                    err.set(Some("Local canisters error".into()));
+                }
+            }
+    });
+
+
+
+
+    
+   view! {
+       <label class="flex flex-col gap-4 w-full">
+           Refund excess after sale
+           <input
+               type="text"
+               placeholder="Enter a valid principal id"
+               disabled=move || loading.get()
+               on:input=move |e| fallback_principal.set(event_target_value(&e))
+               class="mt-1 block w-full border border-gray-300 rounded-md p-2"
+           /> {move || fallback_principal.get()}
+           <div class="text-red-600">
+               {move || if err.get().is_some() { err.get().unwrap() } else { String::new() }}
+           </div>
+           <button
+               class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
+               on:click=move |_| call_api.dispatch(())
+               disabled=loading.get()
+           >
+               {move || if loading.get() { "Submitting..." } else { "Submit" }}
+           </button>
+       </label>
+   }
+}
+
+
+#[component]
 pub fn AddFallbackPrincipalForAnnonymousInvestor(
     token_canister_id: Principal,
 ) -> impl IntoView {
@@ -469,20 +532,17 @@ pub fn AddFallbackPrincipalForAnnonymousInvestor(
     let is_updated = create_rw_signal(false);
     let err = create_rw_signal(Some(String::new()));
     let fallback_principal = create_rw_signal(String::new());
-    let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
-        .expect("Canisters ReadWriteSignal must be provided");
     let call_api =create_action(move|&()|  {
 
         
             let token_canister_id = token_canister_id.clone();
             let principal = fallback_principal.get();
-            let canisters_signal = canisters_signal.clone();
             err.set(None);
            async move {
 
 
 
-                if let Some(canisters) = canisters_signal.get() {
+                if let Some(canisters) = Canisters::get_authenticated().ok() {
 
                    let principal = match Principal::from_text(principal) {
                     Ok(p) => p, 
@@ -527,7 +587,7 @@ pub fn AddFallbackPrincipalForAnnonymousInvestor(
                {move || if err.get().is_some() { err.get().unwrap() } else { String::new() }}
            </div>
            <button
-               class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
+               class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
                on:click=move |_| call_api.dispatch(())
                disabled=loading.get()
            >
@@ -546,20 +606,18 @@ pub fn RefundICPsToAnnonymous(
     let is_updated = create_rw_signal(false);
     let err = create_rw_signal(Some(String::new()));
     let amount = create_rw_signal(0.0);
-    let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
-        .expect("Canisters ReadWriteSignal must be provided");
+    
     let call_api =create_action(move|&()|  {
 
         
             let token_canister_id = token_canister_id.clone();
             let amount_icp = amount.get();
-            let canisters_signal = canisters_signal.clone();
             err.set(None);
            async move {
 
 
 
-                if let Some(canisters) = canisters_signal.get() {
+                if let Some(canisters) = Canisters::get_authenticated().ok() {
 
                    let icp_amount = match f64::try_from(amount_icp) {
                     Ok(p) => p, 
@@ -604,7 +662,7 @@ pub fn RefundICPsToAnnonymous(
                {move || if err.get().is_some() { err.get().unwrap() } else { String::new() }}
            </div>
            <button
-               class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
+               class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
                on:click=move |_| call_api.dispatch(())
                disabled=loading.get()
            >

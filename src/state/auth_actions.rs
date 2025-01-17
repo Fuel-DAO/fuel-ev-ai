@@ -1,11 +1,9 @@
-use std::{cell::RefCell, rc::Rc};
-
 // src/state/auth/auth_actions.rs
 use crate::utils::go_back_and_come_back::go_to_home;
 use leptos::*;
 use leptos_dom::logging::{console_error, console_log};
 
-use super::{auth::AuthService, canisters::Canisters};
+use super::canisters::Canisters;
 
 /// Creates a login action.
 pub fn create_login_action() -> Action<(), ()> {

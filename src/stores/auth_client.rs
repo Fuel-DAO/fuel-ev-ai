@@ -1,12 +1,6 @@
-use candid::Principal;
-use ic_agent::{identity::AnonymousIdentity, Identity};
-use ic_auth_client::{AuthClient, AuthClientLoginOptions};
+use ic_auth_client::AuthClient;
 use leptos::*;
-use leptos_dom::logging::console_warn;
-use std::sync::Arc;
-use web_sys::Url;
 
-use crate::{canister::PROVISION_ID, set_up_auth_context, utils::go_back_and_come_back::go_back_and_come_back};
 
 
 /// Component that provides the AuthClient to the children components
@@ -46,20 +40,20 @@ fn auth_client() -> Result<AuthClient, AuthClientError> {
     }
 }
 
-pub fn get_current_user_principal() -> Option<Principal> {
-    auth_client().ok().map(|f| if f.is_authenticated() {
-        Some( f.identity().sender().unwrap()) 
-    } else {
-        None
-    } ).flatten()
-}
+// pub fn get_current_user_principal() -> Option<Principal> {
+//     auth_client().ok().map(|f| if f.is_authenticated() {
+//         Some( f.identity().sender().unwrap()) 
+//     } else {
+//         None
+//     } ).flatten()
+// }
 
-pub fn get_identity() -> Arc<dyn Identity> {
-    match auth_client() {
-        Ok(auth_client) => auth_client.identity(),
-        Err(_) => Arc::new(AnonymousIdentity),
-    }
-}
+// pub fn get_identity() -> Arc<dyn Identity> {
+//     match auth_client() {
+//         Ok(auth_client) => auth_client.identity(),
+//         Err(_) => Arc::new(AnonymousIdentity),
+//     }
+// }
 
 // pub fn login() -> Result<(), AuthClientError> {
 //     // dotenv::dotenv().ok();

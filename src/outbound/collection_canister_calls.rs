@@ -1,6 +1,7 @@
 use crate::canister::token;
 use crate::canister::token::SaleStatus;
 use crate::state::canisters::Canisters;
+use crate::state::sale_status::SaleStatusState;
 
 use candid::Nat;
 use candid::Principal;
@@ -44,6 +45,8 @@ pub async fn fetch_collections_data(canisters: &Canisters) -> Result<Vec<Collect
         let sale_status =
             canisters.token_canister(collection.token_canister).await.get_sale_status().await.ok();
 
+        SaleStatusState::set_listing_satatus(collection.token_canister, sale_status.clone().unwrap_or(SaleStatus::Rejected));
+
         let status = sale_status.map(|f| match f {
             SaleStatus::Live => "Open",
             _ => "Closed",
@@ -53,6 +56,7 @@ pub async fn fetch_collections_data(canisters: &Canisters) -> Result<Vec<Collect
             Ok(metadata)  => {
                 match metadata {
                     token::Result4::Ok(metadata) => {
+                        SaleStatusState::set_listing_metadata(collection.token_canister, metadata.clone());
                         collections.push(CollectionData {
                             id: collection_id.clone(),
                             name: metadata.name.clone(),
@@ -129,6 +133,25 @@ pub async fn update_annonymous_principal(
 
 }
 
+pub async fn refund_excess_after_sale(
+    canisters: &Canisters,
+    token_canister_id: Principal,
+    principal: Principal
+) -> Result<(), String> {
+    let token_canister = canisters.token_canister(token_canister_id, ).await;
+
+    let res = token_canister
+        .refund_excess_after_sale(principal)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    match res {
+        token::Result_::Ok(_) => Ok(()),
+        token::Result_::Err(e) => Err(e),
+    }
+
+}
+
 pub async fn refund_icps_to_annonymous(
     canisters: &Canisters,
     token_canister_id: Principal,
@@ -142,7 +165,7 @@ pub async fn refund_icps_to_annonymous(
         .map_err(|e| e.to_string())?;
 
     match res {
-        token::Result_::Ok(val) => Ok(()),
+        token::Result_::Ok(_) => Ok(()),
         token::Result_::Err(e) => Err(e),
     }
 
@@ -161,7 +184,7 @@ pub async fn transfer_amount_from_annonymous_to_investor(
         .map_err(|e| e.to_string())?;
 
     match res {
-        token::Result_::Ok(val) => Ok(()),
+        token::Result_::Ok(_) => Ok(()),
         token::Result_::Err(e) => Err(e),
     }
 

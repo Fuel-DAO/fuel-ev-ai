@@ -1,13 +1,9 @@
 // src/components/login.rs
 
-use crate::state::{
-    canisters::Canisters,
-    auth::AuthService,
-    auth_actions::{create_login_action, create_logout_action},
-};
+use crate::{components::header::Header, state::{
+    auth_actions::{create_login_action, create_logout_action}, canisters::Canisters
+}};
 use leptos::*;
-use std::cell::RefCell;
-use std::rc::Rc;
 use crate::utils::web::copy_to_clipboard;
 
 
@@ -17,8 +13,8 @@ use crate::utils::web::copy_to_clipboard;
 #[component]
 pub fn Login() -> impl IntoView {
     // Obtain AuthService from the context
-    let auth_service =
-        use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
+    // let auth_service =
+    //     use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
 
     // // Reactive signal to track authentication state
     // let is_authenticated = create_memo({
@@ -43,6 +39,7 @@ pub fn Login() -> impl IntoView {
     let handle_logout = create_logout_action();
 
     view! {
+        <Header />
         <div class="flex flex-col overflow-hidden h-screen w-full items-center justify-center pb-20 gap-4 relative">
             <div class="flex z-3 min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
                 <div class="bg-white/75 backdrop-blur-xl flex flex-col items-center gap-8 px-6 py-12 shadow-md rounded-lg sm:px-12 ">
@@ -64,7 +61,7 @@ pub fn Login() -> impl IntoView {
                                         role="presentation"
                                         type="button"
                                         on:click=move |_| { handle_login.dispatch(()) }
-                                        class="bg-white ring-1 ring-inset ring-gray-100 hover:bg-gray-50 outline-none active:bg-gray-200 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30 w-min"
+                                        class="bg-white ring-1 ring-inset ring-gray-100 hover:bg-gray-50 outline-none active:bg-gray-200 px-4 py-2 text-gray-900 inline-flex relative items-center h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30 w-min"
                                     >
                                         <div class="flex items-center justify-center gap-2">
                                             <svg

@@ -66,7 +66,7 @@ impl AuthService {
             builder = builder.identity_provider(provider);
         }
 
-        let options = builder.on_success(|f| {
+        let options = builder.on_success(|_| {
             info!("Login successful");
             window().location().reload().unwrap();
             go_back_and_come_back();

@@ -96,6 +96,7 @@ service : (CanisterArgs) -> {
   get_sale_status : () -> (SaleStatus) query;
   get_total_booked_tokens : () -> (nat) query;
   refund_icp_amount_after_sale_from_annonymous : (float64) -> (Result);
+  refund_excess_after_sale : (principal) -> (Result);
   transfer_icp_amount_from_annonymous_to_investor : (float64, principal) -> (
       Result,
     );
