@@ -1,4 +1,4 @@
-use leptos::*;
+use leptos::prelude::*;
 
 #[component]
 pub fn PlusIcon( #[prop(optional)] class: Option<String>) -> impl IntoView {

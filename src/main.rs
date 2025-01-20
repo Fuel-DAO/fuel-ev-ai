@@ -3,12 +3,13 @@ use crate::state::auth::AuthService;
 use crate::state::canisters::Canisters;
 mod time;
 use crate::stores::{agent::AgentProvider, auth_client::AuthClientProvider};
-use leptos::*;
+use leptos::leptos_dom::logging::console_error;
+use leptos::prelude::*;
 use leptoaster::*;
-use leptos_dom::logging::console_error;
+use leptos::task::spawn_local;
 use leptos_meta::*;
 
-use leptos_router::{Route, Router, Routes};
+use leptos_router::components::{Route, Router, Routes};
 use pages::admin::check_admin::AdminProvider;
 use pages::investors_business::InvestorsBookingDashboard;
 use pages::{
@@ -93,20 +94,15 @@ fn AuthServiceProvider(children: Children) -> impl IntoView {
 }
 
 pub fn set_up_auth_context() {
-    let auth_service = Rc::new(RefCell::new(
-        AuthService::new().expect("Failed to create AuthService"),
-    ));
-    provide_context(auth_service.clone());
+    let auth_service = AuthService::new().expect("Failed to create AuthService");
 
-    let canisters_signal = create_rw_signal(None);
-    provide_context(canisters_signal);
 
     spawn_local({
         let auth_service = auth_service.clone();
         async move {
             match Canisters::new(auth_service).await {
                 Ok(canisters_instance) => {
-                    canisters_signal.set(Some(Rc::new(canisters_instance)));
+                    Canisters::set_global(canisters_instance);
                 }
                 Err(e) => console_error(&format!("Failed to create Canisters: {:?}", e)),
             }

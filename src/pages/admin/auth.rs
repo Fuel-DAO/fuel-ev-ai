@@ -4,7 +4,7 @@ use crate::state::canisters::Canisters;
 use crate::state::
     auth_actions::create_login_action
 ;
-use leptos::*;
+use leptos::prelude::*;
 
 #[component]
 pub fn AdminComponent() -> impl IntoView {
@@ -12,7 +12,7 @@ pub fn AdminComponent() -> impl IntoView {
     // Use the reusable actions from auth_actions.rs
     let handle_login = create_login_action();
     // Create a resource to fetch admin status
-    let is_admin_resource = create_resource(
+    let is_admin_resource = Resource::new(
         move || {
             let maybe_canisters = Canisters::get();
             let maybe_principal = Canisters::principal();
@@ -42,7 +42,7 @@ pub fn AdminComponent() -> impl IntoView {
                                 // Resource is loading
                                 <div>"Loading..."</div>
                             }
-                                .into_view()
+                                .into_any()
                         }
                         Some(Ok(true)) => {
                             view! {
@@ -77,7 +77,7 @@ pub fn AdminComponent() -> impl IntoView {
                                     </div>
                                 </>
                             }
-                                .into_view()
+                                .into_any()
                         }
                         Some(Ok(false)) => {
                             view! {
@@ -113,14 +113,14 @@ pub fn AdminComponent() -> impl IntoView {
                                     </div>
                                 </>
                             }
-                                .into_view()
+                                .into_any()
                         }
                         Some(Err(e)) => {
                             view! {
                                 // An error occurred while fetching admin status
                                 <div>{format!("Error: {}", e)}</div>
                             }
-                                .into_view()
+                                .into_any()
                         }
                     }
                 } else {
@@ -128,14 +128,14 @@ pub fn AdminComponent() -> impl IntoView {
                         // Principal is not available, prompt user to log in
                         <div class="text-center text-lg">"You need to log in first"</div>
                         <button
-                            on:click=move |_| handle_login.dispatch(())
+                            on:click=move |_| {handle_login.dispatch(());}
                             role="presentation"
                             class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30 "
                         >
                             <div class=" transition-opacity">Login</div>
                         </button>
                     }
-                        .into_view()
+                        .into_any()
                 }
             }}
         </div>

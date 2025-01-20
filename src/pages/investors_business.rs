@@ -1,10 +1,10 @@
-use leptos::*;
+use leptos::prelude::*;
 
 use crate::{canister::backend::CarTravelStats, state::canisters::Canisters, time::get_day_month_time};
 #[component]
 pub fn InvestorsBookingDashboard() -> impl IntoView {
 
-    let stats = create_resource(||(), |_| {
+    let stats = Resource::new(||(), |_| {
         async move {
             let backend = Canisters::get().ok_or(format!("Canisters not initialized"))?;
             let backend = backend.backend_canister().await;

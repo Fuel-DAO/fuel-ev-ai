@@ -9,10 +9,13 @@ use crate::{
     },
     state::canisters::Canisters,
 };
-use leptos::*;
+use hooks::use_params;
+use leptos::{logging, prelude::*};
+use leptos::task::spawn_local;
 use leptos_router::*;
+use params::ParamsError;
 use serde_json::Value;
-
+use leptos_router::params::Params;
 /// Converts Metadata to key-value pairs
 fn metadata_to_key_value_pairs(metadata: &CollectionRequest) -> Vec<(String, String)> {
     // Serialize `Metadata` to a JSON-compatible Value
@@ -65,13 +68,12 @@ pub fn ManageCollectionPage() -> impl IntoView {
         move || params.with(|params: &Result<ContactParams, ParamsError>| params.as_ref().map(|params| params.id).unwrap_or_default());
 
     // Create a resource to fetch collection details
-    let collection_details = create_resource(
+    let collection_details = Resource::new(
         move || Canisters::get_authenticated().ok().clone(),
         move |cans_option| async move {
             if let Some(cans) = cans_option {
                 match get_request_info_by_id(&cans, id()).await {
                     Ok(data) => {
-                        logging::log!("data: {:?}", data);
                         Ok(data)
                     }
                     Err(e) => Err(e),
@@ -88,21 +90,13 @@ pub fn ManageCollectionPage() -> impl IntoView {
             spawn_local(async move {
                 match approve_request(&canisters, collection_id).await {
                     Ok((id, token_canister, asset_canister)) => {
-                        logging::log!(
-                            "Approval successful! ID: {}, Token Canister: {}, Asset Canister: {}",
-                            id,
-                            token_canister,
-                            asset_canister
-                        );
+                        
                     }
                     Err(err) => {
-                        logging::log!("Error approving request: {}", err);
                     }
                 }
             });
-        } else {
-            logging::log!("Canisters not available. Please log in.");
-        }
+        } 
     };
     let reject_action = move || {
         if let Some(canisters) = Canisters::get_authenticated().ok() {
@@ -153,7 +147,6 @@ pub fn ManageCollectionPage() -> impl IntoView {
                             Some(Ok(data)) => {
                                 view! {
                                     {if let Some(metadata) = &data.metadata {
-                                        logging::log!("metadata: {:?}", metadata);
                                         let metadata_items = metadata_to_key_value_pairs(metadata);
                                         view! {
                                             // Dynamically extract fields
@@ -168,19 +161,19 @@ pub fn ManageCollectionPage() -> impl IntoView {
                                                     })
                                                     .collect_view()}
                                             </div>
-                                        }
+                                        }.into_any()
                                     } else {
                                         view! {
                                             <div class="text-gray-500">"No metadata available."</div>
-                                        }
+                                        }.into_any()
                                     }}
                                 }
                             }
                             Some(Err(err)) => {
-                                view! { <div class="text-red-500">{err.clone()}</div> }
+                                view! { <div class="text-red-500">{err.clone()}</div> }.into_any()
                             }
                             None => {
-                                view! { <div class="text-gray-500">"Loading..."</div> }
+                                view! { <div class="text-gray-500">"Loading..."</div> }.into_any()
                             }
                         }}
                     </div>

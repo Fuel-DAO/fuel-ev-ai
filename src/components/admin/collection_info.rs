@@ -1,4 +1,4 @@
-use leptos::*;
+use leptos::prelude::*;
 
 #[component]
 pub fn CollectionInfo(
@@ -24,7 +24,7 @@ pub fn CollectionInfo(
 ) -> impl IntoView {
     // Access the loading state from context
     let loading =
-        use_context::<ReadSignal<bool>>().unwrap_or_else(|| create_rw_signal(false).read_only());
+        use_context::<ReadSignal<bool>>().unwrap_or_else(|| RwSignal::new(false).read_only());
 
     view! {
         <div class="flex flex-col gap-4">

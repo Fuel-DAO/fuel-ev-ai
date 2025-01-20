@@ -1,6 +1,5 @@
-use leptos::*;
-use leptos_router::A;
-
+use leptos::prelude::*;
+use leptos_router::components::A;
 use crate::utils::plus_icon::PlusIcon;
 
 #[component]
@@ -40,13 +39,13 @@ pub fn ButtonComponent(
     view! {
         {if let Some(link) = href {
             view! {
-                <div>
+                <div class=button_classes>
                     <A
                         href=link
                         target=target.unwrap_or("_self".to_string())
-                        class=button_classes
+                        
                         // role="presentation"
-                        on:click=move |_| on_click(())
+                        on:click=move |_| {on_click.run(())}
                     >
                         <div class=if loading {
                             "opacity-0 transition-opacity"
@@ -59,14 +58,14 @@ pub fn ButtonComponent(
                                     <div class="absolute inset-0 flex items-center justify-center">
                                         <PlusIcon class="w-5 h-5 animate-spin".into() />
                                     </div>
-                                }
+                                }.into_any()
                             } else {
-                                view! { <div></div> }
+                                view! { <div></div> }.into_any()
                             }
                         }}
                     </A>
                 </div>
-            }
+            }.into_any()
         } else {
             view! {
                 <div>
@@ -74,7 +73,7 @@ pub fn ButtonComponent(
                         type=if submit { "submit" } else { "button" }
                         disabled=disabled
                         class=button_classes
-                        on:click=move |_| on_click(())
+                        on:click=move |_| on_click.run(())
                     >
                         <div class=if loading {
                             "opacity-0 transition-opacity"
@@ -87,14 +86,14 @@ pub fn ButtonComponent(
                                     <div class="absolute inset-0 flex items-center justify-center">
                                         <PlusIcon class="w-5 h-5 animate-spin".into() />
                                     </div>
-                                }
+                                }.into_any()
                             } else {
-                                view! { <div></div> }
+                                view! { <div></div> }.into_any()
                             }
                         }}
                     </button>
                 </div>
-            }
+            }.into_any()
         }}
     }
 }

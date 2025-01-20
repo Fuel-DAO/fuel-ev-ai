@@ -4,7 +4,7 @@ use crate::state::canisters::Canisters;
 use crate::utils::button::ButtonComponent;
 use crate::utils::invest_popup::InvestPopup;
 use candid::{Nat, Principal};
-use leptos::*;
+use leptos::prelude::*;
 use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct InvestInfoMetaProps {
@@ -15,7 +15,7 @@ pub struct InvestInfoMetaProps {
 
 #[component]
 pub fn InvestInfo(metadata: GetMetadataRet, token_canister_id: Principal) -> impl IntoView {
-    let sale_and_tokens = create_resource(
+    let sale_and_tokens = Resource::new(
         || (),
         move |_| {
             let metadata = metadata.clone();
@@ -48,9 +48,9 @@ pub fn InvestInfo(metadata: GetMetadataRet, token_canister_id: Principal) -> imp
                             <div>
                                 <InvenstInfoInner props token_canister_id />
                             </div>
-                        }
+                        }.into_any()
                     }
-                    Err(e) => view! { <div>{e}</div> },
+                    Err(e) => view! { <div>{e}</div> }.into_any(),
                 })}
         </Suspense>
     }
@@ -142,7 +142,7 @@ fn InvenstInfoInner(props: InvestInfoMetaProps, token_canister_id: Principal) ->
             <ButtonComponent
                 secondary=true
                 disabled=is_invest_disabled()
-                on_click=move |_| show_invest_popup.update(|f| *f = true)
+                on_click=move || show_invest_popup.update(|f| *f = true)
             >
                 // {"Invest"}
                 {|| view! { <div>Invest</div> }}

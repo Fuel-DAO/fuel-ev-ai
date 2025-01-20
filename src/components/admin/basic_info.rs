@@ -1,4 +1,4 @@
-use leptos::*;
+use leptos::prelude::*;
 
 // Subcomponent for Basic Info Tab
 #[component]
@@ -12,7 +12,7 @@ pub fn BasicInfo(
 ) -> impl IntoView {
     // Access the loading state from context
     let loading =
-        use_context::<ReadSignal<bool>>().unwrap_or_else(|| create_rw_signal(false).read_only());
+        use_context::<ReadSignal<bool>>().unwrap_or_else(|| RwSignal::new(false).read_only());
     view! {
         <div class="flex flex-col gap-4">
             <label class="w-full">
@@ -65,7 +65,7 @@ pub fn BasicInfo(
                 Symbol
                 <select
                     disabled=move || loading.get()
-                    value=symbol.get()
+                    // value=symbol.get()
                     on:change=move |e| symbol.set(event_target_value(&e))
                     class="mt-1 block w-full border border-gray-300 rounded-md p-2"
                 >

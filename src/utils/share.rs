@@ -1,4 +1,4 @@
-use leptos::*;
+use leptos::prelude::*;
 use leptos_icons::*;
 
 use crate::{
@@ -13,7 +13,7 @@ use crate::{
 fn ShareContent(
     share_link: String,
     message: String,
-    #[prop(into)] show_popup: SignalSetter<bool>,
+    #[prop(into)] show_popup: RwSignal<bool>,
 ) -> impl IntoView {
     // let has_share_support = check_share_support();
 
@@ -39,11 +39,11 @@ fn ShareContent(
             <div class="flex overflow-x-auto justify-center items-center px-10 mx-1 space-x-2 w-full rounded-xl border-2 border-neutral-700 h-[2.5rem] md:h-[5rem]">
                 <span class="text-lg text-black md:text-xl truncate">{&share_link.clone()}</span>
                 <button on:click=copy_clipboard>
-                    <Icon class="w-6 h-6 text-black cursor-pointer" icon=icondata::BiCopyRegular/>
+                    <Icon style="w-6 h-6 text-black cursor-pointer" icon=icondata::BiCopyRegular/>
                 </button>
             </div>
             <button
-                on:click=move |_| show_popup.set(false)
+                on:click=move |_| {show_popup.set(false);}
                 class="py-4 w-3/4 text-lg text-center text-white rounded-full bg-primary-600"
             >
                 Back
@@ -82,28 +82,28 @@ fn SocialShare(share_link: String, message: String) -> impl IntoView {
         <div class="flex gap-4">
             // Facebook button
             <a href=fb_url target="_blank">
-                <Icon class="text-3xl md:text-4xl text-primary-600" icon=icondata::BsFacebook/>
+                <Icon style="text-3xl md:text-4xl text-primary-600" icon=icondata::BsFacebook/>
             </a>
 
             // Twitter button
             <a href=twitter_url target="_blank">
-                <Icon class="text-3xl md:text-4xl text-primary-600" icon=icondata::BsTwitterX/>
+                <Icon style="text-3xl md:text-4xl text-primary-600" icon=icondata::BsTwitterX/>
             </a>
 
             // WhatsApp button
             <a href=whatsapp_url target="_blank">
                 <Icon
-                    class="text-3xl md:text-4xl text-primary-600"
+                    style="text-3xl md:text-4xl text-primary-600"
                     icon=icondata::FaSquareWhatsappBrands
                 />
             </a>
 
             // LinkedIn button
             <a href=linkedin_url target="_blank">
-                <Icon class="text-3xl md:text-4xl text-primary-600" icon=icondata::TbBrandLinkedin/>
+                <Icon style="text-3xl md:text-4xl text-primary-600" icon=icondata::TbBrandLinkedin/>
             </a>
             <a href=telegram_url target="_blank">
-                <Icon class="text-3xl md:text-4xl text-primary-600" icon=icondata::TbBrandTelegram/>
+                <Icon style="text-3xl md:text-4xl text-primary-600" icon=icondata::TbBrandTelegram/>
             </a>
         </div>
     }
@@ -116,9 +116,9 @@ pub fn ShareButtonWithFallbackPopup(
     #[prop(optional)] style: String,
 ) -> impl IntoView {
     let base_url = get_host();
-    let show_fallback = create_rw_signal(false);
+    let show_fallback = RwSignal::new(false);
     let share_link_c = share_link.clone();
-    let on_share_click = move |ev: ev::MouseEvent| {
+    let on_share_click = move |ev: leptos::ev::MouseEvent| {
         ev.stop_propagation();
         if share_url(&share_link_c).is_none() {
             show_fallback.set(true);

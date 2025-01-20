@@ -1,5 +1,5 @@
 use candid::Principal;
-use leptos::*;
+use leptos::prelude::*;
 use crate::canister::token::BookTokensArg;
 use crate::state::auth_actions::create_login_action;
 use crate::state::canisters::Canisters;
@@ -30,14 +30,14 @@ struct PaymentInfo {
 pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: String) -> impl IntoView {
     const TRANSFER_PRICE: u64 = 10_000;
 
-    let nft_to_buy = create_rw_signal(1u64.to_string());
+    let nft_to_buy = RwSignal::new(1u64.to_string());
 
-    let payment_info = create_rw_signal(PaymentInfo::default());
-    let step = create_rw_signal(1);
-    let payment_details = create_rw_signal(PaymentStatus::default());
+    let payment_info = RwSignal::new(PaymentInfo::default());
+    let step = RwSignal::new(1);
+    let payment_details = RwSignal::new(PaymentStatus::default());
 
-    let metadata = create_rw_signal(None);
-    let token_balance = create_rw_signal(0);
+    let metadata = RwSignal::new(None);
+    let token_balance = RwSignal::new(0);
 
     let minter_canister_id = minter_can_id.clone();
 
@@ -86,17 +86,13 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
                     .await;
 
                     payment_details.get().is_loading.set(false);
-                } else {
-                    logging::log!("User is not authenticated.");
                 }
-            } else {
-                logging::log!("Canisters instance is not available in the context.");
             }
         }
     };
 
     // Create payment action
-    let create_payment_action = create_action(move |()| check_payment_status_action());
+    let create_payment_action = Action::new(move |()| check_payment_status_action());
 
     // Function to get payment info
     let get_payment_info = move |_| {
@@ -109,8 +105,6 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
                     if principal == Principal::anonymous() {
                         return ;
                     }
-                    logging::log!("Logged in User {}", principal.to_text());
-
                     let token_canister = canisters_rc
                         .token_canister(
                             Principal::from_text(minter_canister_id_clone.clone()).unwrap(),
@@ -160,21 +154,13 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
 
                             metadata.set(Some(metadata_data.clone()));
                             token_balance.set(token_count);
-                        } else {
-                            logging::log!("Failed to get booked tokens.");
-                        }
-                    } else {
-                        logging::log!("Failed to get escrow account. {:?}", Canisters::principal().map(|f| f.to_text()));
-                    }
-                } else {
-                    logging::log!("User is not authenticated. Auth Status: {:?}", Canisters::is_authenticated());
-                }
-            } else {
-                logging::log!("Canisters instance is not available in the context.");
+                        } 
+                    } 
+                } 
             }
         }
     };
-    let get_payment_info_resource = create_resource(|| (), get_payment_info);
+    let get_payment_info_resource = Resource::new(|| (), get_payment_info);
 
     let transfer_price_e8s = 10_000; // Example transfer price in e8s
     let amount = move || {
@@ -238,13 +224,13 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
                         <ButtonComponent
                             disabled=(move || !payment_info().loaded)()
                             submit=true
-                            on_click=|_| {}
+                            on_click=|| {}
                         >
                             "Proceed to Pay"
                         </ButtonComponent>
                     </form>
                 </div>
-            },
+            }.into_any(),
             2 => view! {
                 <div>
                     <Show
@@ -264,7 +250,7 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
                                     <div class="font-bold py-4 text-2xl">
                                         "Transaction successful"
                                     </div>
-                                    <ButtonComponent on_click=move |_| {
+                                    <ButtonComponent on_click=move || {
                                         show.set(false);
                                         go_back_and_come_back();
                                     }>"Close"</ButtonComponent>
@@ -282,8 +268,8 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
                         />
                     </Show>
                 </div>
-            },
-            _ => view! { <div>"Invalid step"</div> },
+            }.into_any(),
+            _ => view! { <div>"Invalid step"</div> }.into_any(),
         }
     };
 
@@ -377,7 +363,6 @@ async fn check_payment_status(
         })
         .await
     {
-        logging::log!("{:?}", res);
         match res {
             crate::canister::token::Result_::Ok(_) => {
                 payment_status.set("completed".to_string());

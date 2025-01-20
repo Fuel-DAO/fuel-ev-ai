@@ -1,4 +1,4 @@
-use leptos::*;
+use leptos::prelude::*;
 
 use crate::{canister::token::CollectionMetaData, components::info_title::InfoTitle};
 

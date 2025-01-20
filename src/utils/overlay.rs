@@ -1,4 +1,4 @@
-use leptos::*;
+use leptos::{portal::Portal, prelude::*};
 
 #[derive(Clone, Copy)]
 pub enum ShowOverlay {
@@ -31,7 +31,12 @@ impl From<Signal<bool>> for ShowOverlay {
     }
 }
 
-impl SignalGet for ShowOverlay {
+impl DefinedAt for ShowOverlay {
+    fn defined_at(&self) -> Option<&'static std::panic::Location<'static>> {
+        None
+    }
+}
+impl Get for ShowOverlay {
     type Value = bool;
 
     fn get(&self) -> bool {
@@ -51,7 +56,7 @@ impl SignalGet for ShowOverlay {
     }
 }
 
-impl SignalSet for ShowOverlay {
+impl Set for ShowOverlay {
     type Value = bool;
 
     fn set(&self, value: bool) {
@@ -84,6 +89,7 @@ impl SignalSet for ShowOverlay {
 #[component]
 pub fn ShadowOverlay(#[prop(into)] show: ShowOverlay, children: ChildrenFn) -> impl IntoView {
     let children_s = store_value(children);
+   
     view! {
         <Show when=move || show.get()>
             // Portal is necessary
@@ -96,12 +102,14 @@ pub fn ShadowOverlay(#[prop(into)] show: ShowOverlay, children: ChildrenFn) -> i
 
                     class="flex cursor-pointer modal-bg w-dvw h-dvh fixed left-0 top-0 bg-black/60 z-[99] justify-center items-center overflow-hidden"
                 >
-                    {(children_s())()}
+                    { children_s.get_value()()}
                 </div>
             </Portal>
         </Show>
     }
 }
+
+
 
 #[component]
 fn ActionRunningOverlay(message: String) -> impl IntoView {
@@ -125,49 +133,49 @@ pub fn PopupOverlay(#[prop(into)] show: ShowOverlay, children: ChildrenFn) -> im
     }
 }
 
-/// Tracks an action's progress and shows a modal with the result
-/// action -> The action to track
-/// loading_message -> The message to show while the action is pending
-/// modal -> The modal to show when the action is done
-/// close -> Set this signal to true to close the modal (automatically reset upon closing)
-#[component]
-pub fn ActionTrackerPopup<
-    S: 'static,
-    R: 'static + Clone,
-    V: IntoView,
-    IV: Fn(R) -> V + Clone + 'static,
->(
-    action: Action<S, R>,
-    #[prop(into)] loading_message: String,
-    modal: IV,
-    #[prop(optional, into)] close: RwSignal<bool>,
-) -> impl IntoView {
-    let pending = action.pending();
-    let action_value = action.value();
-    let res = Signal::derive(move || {
-        if pending() {
-            return None;
-        }
-        action_value()
-    });
-    let show_popup = Signal::derive(move || {
-        let show = (pending() || res.with(|r| r.is_some())) && !close();
-        close.set_untracked(false);
-        show
-    });
-    let modal_s = store_value(modal);
-    let loading_msg_s = store_value(loading_message);
+// /// Tracks an action's progress and shows a modal with the result
+// /// action -> The action to track
+// /// loading_message -> The message to show while the action is pending
+// /// modal -> The modal to show when the action is done
+// /// close -> Set this signal to true to close the modal (automatically reset upon closing)
+// #[component]
+// pub fn ActionTrackerPopup<
+//     S: 'static,
+//     R: 'static + Clone,
+//     V: IntoView,
+//     IV: Fn(R) -> V + Clone + 'static,
+// >(
+//     action: Action<S, R>,
+//     #[prop(into)] loading_message: String,
+//     modal: IV,
+//     #[prop(optional, into)] close: RwSignal<bool>,
+// ) -> impl IntoView {
+//     let pending = action.pending();
+//     let action_value = action.value();
+//     let res = Signal::derive(move || {
+//         if pending() {
+//             return None;
+//         }
+//         action_value()
+//     });
+//     let show_popup = Signal::derive(move || {
+//         let show = (pending() || res.with(|r| r.is_some())) && !close();
+//         close.set_untracked(false);
+//         show
+//     });
+//     let modal_s = store_value(modal);
+//     let loading_msg_s = store_value(loading_message);
 
-    view! {
-        <ShadowOverlay show=show_popup>
-            <Show
-                when=move || res.with(|r| r.is_some())
-                fallback=move || view! { <ActionRunningOverlay message=loading_msg_s.get_value()/> }
-            >
-                <div class="px-4 pt-4 pb-12 mx-6 w-full lg:w-1/2 max-h-[65%] rounded-xl bg-white">
-                    {move || (modal_s.get_value())(res().unwrap())}
-                </div>
-            </Show>
-        </ShadowOverlay>
-    }
-}
+//     view! {
+//         <ShadowOverlay show=show_popup>
+//             <Show
+//                 when=move || res.with(|r| r.is_some())
+//                 fallback=move || view! { <ActionRunningOverlay message=loading_msg_s.get_value()/> }
+//             >
+//                 <div class="px-4 pt-4 pb-12 mx-6 w-full lg:w-1/2 max-h-[65%] rounded-xl bg-white">
+//                     {move || (modal_s.get_value())(res().unwrap())}
+//                 </div>
+//             </Show>
+//         </ShadowOverlay>
+//     }
+// }

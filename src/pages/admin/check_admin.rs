@@ -1,5 +1,5 @@
 
-use leptos::*;
+use leptos::prelude::*;
 
 use crate::{outbound::admin_check::is_admin, state::{admin::Admin, canisters::Canisters}};
 

@@ -4,10 +4,10 @@ use crate::{
         auth_actions::{create_login_action, create_logout_action}, canisters::Canisters,
     },
 };
-use leptos::*;
+use leptos::prelude::*;
 #[component]
 pub fn Header() -> impl IntoView {
-    let (menu_open, set_menu_open) = create_signal(false);
+    let (menu_open, set_menu_open) = signal(false);
 
     view! {
         <div class="w-full fixed z-50 h-20 shadow-sm flex items-center justify-between px-8 font-light transition-all bg-white/90 backdrop-blur-md">
@@ -44,7 +44,7 @@ pub fn Header() -> impl IntoView {
                                     d="M6 18L18 6M6 6l12 12"
                                 />
                             </svg>
-                        }
+                        }.into_any()
                     } else {
                         view! {
                             // Hamburger icon when the menu is closed
@@ -62,7 +62,7 @@ pub fn Header() -> impl IntoView {
                                     d="M4 6h16M4 12h16M4 18h16"
                                 />
                             </svg>
-                        }
+                        }.into_any()
                     }
                 }}
             </button>
@@ -110,10 +110,10 @@ pub fn Header() -> impl IntoView {
                         class="fixed inset-0 bg-black bg-opacity-50 z-30"
                         on:click=move |_| set_menu_open.set(false)
                     ></div>
-                }
+                }.into_any()
             } else {
                 view! { <div class="hidden lg:flex gap-8 items-center">
-                    </div> }
+                    </div> }.into_any()
             }}
 
 

@@ -1,18 +1,21 @@
+
 use candid::Principal;
-use leptos::*;
+use leptos::prelude::*;
 use crate::components::specifications::SpecificationComponent;
 use crate::components::documents::DocumentList;
 use crate::components::collection_info_cards::CollectionInfoCards;
-use crate::components::tabs::Tabs;
+use crate::components::tabs::{Tabs, Tab};
 use crate::canister::token::GetMetadataRet;
 use crate::state::sale_status::SaleStatusState;
 use crate::utils::share::ShareButtonWithFallbackPopup;
+
+
+
 #[component]
 pub fn CollectionHeader(metadata: GetMetadataRet, collection_id: String) -> impl IntoView {
 
-    // Define tabs and selected tab state
-    let tabs = vec!["specifications".to_string(), "documents".to_string()];
-    let selected = create_rw_signal( "specifications".to_string());
+    let tabs = vec![Tab::Specifications, Tab::Documents];
+    let selected = RwSignal::new( Tab::Specifications);
     let share_link_s =|| { format!("/collections/{}/{}", collection_id.clone(), metadata.asset_canister.to_text()) };
     let share_message_s = || {format!("{}
 Take a look at this car at FuelEV!", metadata.name)};
@@ -58,23 +61,21 @@ let token_canister = Principal::from_text(collection_id.clone()).unwrap();
             <Tabs tabs=tabs.clone() selected=selected />
 
             // Conditional rendering for Specifications or Documents based on selected tab
-            {move || if selected() == "specifications" {
+            { if selected() == Tab::Specifications {
                 view! {  
                     <div>
                     <SpecificationComponent metadata=metadata.clone() />
                     </div>
-                }
-            } else if selected() == "documents" {
+                }.into_any()
+            } else  {
                 view! {
                     <div>
                     <DocumentList metadata=metadata.clone() />
                     </div>
-                }
-            } else {
-                view! {  
-                    <div>{ "No content available." }</div>
-                }
-            }}
+                }.into_any()
+            } 
+        }
         </div>
-    }
+            }
 }
+

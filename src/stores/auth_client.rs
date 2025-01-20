@@ -1,44 +1,46 @@
 use ic_auth_client::AuthClient;
-use leptos::*;
+use leptos::{prelude::*, task::spawn_local};
+
+use crate::state::{auth::AuthService, canisters::Canisters};
 
 
 
 /// Component that provides the AuthClient to the children components
 #[component]
 pub fn AuthClientProvider(children: Children) -> impl IntoView {
-    let auth_client: Option<AuthClient> = None;
-    let (auth_client, set_auth_client) = create_signal(auth_client);
-
     spawn_local(async move {
         let auth = AuthClient::builder()
         .on_idle(|| {
             spawn_local(async move {
-                logout().await.unwrap();
+                // logout().await.unwrap();
             });
         })
         .idle_timeout(20 * 60 * 1000) // 20 minutes
         .capture_scroll(true)
         .build()
         .await;
-        set_auth_client.set(Some(auth));
+        
+        let canisters = match  Canisters::new(AuthService::from_client(auth)).await {
+            Ok(cans) => cans, 
+            Err(_) => return
+        };
+        Canisters::set_global(canisters);
     });
-
-    provide_context(auth_client);
 
     children()
 }
 
-fn auth_client() -> Result<AuthClient, AuthClientError> {
-    let auth_client = match use_context::<ReadSignal<Option<AuthClient>>>() {
-        Some(auth_client) => auth_client,
-        None => return Err(AuthClientError::AuthClientContextError),
-    };
-    if let Some(auth_client) = auth_client.get_untracked() {
-        Ok(auth_client)
-    } else {
-        Err(AuthClientError::AuthClientNotInitialized)
-    }
-}
+// fn auth_client() -> Result<AuthClient, AuthClientError> {
+//     let auth_client = match use_context::<ReadSignal<Option<AuthClient>>>() {
+//         Some(auth_client) => auth_client,
+//         None => return Err(AuthClientError::AuthClientContextError),
+//     };
+//     if let Some(auth_client) = auth_client.get_untracked() {
+//         Ok(auth_client)
+//     } else {
+//         Err(AuthClientError::AuthClientNotInitialized)
+//     }
+// }
 
 // pub fn get_current_user_principal() -> Option<Principal> {
 //     auth_client().ok().map(|f| if f.is_authenticated() {
@@ -100,11 +102,11 @@ fn auth_client() -> Result<AuthClient, AuthClientError> {
 //     Ok(())
 // }
 
-pub async fn logout() -> Result<(), AuthClientError> {
-    auth_client()?.logout(None).await;
-    // clear_localstorage();
-    Ok(())
-}
+// pub async fn logout() -> Result<(), AuthClientError> {
+//     auth_client()?.logout(None).await;
+//     // clear_localstorage();
+//     Ok(())
+// }
 
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum AuthClientError {

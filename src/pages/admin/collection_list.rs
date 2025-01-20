@@ -5,7 +5,7 @@ use crate::{
     },
     state::canisters::Canisters,
 };
-use leptos::*;
+use leptos::prelude::*;
 use log;
 /// Represents the metadata of a form.
 
@@ -14,7 +14,7 @@ use log;
 pub fn CollectionListPage() -> impl IntoView {
    
     // Create a resource to fetch pending requests data
-    let pending_requests = create_resource(
+    let pending_requests = Resource::new(
         move || Canisters::get().clone(),
         move |cans_option| async move {
             if let Some(cans) = cans_option {
@@ -45,13 +45,13 @@ pub fn CollectionListPage() -> impl IntoView {
                             <div>
                             <CollectionTile requests />
                             </div>
-                        }
+                        }.into_any()
                     }
                     Some(Err(e)) => {
                         view! {
                             // Display error message within a <div>
                             <div>{format!("Error fetching pending requests: {}", e)}</div>
-                        }
+                        }.into_any()
                     }
                     None => {
                         view! {
@@ -62,7 +62,7 @@ pub fn CollectionListPage() -> impl IntoView {
 
                                 </div>
                             </div>
-                        }
+                        }.into_any()
                     }
                 }}
             </Suspense>
@@ -124,12 +124,12 @@ fn CollectionTile(requests: Vec<CollectionData> ) -> impl IntoView {
 
                                                                                 />
                                                                             </div>
-                                                                        }
+                                                                        }.into_any()
                                                                     } else {
                                                                         view! {
                                                                             // Render a placeholder if no logo is provided
                                                                             <div class="h-12 w-12 bg-gray-200 rounded-full" />
-                                                                        }
+                                                                        }.into_any()
                                                                     }}
                                                                 </div>
                                                                 <div class="min-w-0 flex-auto">
@@ -148,8 +148,8 @@ fn CollectionTile(requests: Vec<CollectionData> ) -> impl IntoView {
                                                         </a>
                                                     </li>
                                                 }
-                                            })
-                                            .collect::<Vec<_>>()
+                                            }.into_any())
+                                            .collect_view()
                                     } else {
                                         vec![
                                             view! {
@@ -157,8 +157,8 @@ fn CollectionTile(requests: Vec<CollectionData> ) -> impl IntoView {
                                                 <li class="py-5 text-center text-gray-500">
                                                     "No items to show"
                                                 </li>
-                                            },
-                                        ]
+                                            }.into_any(),
+                                        ].collect_view()
                                     }}
                                 </ul>
                             </div>

@@ -1,7 +1,8 @@
-use leptos_router::use_navigate;
+use hooks::use_navigate;
+use leptos_router::*;
 use wasm_bindgen::prelude::Closure;
 use wasm_bindgen::JsCast;
-use leptos::*;
+use leptos::prelude::*;
 pub fn go_back_and_come_back() {
     if let Some(win) = web_sys::window() {
 

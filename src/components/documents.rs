@@ -1,4 +1,4 @@
-use leptos::*;
+use leptos::prelude::*;
 use web_sys::window;
 
 use crate::canister::token::GetMetadataRet;
@@ -24,7 +24,7 @@ pub fn DocumentList(metadata: GetMetadataRet) -> impl IntoView {
                             <div class="flex items-center justify-between px-6">
                                 <div class="font-light">"No documents uploaded"</div>
                             </div>
-                        }
+                        }.into_any()
                     } else {
                         view! {
                             <div>
@@ -50,7 +50,7 @@ pub fn DocumentList(metadata: GetMetadataRet) -> impl IntoView {
                                     }
                                 }).collect_view()}
                             </div>
-                        }
+                        }.into_any()
                     }
                 }
             </div>

@@ -1,4 +1,5 @@
-use leptos::*;
+use leptos::prelude::*;
+use leptos::task::spawn_local;
 use crate::canister::token::GetMetadataRet;
 use crate::state::canisters::Canisters;
 use crate::outbound::accept_or_reject_sale::{accept_sale, reject_sale};
@@ -15,21 +16,21 @@ pub fn ConcludeSaleAdminComponent(
     is_active: bool
 ) -> impl IntoView {
     // Reactive signals for loading states
-    let loading_accept = create_rw_signal(false);
-    let loading_reject = create_rw_signal(false);
+    let loading_accept = RwSignal::new(false);
+    let loading_reject = RwSignal::new(false);
 
     // Reactive signals for error and success messages
-    let error_message_accept = create_rw_signal(String::new());
-    let error_message_reject = create_rw_signal(String::new());
-    let success_message_accept = create_rw_signal(String::new());
-    let success_message_reject = create_rw_signal(String::new());
+    let error_message_accept = RwSignal::new(String::new());
+    let error_message_reject = RwSignal::new(String::new());
+    let success_message_accept = RwSignal::new(String::new());
+    let success_message_reject = RwSignal::new(String::new());
 
     // Reactive signal for confirmation dialog visibility
-    let show_confirmation = create_rw_signal(false);
-    let action_type = create_rw_signal(String::new()); // "accept" or "reject"
+    let show_confirmation = RwSignal::new(false);
+    let action_type = RwSignal::new(String::new()); // "accept" or "reject"
 
     // Fetch booked_tokens
-    let booked_tokens_resource = create_resource(
+    let booked_tokens_resource = Resource::new(
         || (),
         move |_| {
             let token_canister_id = token_canister_id.clone();
@@ -209,9 +210,9 @@ pub fn ConcludeSaleAdminComponent(
                                                             // You can add a loading spinner here if desired
                                                             <div class="loader"></div>
                                                         </div>
-                                                    }
+                                                    }.into_any()
                                                 } else {
-                                                    view! { <div></div> }
+                                                    "".into_any()
                                                 }
                                             }}
                                         </button>
@@ -236,9 +237,9 @@ pub fn ConcludeSaleAdminComponent(
                                                             // You can add a loading spinner here if desired
                                                             <div class="loader"></div>
                                                         </div>
-                                                    }
+                                                    }.into_any()
                                                 } else {
-                                                    view! { <div></div> }
+                                                    view! { <div></div> }.into_any()
                                                 }
                                             }}
                                         </button>
@@ -289,9 +290,9 @@ pub fn ConcludeSaleAdminComponent(
                                                                 // You can add a loading spinner here if desired
                                                                 <div class="loader"></div>
                                                             </div>
-                                                        }
+                                                        }.into_any()
                                                     } else {
-                                                        view! { <div></div> }
+                                                        view! { <div></div> }.into_any()
                                                     }
                                                 }}
                                             </button>
@@ -344,12 +345,12 @@ pub fn ConcludeSaleAdminComponent(
                                     </Show>
                                 </div>
                             </div>
-                        }
+                        }.into_any()
                     }
                     Err(e) => {
                         view! {
                             <div class="text-red-600">{"Error fetching booked tokens: "}{e}</div>
-                        }
+                        }.into_any()
                     }
                 })}
         </Suspense>
@@ -362,12 +363,12 @@ pub fn ConcludeSaleAdminComponent(
 pub fn TransferAmountFromAnnonymousToInvestor(
     token_canister_id: Principal,
 ) -> impl IntoView {
-    let loading = create_rw_signal(false);
-    let is_updated = create_rw_signal(false);
-    let err = create_rw_signal(Some(String::new()));
-    let fallback_principal = create_rw_signal(String::new());
-    let amount = create_rw_signal(0.0);
-    let call_api =create_action(move|&()|  {
+    let loading = RwSignal::new(false);
+    let is_updated = RwSignal::new(false);
+    let err = RwSignal::new(Some(String::new()));
+    let fallback_principal = RwSignal::new(String::new());
+    let amount = RwSignal::new(0.0);
+    let call_api =Action::new(move|&()|  {
 
         
             let token_canister_id = token_canister_id.clone();
@@ -442,7 +443,7 @@ pub fn TransferAmountFromAnnonymousToInvestor(
            </div>
            <button
                class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
-               on:click=move |_| call_api.dispatch(())
+               on:click=move |_| { call_api.dispatch(()); }
                disabled=loading.get()
            >
                {move || if loading.get() { "Submitting..." } else { "Submit" }}
@@ -454,11 +455,11 @@ pub fn TransferAmountFromAnnonymousToInvestor(
 pub fn RefundExcessAfterSale(
     token_canister_id: Principal,
 ) -> impl IntoView {
-    let loading = create_rw_signal(false);
-    let is_updated = create_rw_signal(false);
-    let err = create_rw_signal(Some(String::new()));
-    let fallback_principal = create_rw_signal(String::new());
-    let call_api =create_action(move|&()|  {
+    let loading = RwSignal::new(false);
+    let is_updated = RwSignal::new(false);
+    let err = RwSignal::new(Some(String::new()));
+    let fallback_principal = RwSignal::new(String::new());
+    let call_api =Action::new(move|&()|  {
 
         
             let token_canister_id = token_canister_id.clone();
@@ -514,7 +515,7 @@ pub fn RefundExcessAfterSale(
            </div>
            <button
                class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
-               on:click=move |_| call_api.dispatch(())
+               on:click=move |_| { call_api.dispatch(()); }
                disabled=loading.get()
            >
                {move || if loading.get() { "Submitting..." } else { "Submit" }}
@@ -528,11 +529,11 @@ pub fn RefundExcessAfterSale(
 pub fn AddFallbackPrincipalForAnnonymousInvestor(
     token_canister_id: Principal,
 ) -> impl IntoView {
-    let loading = create_rw_signal(false);
-    let is_updated = create_rw_signal(false);
-    let err = create_rw_signal(Some(String::new()));
-    let fallback_principal = create_rw_signal(String::new());
-    let call_api =create_action(move|&()|  {
+    let loading = RwSignal::new(false);
+    let is_updated = RwSignal::new(false);
+    let err = RwSignal::new(Some(String::new()));
+    let fallback_principal = RwSignal::new(String::new());
+    let call_api =Action::new(move|&()|  {
 
         
             let token_canister_id = token_canister_id.clone();
@@ -588,7 +589,7 @@ pub fn AddFallbackPrincipalForAnnonymousInvestor(
            </div>
            <button
                class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
-               on:click=move |_| call_api.dispatch(())
+               on:click=move |_| { call_api.dispatch(()); }
                disabled=loading.get()
            >
                {move || if loading.get() { "Submitting..." } else { "Submit" }}
@@ -602,12 +603,12 @@ pub fn AddFallbackPrincipalForAnnonymousInvestor(
 pub fn RefundICPsToAnnonymous(
     token_canister_id: Principal,
 ) -> impl IntoView {
-    let loading = create_rw_signal(false);
-    let is_updated = create_rw_signal(false);
-    let err = create_rw_signal(Some(String::new()));
-    let amount = create_rw_signal(0.0);
+    let loading = RwSignal::new(false);
+    let is_updated = RwSignal::new(false);
+    let err = RwSignal::new(Some(String::new()));
+    let amount = RwSignal::new(0.0);
     
-    let call_api =create_action(move|&()|  {
+    let call_api =Action::new(move|&()|  {
 
         
             let token_canister_id = token_canister_id.clone();
@@ -663,7 +664,7 @@ pub fn RefundICPsToAnnonymous(
            </div>
            <button
                class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
-               on:click=move |_| call_api.dispatch(())
+               on:click=move |_| { call_api.dispatch(()); }
                disabled=loading.get()
            >
                {move || if loading.get() { "Submitting..." } else { "Submit" }}

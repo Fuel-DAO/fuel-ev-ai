@@ -2,7 +2,7 @@
 use std::collections::BTreeMap;
 
 use candid::Principal;
-use leptos::*;
+use leptos::prelude::*;
 
 use crate::{canister::token::{GetMetadataRet, SaleStatus}, outbound::collection_canister_calls::{CollectionData, CollectionId}};
 

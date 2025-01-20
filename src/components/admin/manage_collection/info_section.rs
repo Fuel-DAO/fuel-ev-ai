@@ -1,6 +1,6 @@
 // src/pages/admin/components/info_section.rs
 
-use leptos::*;
+use leptos::prelude::*;
 
 #[component]
 pub fn InfoSection(children: Children) -> impl IntoView {

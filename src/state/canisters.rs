@@ -8,53 +8,39 @@ use crate::state::asset_manager::AssetManager;
 use crate::state::auth::AuthService;
 use candid::Principal;
 use ic_agent::Agent;
-use leptos::{expect_context, provide_context, RwSignal, SignalGet, SignalSet};
-use std::cell::RefCell;
+use leptos::prelude::{expect_context, provide_context};
 use std::cmp::PartialEq;
-use std::rc::Rc;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct Canisters {
-    pub auth_service: Rc<RefCell<AuthService>>,
-    pub agent: Rc<Agent>,
+    // pub auth_service: Arc<AuthService>,
+    pub agent: Arc<Agent>,
     provision_principal: Principal,
 }
 
 impl Canisters {
-    pub async fn new(auth_service: Rc<RefCell<AuthService>>) -> Result<Self, String> {
-        let agent = {
-            let mut auth_service_borrow = auth_service.borrow_mut();
-            auth_service_borrow.get_agent().await?
+    pub async fn new(mut  auth_service: AuthService) -> Result<Self, String> {
+        let agent =  {
+            auth_service.get_agent().await?
         };
         Ok(Self {
-            auth_service,
+            // auth_service,
             agent,
             provision_principal: PROVISION_ID,
         })
     }
 
-    pub async fn reset_canisters(mut auth_service: AuthService) -> Result<(), String> {
-        let agent = auth_service.get_agent().await?;
-        let auth_service = Rc::new(RefCell::new(auth_service));
-        provide_context(auth_service.clone());
-        let cans = Self{
-                auth_service, 
-                agent, 
-                provision_principal: PROVISION_ID
-        };
-        let this:RwSignal<Option<Rc<Self>>>  = expect_context();
-        this.set(Some(Rc::new(cans)));
-        Ok(())
-
+    pub fn set_global(state: Self) {
+        provide_context(state);
     }
 
     pub fn get() -> Option<Self> {
-        let this:RwSignal<Option<Rc<Self>>>  = expect_context();
-        this.get().map(|x| x.as_ref().clone())
+        expect_context()
     }
 
     pub fn principal() -> Option<Principal> {
-        Self::get_authenticated().ok().map(|f| f.auth_service.borrow().get_principal().ok()).flatten()
+        Self::get_authenticated().ok().map(|f| f.agent.get_principal().ok()).flatten()
     }
 
     pub fn get_authenticated() -> Result<Self, String> {
@@ -94,7 +80,7 @@ impl Canisters {
 
 impl PartialEq for Canisters {
     fn eq(&self, other: &Self) -> bool {
-        Rc::ptr_eq(&self.agent, &other.agent)
+        Arc::ptr_eq(&self.agent, &other.agent)
             && self.provision_principal == other.provision_principal
     }
 }

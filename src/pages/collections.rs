@@ -5,7 +5,7 @@ use crate::{
     outbound::collection_canister_calls::fetch_collections_data, state::canisters::Canisters,
 };
 use candid::Principal;
-use leptos::*;
+use leptos::prelude::*;
 use serde::{Deserialize, Serialize};
 #[derive(Clone, PartialEq)]
 enum Tab {
@@ -56,12 +56,12 @@ pub fn Collections() -> impl IntoView {
 
     
 
-    let selected_tab: RwSignal<Tab> = create_rw_signal(Tab::All);
+    let selected_tab: RwSignal<Tab> = RwSignal::new(Tab::All);
     provide_context(selected_tab);
 
 
     // Create a resource to fetch collection data and token metadata
-    let collection_data = create_resource(
+    let collection_data = Resource::new(
         move || Canisters::get(), // Access the signal value correctly
         move |cans_option| async move {
             if let Some(cans) = cans_option {

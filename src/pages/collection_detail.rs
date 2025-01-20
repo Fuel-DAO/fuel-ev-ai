@@ -1,5 +1,5 @@
 use candid::Principal;
-use leptos::*;
+use leptos::prelude::*;
 use crate::canister::token::SaleStatus;
 use crate::canister::token::GetMetadataRet;
 use crate::components::admin::invest_info_admin::{AddFallbackPrincipalForAnnonymousInvestor, ConcludeSaleAdminComponent, RefundICPsToAnnonymous, TransferAmountFromAnnonymousToInvestor};
@@ -14,7 +14,8 @@ use crate::{
     },
     outbound::collection_canister_calls::get_collection_metadata_from_token_canister,
 };
-use leptos_router::{use_params, Params};
+use leptos_router::hooks::use_params ;
+use leptos_router::params::Params;
 use std::cmp::PartialEq;
 
 #[derive(Debug, Clone, Params, PartialEq)]
@@ -40,7 +41,7 @@ pub fn CollectionDetail() -> impl IntoView {
     let collection_id = id.clone();
     let token_canister_id = Principal::from_text(collection_id.clone()).unwrap();
     // let asset_canister_id = Principal::from_text(asset_can_id.clone()).unwrap();
-    let collection_resource = create_resource(
+    let collection_resource = Resource::new(
         move || collection_id.clone(), // Dependency: collection_id
         move |token_id| {
             async move {
@@ -126,7 +127,7 @@ fn CollectionDetailsInner() -> impl IntoView {
 
 #[component]
 fn CarDetailPage(metadata: GetMetadataRet, status: Option<SaleStatus>) -> impl IntoView {
-    let params: Memo<Result<CollectionParams, leptos_router::ParamsError>> = use_params::<CollectionParams>();
+    let params: Memo<Result<CollectionParams, leptos_router::params::ParamsError>> = use_params::<CollectionParams>();
 
     let collection_id = params
         .get()

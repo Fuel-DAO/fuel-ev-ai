@@ -1,5 +1,5 @@
 use candid::Principal;
-use leptos::*;
+use leptos::prelude::*;
 
 
 

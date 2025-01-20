@@ -1,4 +1,4 @@
-use leptos::*;
+use leptos::prelude::*;
 
 #[component]
 pub fn InfoTitle( #[prop(into)] title: String, #[prop(into)] classes: String) -> impl IntoView {

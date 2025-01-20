@@ -4,7 +4,7 @@ use crate::outbound::add_collection_canister_calls::add_collection;
 use crate::state::canisters::Canisters;
 use candid::{Nat, Principal};
 use leptos::logging::log;
-use leptos::*;
+use leptos::prelude::*;
 use web_sys::MouseEvent;
 
 
@@ -25,52 +25,52 @@ pub fn NewCollectionForm() -> impl IntoView {
     // dotenv().ok();
 
     // Basic Info Data Signals
-    let name = create_rw_signal("".to_string());
-    let treasury = create_rw_signal("".to_string());
-    let price = create_rw_signal(1.0);
-    let supply_cap = create_rw_signal(1000);
-    let symbol = create_rw_signal("ICP".to_string());
-    let description = create_rw_signal("".to_string());
+    let name = RwSignal::new("".to_string());
+    let treasury = RwSignal::new("".to_string());
+    let price = RwSignal::new(1.0);
+    let supply_cap = RwSignal::new(1000);
+    let symbol = RwSignal::new("ICP".to_string());
+    let description = RwSignal::new("".to_string());
 
     // Collection Info Data Signals
-    let purchase_price = create_rw_signal(0.0);
-    let weight = create_rw_signal(0.0);
-    let drive_type = create_rw_signal("".to_string());
-    let displays = create_rw_signal("".to_string());
-    let seating = create_rw_signal("".to_string());
-    let cargo = create_rw_signal(0.0);
-    let overall_height = create_rw_signal(0.0);
-    let overall_width = create_rw_signal(0.0);
-    let overall_length = create_rw_signal(0.0);
-    let track_front = create_rw_signal(0.0);
-    let track_rear = create_rw_signal(0.0);
-    let ground_clearance = create_rw_signal(0.0);
-    let key_features = create_rw_signal("".to_string());
-    let range_per_charge = create_rw_signal(0.0);
-    let acceleration = create_rw_signal("".to_string());
-    let charging_speed = create_rw_signal("".to_string());
-    let wheels = create_rw_signal(0u32);
-    let brochure_url = create_rw_signal("".to_string());
-    let battery = create_rw_signal("".to_string());
+    let purchase_price = RwSignal::new(0.0);
+    let weight = RwSignal::new(0.0);
+    let drive_type = RwSignal::new("".to_string());
+    let displays = RwSignal::new("".to_string());
+    let seating = RwSignal::new("".to_string());
+    let cargo = RwSignal::new(0.0);
+    let overall_height = RwSignal::new(0.0);
+    let overall_width = RwSignal::new(0.0);
+    let overall_length = RwSignal::new(0.0);
+    let track_front = RwSignal::new(0.0);
+    let track_rear = RwSignal::new(0.0);
+    let ground_clearance = RwSignal::new(0.0);
+    let key_features = RwSignal::new("".to_string());
+    let range_per_charge = RwSignal::new(0.0);
+    let acceleration = RwSignal::new("".to_string());
+    let charging_speed = RwSignal::new("".to_string());
+    let wheels = RwSignal::new(0u32);
+    let brochure_url = RwSignal::new("".to_string());
+    let battery = RwSignal::new("".to_string());
     let title = "New Collection".to_string();
-    let success_message = create_rw_signal(String::new());
+    let success_message = RwSignal::new(String::new());
 
     // Documents Data Signal
-    let documents = create_rw_signal(Vec::<(String, String)>::new());
+    let documents = RwSignal::new(Vec::<(String, String)>::new());
 
     // Images Info Data Signal
-    let images_info_data = create_rw_signal(ImagesInfoData::default());
+    let images_info_data = RwSignal::new(ImagesInfoData::default());
 
     // ==== Define Additional Signals for Form Handling ====
-    let loading = create_rw_signal(false);
-    let res = create_rw_signal::<Option<String>>(None);
-    let selected_tab = create_rw_signal("basic".to_string());
+    let loading = RwSignal::new(false);
+    let res = RwSignal::new::<Option<String>>(None);
+    let selected_tab = RwSignal::new("basic".to_string());
 
     // ==== Event Handlers ====
     // let asset_proxy =ASSET_PROXY_ID;
     // let asset_canister = TEMP_ASSET_CANISTER_ID;
-    // let asset_proxy_canister_id: RwSignal<String> = create_rw_signal(asset_proxy.to_string());
-    // let asset_canister_id: RwSignal<String> = create_rw_signal(asset_canister.to_string());
+    // let asset_proxy_canister_id: RwSignal<String> = RwSignal::new(asset_proxy.to_string());
+    // let asset_canister_id: RwSignal<String> = RwSignal::new(asset_canister.to_string());
     // log!("asset_canister_id: {:?}", asset_canister_id.get());
     // log!(
     //     "asset_proxy_canister_id: {:?}",

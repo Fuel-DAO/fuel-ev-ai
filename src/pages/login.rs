@@ -3,7 +3,7 @@
 use crate::{components::header::Header, state::{
     auth_actions::{create_login_action, create_logout_action}, canisters::Canisters
 }};
-use leptos::*;
+use leptos::prelude::*;
 use crate::utils::web::copy_to_clipboard;
 
 

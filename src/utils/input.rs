@@ -1,4 +1,4 @@
-use leptos::*;
+use leptos::{html, prelude::*};
 
 #[component]
 pub fn InputComponent(
@@ -35,7 +35,7 @@ pub fn InputComponent(
             </span>
             <input
                 type=input_type
-                _ref=input_ref
+                node_ref=input_ref
                 prop:disabled=disabled
                 prop:required=required
                 min=min.map(|m| m.to_string())
@@ -43,12 +43,13 @@ pub fn InputComponent(
                 class=combined_classes
                 placeholder=placeholder
                 prop:value=move || { value.get_untracked() }
-                on:input=move |_| {
-                    let Some(input_value) = input_ref() else {
-                        return;
-                    };
-                    value.set(input_value.value());
-                }
+                bind:value = (value.read_only(), value.write_only())
+                // on:input=move |e| {
+                //     // let Some(input_value) = input_ref.i else {
+                //     //     return;
+                //     // };
+                //     value.set(e.value());
+                // }
             />
         </label>
     }

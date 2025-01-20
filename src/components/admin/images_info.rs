@@ -7,7 +7,7 @@ use crate::TEMP_ASSET_CANISTER_ID;
 use gloo::file::futures::read_as_bytes;
 use gloo_file::Blob;
 // use leptos::logging::log;
-use leptos::*;
+use leptos::{prelude::*, task::spawn_local};
 use std::rc::Rc;
 use wasm_bindgen::JsCast;
 use web_sys::{Event, HtmlInputElement};
@@ -27,11 +27,11 @@ pub fn ImagesInfo(
 ) -> impl IntoView {
 
     // Local signals for upload state
-    let uploading = create_rw_signal(false);
-    let uploading_progress = create_rw_signal(0);
-    let error_asset = create_rw_signal(false);
-    let error_logo = create_rw_signal(false);
-    let error_message = create_rw_signal(String::new());
+    let uploading = RwSignal::new(false);
+    let uploading_progress = RwSignal::new(0);
+    let error_asset = RwSignal::new(false);
+    let error_logo = RwSignal::new(false);
+    let error_message = RwSignal::new(String::new());
 
     // Determine if input elements should be disabled
     let disabled = move || uploading.get();
@@ -185,7 +185,7 @@ pub fn ImagesInfo(
         // let upload_canister_id = upload_canister_id.clone();
         // let asset_canister_id = asset_canister_id.clone();
 
-        Rc::new(move |path: String, file_type: &'static str| {
+        move |path: String, file_type: &'static str| {
             let data = data.clone();
             let error_asset = error_asset.clone();
             let error_logo = error_logo.clone();
@@ -231,7 +231,7 @@ pub fn ImagesInfo(
                     }
                 }
             });
-        }) as Rc<dyn Fn(String, &'static str) + 'static>
+        }
     };
 
     // Function to construct the full asset path
@@ -281,13 +281,13 @@ pub fn ImagesInfo(
                                     alt="Logo"
                                 />
                             </div>
-                        }
+                        }.into_any()
                     } else {
                         view! {
                             <div class="w-full h-full flex items-center justify-center text-sm">
                                 "No logo uploaded"
                             </div>
-                        }
+                        }.into_any()
                     }
                 }}
             </div>

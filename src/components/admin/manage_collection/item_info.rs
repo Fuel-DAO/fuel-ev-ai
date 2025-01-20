@@ -1,4 +1,4 @@
-use leptos::*;
+use leptos::prelude::*;
 
 #[component]
 pub fn ItemInfo(title: String, value: String) -> impl IntoView {

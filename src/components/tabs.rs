@@ -1,13 +1,19 @@
-use leptos::*;
+use leptos::prelude::*;
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Tab {
+    Specifications, 
+    Documents
+}
 
 #[derive(Clone, Debug)]
  struct TabsMetaProps {
-     tabs: Vec<String>,
-     selected: RwSignal<String>,
+     tabs: Vec<Tab>,
+     selected: RwSignal<Tab>,
 }
 
 #[component]
-pub fn Tabs(tabs: Vec<String>,selected: RwSignal<String>) -> impl IntoView {
+pub fn Tabs(tabs: Vec<Tab>,selected: RwSignal<Tab>) -> impl IntoView {
     // Function to set the selected tab
 
     let tab_props = TabsMetaProps {
@@ -23,8 +29,9 @@ pub fn Tabs(tabs: Vec<String>,selected: RwSignal<String>) -> impl IntoView {
 
                     let current_tab = tab.clone();
                     let selected_tab = tab.clone();
+                    let selected_str = format!("{selected_tab:?}");
                    
-                    let is_selected = move || tab_props.selected.get() == *current_tab.clone();
+                    let is_selected = move || tab_props.selected.get() == current_tab.clone();
                     view! { 
                         <button
                             on:click=move |_| tab_props.selected.set(tab.clone())
@@ -37,7 +44,7 @@ pub fn Tabs(tabs: Vec<String>,selected: RwSignal<String>) -> impl IntoView {
                                 }
                             )
                         >
-                            {selected_tab.clone()}
+                             {selected_str}
                         </button>
                     }
                 } ).collect_view()

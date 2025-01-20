@@ -3,10 +3,10 @@ use futures::executor::block_on;
 use ic_agent::{identity::Identity, Agent};
 use ic_auth_client::{AuthClient, AuthClientLoginOptions};
 use leptos::logging;
-use leptos::window;
+use leptos::prelude::window;
 use log::info;
 use std::error::Error;
-use std::rc::Rc;
+use std::sync::Arc;
 use std::time::Duration;
 use web_sys::Url;
 
@@ -18,7 +18,7 @@ pub const TIMEOUT: Duration = Duration::from_secs(60 * 5);
 #[derive(Clone)]
 pub struct AuthService {
     auth_client: AuthClient,
-    agent: Option<Rc<Agent>>, // Store agent in Rc for shared ownership
+    agent: Option<Arc<Agent>>, // Store agent in Rc for shared ownership
 }
 
 impl AuthService {
@@ -28,6 +28,13 @@ impl AuthService {
             auth_client,
             agent: None,
         })
+    }
+    pub fn from_client(client: AuthClient) -> Self {
+        let auth_client = client;
+        AuthService {
+            auth_client,
+            agent: None,
+        }
     }
 
     pub async fn login(&mut self) -> Result<(), String> {
@@ -83,9 +90,9 @@ impl AuthService {
             Err("Authentication failed".to_string())
         }
     }
-    pub async fn get_agent(&mut self) -> Result<Rc<Agent>, String> {
+    pub async fn get_agent(&mut self) -> Result<Arc<Agent>, String> {
         if self.agent.is_none() {
-            self.agent = Some(Rc::new(create_agent(&self.auth_client).await?));
+            self.agent = Some(Arc::new(create_agent(&self.auth_client).await?));
         }
         Ok(self.agent.as_ref().unwrap().clone())
     }

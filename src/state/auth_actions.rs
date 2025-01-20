@@ -1,15 +1,15 @@
 // src/state/auth/auth_actions.rs
 use crate::utils::go_back_and_come_back::go_to_home;
-use leptos::*;
+use leptos::{leptos_dom, prelude::*};
 use leptos_dom::logging::{console_error, console_log};
 
-use super::canisters::Canisters;
+use super::{auth::AuthService, canisters::Canisters};
 
 /// Creates a login action.
 pub fn create_login_action() -> Action<(), ()> {
     
-    create_action(move |_: &()| {
-        let auth_service = Canisters::get().unwrap().auth_service;
+    Action::new(move |_: &()| {
+        let auth_service = AuthService::new().map(|f| f.login());
         async move {
             match auth_service.borrow_mut().login().await {
                 Ok(()) => {
@@ -25,7 +25,7 @@ pub fn create_login_action() -> Action<(), ()> {
 
 /// Creates a logout action.
 pub fn create_logout_action() -> Action<(), ()> {
-    create_action(move |_: &()| {
+    Action::new(move |_: &()| {
         let auth_service = Canisters::get_authenticated().unwrap().auth_service;
         async move {
             match auth_service.borrow_mut().logout().await {

@@ -1,3 +1,4 @@
+use leptos::prelude::window;
 use leptos_use::use_window;
 
 
@@ -5,7 +6,6 @@ use leptos_use::use_window;
 /// returns None if the API is not available
 pub fn share_url(url: &str) -> Option<()> {
     
-        use leptos::window;
         use wasm_bindgen::JsValue;
         use web_sys::{js_sys::Reflect, ShareData};
         let window = window();

@@ -1,12 +1,12 @@
 use ic_agent::Agent;
-use leptos::*;
+use leptos::prelude::*;
 
 // pub const TIMEOUT: Duration = Duration::from_secs(60 * 5);
 
 #[component]
 pub fn AgentProvider(children: Children) -> impl IntoView {
     let agent: Option<Agent> = None;
-    let (agent, set_agent) = create_signal(agent);
+    let (agent, set_agent) = signal(agent);
 
     provide_context(agent);
     provide_context(set_agent);

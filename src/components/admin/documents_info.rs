@@ -6,7 +6,8 @@ use crate::state::canisters::Canisters;
 use candid::Principal;
 use gloo::file::futures::read_as_bytes;
 use gloo_file::Blob;
-use leptos::*;
+use leptos::prelude::*;
+use leptos::task::spawn_local;
 use std::rc::Rc;
 use wasm_bindgen::JsCast;
 use web_sys::{Event, HtmlInputElement};
@@ -19,10 +20,10 @@ use web_sys::{Event, HtmlInputElement};
 #[component]
 pub fn DocumentsInfo(documents: RwSignal<Vec<(String, String)>>) -> impl IntoView {
     // Access the Canisters context as RwSignal<Option<Rc<Canisters>>>
-    let uploading = create_rw_signal(false);
-    let uploading_progress = create_rw_signal(0);
-    let error_document = create_rw_signal(false);
-    let error_message = create_rw_signal(String::new());
+    let uploading = RwSignal::new(false);
+    let uploading_progress = RwSignal::new(0);
+    let error_document = RwSignal::new(false);
+    let error_message = RwSignal::new(String::new());
 
     // Determine if input elements should be disabled
     let disabled = move || uploading.get();
@@ -156,7 +157,7 @@ pub fn DocumentsInfo(documents: RwSignal<Vec<(String, String)>>) -> impl IntoVie
         let documents = documents.clone();
         let error_message = error_message.clone();
 
-        Rc::new(move |name: String| {
+        move |name: String| {
             let documents = documents.clone();
             let error_message = error_message.clone();
 
@@ -197,7 +198,7 @@ pub fn DocumentsInfo(documents: RwSignal<Vec<(String, String)>>) -> impl IntoVie
                     }
                 }
             });
-        }) as Rc<dyn Fn(String) + 'static>
+        }
     };
 
     view! {
