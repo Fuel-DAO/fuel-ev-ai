@@ -60,7 +60,7 @@ pub fn Login() -> impl IntoView {
                                     <button
                                         role="presentation"
                                         type="button"
-                                        on:click=move |_| { handle_login.dispatch(()) }
+                                        on:click=move |_| { handle_login.dispatch(()); }
                                         class="bg-white ring-1 ring-inset ring-gray-100 hover:bg-gray-50 outline-none active:bg-gray-200 px-4 py-2 text-gray-900 inline-flex relative items-center h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30 w-min"
                                     >
                                         <div class="flex items-center justify-center gap-2">
@@ -139,7 +139,7 @@ pub fn Login() -> impl IntoView {
                             <button
                                 role="presentation"
                                 type="button"
-                                on:click=move |_| { handle_logout.dispatch(()) }
+                                on:click=move |_| { handle_logout.dispatch(()) ;}
                                 class="bg-white ring-1 ring-inset ring-gray-100 hover:bg-gray-50 outline-none active:bg-gray-200 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30 w-min mt-2"
                             >
                                 <div class="flex items-center justify-center gap-2">

@@ -138,6 +138,9 @@ fn TrailingButton() -> impl IntoView {
         <a href="https://fuelev.in" target="_blank">
             <span class="text-black font-medium">EV Rentals</span>
         </a>
+        <a href="/business">
+            <span class="text-black font-medium">Business Dashboard</span>
+        </a>
         <a href="/collections">
             <span class="text-black font-medium">Fleet Investments</span>
         </a>

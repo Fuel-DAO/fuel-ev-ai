@@ -68,9 +68,9 @@ pub fn InvestorsBookingDashboard() -> impl IntoView {
                                     // Bookings Table
                                     <Bookings clone:stats stats />
                                 </div>
-                            }
+                            }.into_any()
                         }
-                        Err(e) => view! { <div>{e}</div> },
+                        Err(e) => view! { <div>{e}</div> }.into_any(),
                     })
             }}
         </Suspense>

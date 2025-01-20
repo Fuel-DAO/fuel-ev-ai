@@ -49,12 +49,12 @@ fn metadata_to_key_value_pairs(metadata: &CollectionRequest) -> Vec<(String, Str
 
 #[derive(Params, PartialEq, Debug)]
 struct ContactParams {
-    id: u64, // Changed from usize to u128
+    id: Option<u64>, // Changed from usize to u128
 }
 
 #[derive(Params, PartialEq)]
 struct ContactSearch {
-    q: String,
+    q: Option<String>,
 }
 
 #[component]
@@ -72,7 +72,7 @@ pub fn ManageCollectionPage() -> impl IntoView {
         move || Canisters::get_authenticated().ok().clone(),
         move |cans_option| async move {
             if let Some(cans) = cans_option {
-                match get_request_info_by_id(&cans, id()).await {
+                match get_request_info_by_id(&cans, id().unwrap()).await {
                     Ok(data) => {
                         Ok(data)
                     }
@@ -88,7 +88,7 @@ pub fn ManageCollectionPage() -> impl IntoView {
         if let Some(canisters) = Canisters::get_authenticated().ok() {
             let collection_id = id();
             spawn_local(async move {
-                match approve_request(&canisters, collection_id).await {
+                match approve_request(&canisters, collection_id.unwrap()).await {
                     Ok((id, token_canister, asset_canister)) => {
                         
                     }
@@ -102,9 +102,9 @@ pub fn ManageCollectionPage() -> impl IntoView {
         if let Some(canisters) = Canisters::get_authenticated().ok() {
             let collection_id = id();
             spawn_local(async move {
-                match reject_request(&canisters, collection_id).await {
+                match reject_request(&canisters, collection_id.unwrap()).await {
                     Ok(_) => {
-                        logging::log!("Rejection successful for ID: {}", id());
+                        logging::log!("Rejection successful for ID: {}", id().unwrap());
                     }
                     Err(err) => {
                         logging::log!("Error rejecting request: {}", err);
@@ -140,7 +140,7 @@ pub fn ManageCollectionPage() -> impl IntoView {
                 <InfoSection>
                     <FormHeader
                         title="Basic Details".to_string()
-                        subtitle=format!("Form ID: {}", id()).to_string()
+                        subtitle=format!("Form ID: {}", id().unwrap()).to_string()
                     />
                     <div class="flex flex-col gap-4 mt-4">
                         {move || match collection_details.get() {

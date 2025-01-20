@@ -154,7 +154,7 @@ fn CollectionListings() -> impl IntoView {
                                                                             alt=meta.name.clone()
                                                                             class="w-full h-64 z-[2] object-cover"
                                                                         />
-                                                                    }
+                                                                    }.into_any()
                                                                 })
                                                                 .unwrap_or_else(|| {
                                                                     view! {
@@ -163,7 +163,7 @@ fn CollectionListings() -> impl IntoView {
                                                                             alt=collection.name.clone()
                                                                             class="w-full h-64 z-[2] object-cover"
                                                                         />
-                                                                    }
+                                                                    }.into_any()
                                                                 })}
                                                             <span class="absolute top-2 left-2 bg-white text-black font-semibold text-xs px-2 py-1 rounded-full">
                                                                 {move || SaleStatusState::get_listing_status(token_canister)().humanize()}

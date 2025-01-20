@@ -20,8 +20,8 @@ use std::cmp::PartialEq;
 
 #[derive(Debug, Clone, Params, PartialEq)]
 pub struct CollectionParams {
-    pub  token_id: String,
-    pub asset_id: String,
+    pub  token_id: Option<String>,
+    pub asset_id: Option<String>,
 }
 
 #[component]
@@ -32,7 +32,7 @@ pub fn CollectionDetail() -> impl IntoView {
     // Get the ID from the params, default to "unknown" if it doesn't exist
     let id = params
         .get()
-        .map(|p| p.token_id.clone())
+        .map(|p| p.token_id.unwrap_or("unknown".into()))
         .unwrap_or_else(|_| "unknown".to_string());
     // let asset_can_id = params
     //     .get()
@@ -94,16 +94,16 @@ fn CollectionDetailsInner() -> impl IntoView {
     // Get the ID from the params, default to "unknown" if it doesn't exist
     let id = params
         .get()
-        .map(|p| p.token_id.clone())
+        .map(|p| p.token_id.unwrap_or("unknown".to_string()))
         .unwrap_or_else(|_| "unknown".to_string());
     let asset_can_id = params
         .get()
-        .map(|p| p.asset_id.clone())
+        .map(|p| p.asset_id.unwrap_or("unknown".to_string()))
         .unwrap_or_else(|_| "unknown".to_string());
     let collection_id = id.clone();
     
     let token_canister_id = Principal::from_text(collection_id.clone()).unwrap();
-    let asset_canister_id = Principal::from_text(asset_can_id.clone()).unwrap();
+    let asset_canister_id = Principal::from_text(asset_can_id).unwrap();
 
     let metadata =move || SaleStatusState::get_listing_metadata(token_canister_id)();
     let status =move || SaleStatusState::get_listing_status(token_canister_id)();
@@ -131,7 +131,7 @@ fn CarDetailPage(metadata: GetMetadataRet, status: Option<SaleStatus>) -> impl I
 
     let collection_id = params
         .get()
-        .map(|p| p.token_id.clone())
+        .map(|p| p.token_id.unwrap_or("unknown".to_string()))
         .unwrap_or_else(|_| "unknown".to_string());
     // let asset_id = params
     //     .get()

@@ -37,7 +37,7 @@ fn ShareContent(
             </div>
             <SocialShare message=message.clone() share_link=share_link_social.clone()/>
             <div class="flex overflow-x-auto justify-center items-center px-10 mx-1 space-x-2 w-full rounded-xl border-2 border-neutral-700 h-[2.5rem] md:h-[5rem]">
-                <span class="text-lg text-black md:text-xl truncate">{&share_link.clone()}</span>
+                <span class="text-lg text-black md:text-xl truncate">{share_link.clone()}</span>
                 <button on:click=copy_clipboard>
                     <Icon style="w-6 h-6 text-black cursor-pointer" icon=icondata::BiCopyRegular/>
                 </button>

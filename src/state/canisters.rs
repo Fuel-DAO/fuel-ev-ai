@@ -52,7 +52,7 @@ impl Canisters {
     }
 
     pub fn is_authenticated() -> bool {
-        Self::get().map(|f| f.auth_service.borrow().is_authenticated()).unwrap_or(false)
+        Self::get().map(|f| f.agent.get_principal().ok().map(|f| f != Principal::anonymous())).flatten().unwrap_or(false)
     }
     pub async  fn provision_canister(&self) -> Provision<'_> {
         let agent_ref: &Agent = &self.agent;

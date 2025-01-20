@@ -11,11 +11,16 @@ pub fn create_login_action() -> Action<(), ()> {
     Action::new(move |_: &()| {
         let auth_service = AuthService::new().map(|f| f.login());
         async move {
-            match auth_service.borrow_mut().login().await {
-                Ok(()) => {
-                    // let _ =  Canisters::reset_canisters(auth_service.borrow().clone()).await;
-                    window().location().reload().unwrap();
-                    console_log("Login successful.")
+            match  auth_service {
+                Ok(ref mut f) => {
+                    match f.await {
+                        Ok(()) => {
+                            window().location().reload().unwrap();
+                            console_log("Login successful.")
+                        },
+                        Err(e) => console_error(&format!("Login failed: {:?}", e)),
+                    }
+                    
                 }
                 Err(e) => console_error(&format!("Login failed: {:?}", e)),
             }

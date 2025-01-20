@@ -20,7 +20,7 @@ pub fn CollectionHeader(metadata: GetMetadataRet, collection_id: String) -> impl
     let share_message_s = || {format!("{}
 Take a look at this car at FuelEV!", metadata.name)};
 let token_canister = Principal::from_text(collection_id.clone()).unwrap();
-
+let name = metadata.name.clone();
 
     // Check if the user is logged in and is the collection owner
     // let is_owner = move || false;
@@ -29,7 +29,7 @@ let token_canister = Principal::from_text(collection_id.clone()).unwrap();
         <div class="flex flex-col grow gap-4">
             <div class="flex flex-col sm:flex-row gap-4 lg:justify-between lg:items-center">
                 <div class="flex flex-col lg:flex-row gap-8 items-start lg:items-center">
-                    <div class="text-2xl lg:text-5xl font-bold">{ &metadata.name }</div>
+                    <div class="text-2xl lg:text-5xl font-bold"> { name }</div>
                     <div class="py-2 px-4 text-xs bg-black rounded-full text-white font-light flex h-min items-center justify-center">
                         {move || SaleStatusState::get_listing_status(token_canister)().humanize()}
                     </div>

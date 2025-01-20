@@ -3,7 +3,7 @@ use crate::components::header2::Header2;
 use crate::outbound::add_collection_canister_calls::add_collection;
 use crate::state::canisters::Canisters;
 use candid::{Nat, Principal};
-use leptos::logging::log;
+use leptos::{logging::log, task::spawn_local};
 use leptos::prelude::*;
 use web_sys::MouseEvent;
 
@@ -63,7 +63,7 @@ pub fn NewCollectionForm() -> impl IntoView {
 
     // ==== Define Additional Signals for Form Handling ====
     let loading = RwSignal::new(false);
-    let res = RwSignal::new::<Option<String>>(None);
+    let res: RwSignal<Option<String>> = RwSignal::new(None);
     let selected_tab = RwSignal::new("basic".to_string());
 
     // ==== Event Handlers ====
@@ -222,7 +222,7 @@ pub fn NewCollectionForm() -> impl IntoView {
                                 <pre class="text-sm p-4 mt-8 bg-gray-100 rounded-xl">{result}</pre>
                                 <a href="/admin/manage/list">"Approve/Deny on admin panel"</a>
                             </div>
-                        }
+                        }.into_any()
                     } else {
                         view! {
                             <div>
@@ -386,7 +386,7 @@ pub fn NewCollectionForm() -> impl IntoView {
                                     </Show>
                                 </div>
                             </div>
-                        }
+                        }.into_any()
                     }
                 }}
             </div>
