@@ -152,15 +152,15 @@ fn CarDetailPage(metadata: GetMetadataRet, status: Option<SaleStatus>) -> impl I
                     // <Show when=move||(Admin::get().principal.get().is_some() && Admin::get().principal.get().unwrap() == metadata.collection_owner )>
                     //     <RefundExcessAfterSale  token_canister_id />
                     // </Show>
-                    <Show when=move||(Admin::get().principal.get().is_some() && Admin::get().principal.get().unwrap() == metadata.collection_owner )>
-                        <TransferAmountFromAnnonymousToInvestor  token_canister_id />
-                    </Show>
-                    <Show when=move||(Admin::get().principal.get().is_some() && Admin::get().principal.get().unwrap() == metadata.collection_owner )>
-                        <AddFallbackPrincipalForAnnonymousInvestor  token_canister_id />
-                    </Show>
-                    <Show when=move||(Admin::get().principal.get().is_some() && Admin::get().principal.get().unwrap() == metadata.collection_owner )>
-                        <RefundICPsToAnnonymous  token_canister_id />
-                    </Show>
+                    // <Show when=move||(Admin::get().principal.get().is_some() && Admin::get().principal.get().unwrap() == metadata.collection_owner )>
+                    //     <TransferAmountFromAnnonymousToInvestor  token_canister_id />
+                    // </Show>
+                    // <Show when=move||(Admin::get().principal.get().is_some() && Admin::get().principal.get().unwrap() == metadata.collection_owner )>
+                    //     <AddFallbackPrincipalForAnnonymousInvestor  token_canister_id />
+                    // </Show>
+                    // <Show when=move||(Admin::get().principal.get().is_some() && Admin::get().principal.get().unwrap() == metadata.collection_owner )>
+                    //     <RefundICPsToAnnonymous  token_canister_id />
+                    // </Show>
                 </div>
                 // <div>"check"</div>
             // <div class="flex flex-col gap-8">
