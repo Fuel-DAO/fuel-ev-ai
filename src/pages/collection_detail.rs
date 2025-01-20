@@ -2,7 +2,7 @@ use candid::Principal;
 use leptos::*;
 use crate::canister::token::{self, SaleStatus};
 use crate::canister::token::GetMetadataRet;
-use crate::components::admin::invest_info_admin::ConcludeSaleAdminComponent;
+use crate::components::admin::invest_info_admin::{AddFallbackPrincipalForAnnonymousInvestor, ConcludeSaleAdminComponent, RefundICPsToAnnonymous, TransferAmountFromAnnonymousToInvestor};
 use crate::outbound::accept_or_reject_sale::get_sale_status;
 use crate::state::admin::Admin;
 use crate::state::canisters::Canisters;
@@ -128,8 +128,17 @@ fn CarDetailPage(metadata: GetMetadataRet, status: Option<SaleStatus>) -> impl I
                 <CollectionHeader metadata=metadata.clone() collection_id />
                 <div class="flex flex-col gap-8">
                     <InvestInfo metadata=metadata.clone() token_canister_id />
-                    <Show when=move||(Admin::get().principal.get().is_some() && Admin::get().principal.get().unwrap() == metadata.collection_owner )>
+                    <Show clone:metadata when=move||(Admin::get().principal.get().is_some() && Admin::get().principal.get().unwrap() == metadata.collection_owner )>
                         <ConcludeSaleAdminComponent metadata=metadata.clone() token_canister_id is_active=status.is_some() && status.clone().unwrap() == SaleStatus::Live />
+                    </Show>
+                    <Show when=move||(Admin::get().principal.get().is_some() && Admin::get().principal.get().unwrap() == metadata.collection_owner )>
+                        <TransferAmountFromAnnonymousToInvestor  token_canister_id />
+                    </Show>
+                    <Show when=move||(Admin::get().principal.get().is_some() && Admin::get().principal.get().unwrap() == metadata.collection_owner )>
+                        <AddFallbackPrincipalForAnnonymousInvestor  token_canister_id />
+                    </Show>
+                    <Show when=move||(Admin::get().principal.get().is_some() && Admin::get().principal.get().unwrap() == metadata.collection_owner )>
+                        <RefundICPsToAnnonymous  token_canister_id />
                     </Show>
                 </div>
                 // <div>"check"</div>

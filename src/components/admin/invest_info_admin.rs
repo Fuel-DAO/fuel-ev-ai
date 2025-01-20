@@ -1,8 +1,9 @@
+use web_sys::MouseEvent;
 use leptos::*;
 use crate::canister::token::GetMetadataRet;
 use crate::state::canisters::Canisters;
 use crate::outbound::accept_or_reject_sale::{accept_sale, reject_sale};
-use crate::outbound::collection_canister_calls::get_total_booked_tokens;
+use crate::outbound::collection_canister_calls::{get_total_booked_tokens, refund_icps_to_annonymous, transfer_amount_from_annonymous_to_investor, update_annonymous_principal};
 use std::rc::Rc;
 use candid::{Principal, Nat};
 use leptos::logging::log;
@@ -174,72 +175,82 @@ pub fn ConcludeSaleAdminComponent(
 
                             <div class="shrink-0 border border-primary bg-green-50 border-dashed rounded-xl flex flex-col text-black gap-3 p-6 shadow-xl h-fit">
                                 <div class="font-bold text-xl">"Admin"</div>
-                                <Show when=move||!is_active fallback=||view! {
-                                    <div class="text-lg font-medium">"Sale has been concluded"</div>
-                                }>
-                                <div class="text-lg font-medium">"Conclude sale"</div>
+                                <Show
+                                    when=move || !is_active
+                                    fallback=|| {
+                                        view! {
+                                            <div class="text-lg font-medium">
+                                                "Sale has been concluded"
+                                            </div>
+                                        }
+                                    }
+                                >
+                                    <div class="text-lg font-medium">"Conclude sale"</div>
                                 </Show>
-                                <Show when=move || invested_percentage() < 100.0 && is_active fallback=|| ()>
+                                <Show
+                                    when=move || invested_percentage() < 100.0 && is_active
+                                    fallback=|| ()
+                                >
                                     <div class="text-xs text-red-600">
                                         "Warning: Sale has not been completed fully yet"
                                     </div>
                                 </Show>
                                 <Show when=move || is_active>
-                                <div class="flex gap-2">
-                                    // Accept Sale Button
-                                    <button
-                                        role="presentation"
-                                        type="button"
-                                        class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
-                                        disabled=loading_accept.get()
-                                        on:click=move |_| initiate_action("accept".to_string())
-                                    >
-                                        <div class=if loading_accept.get() {
-                                            "opacity-0 transition-opacity"
-                                        } else {
-                                            ""
-                                        }>"Accept sale"</div>
-                                        {move || {
-                                            if loading_accept.get() {
-                                                view! {
-                                                    <div class="absolute inset-0 flex items-center justify-center">
-                                                        // You can add a loading spinner here if desired
-                                                        <div class="loader"></div>
-                                                    </div>
-                                                }
+                                    <div class="flex gap-2">
+                                        // Accept Sale Button
+                                        <button
+                                            role="presentation"
+                                            type="button"
+                                            class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
+                                            disabled=loading_accept.get()
+                                            on:click=move |_| initiate_action("accept".to_string())
+                                        >
+                                            <div class=if loading_accept.get() {
+                                                "opacity-0 transition-opacity"
                                             } else {
-                                                view! { <div></div> }
-                                            }
-                                        }}
-                                    </button>
+                                                ""
+                                            }>"Accept sale"</div>
+                                            {move || {
+                                                if loading_accept.get() {
+                                                    view! {
+                                                        <div class="absolute inset-0 flex items-center justify-center">
+                                                            // You can add a loading spinner here if desired
+                                                            <div class="loader"></div>
+                                                        </div>
+                                                    }
+                                                } else {
+                                                    view! { <div></div> }
+                                                }
+                                            }}
+                                        </button>
 
-                                    // Reject Sale Button
-                                    <button
-                                        role="presentation"
-                                        type="button"
-                                        class="bg-white ring-1 ring-inset ring-gray-100 hover:bg-gray-50 outline-none active:bg-gray-200 text-black px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
-                                        disabled=loading_reject.get()
-                                        on:click=move |_| initiate_action("reject".to_string())
-                                    >
-                                        <div class=if loading_reject.get() {
-                                            "opacity-0 transition-opacity"
-                                        } else {
-                                            ""
-                                        }>"Reject sale"</div>
-                                        {move || {
-                                            if loading_reject.get() {
-                                                view! {
-                                                    <div class="absolute inset-0 flex items-center justify-center">
-                                                        // You can add a loading spinner here if desired
-                                                        <div class="loader"></div>
-                                                    </div>
-                                                }
+                                        // Reject Sale Button
+                                        <button
+                                            role="presentation"
+                                            type="button"
+                                            class="bg-white ring-1 ring-inset ring-gray-100 hover:bg-gray-50 outline-none active:bg-gray-200 text-black px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
+                                            disabled=loading_reject.get()
+                                            on:click=move |_| initiate_action("reject".to_string())
+                                        >
+                                            <div class=if loading_reject.get() {
+                                                "opacity-0 transition-opacity"
                                             } else {
-                                                view! { <div></div> }
-                                            }
-                                        }}
-                                    </button>
-                                </div>
+                                                ""
+                                            }>"Reject sale"</div>
+                                            {move || {
+                                                if loading_reject.get() {
+                                                    view! {
+                                                        <div class="absolute inset-0 flex items-center justify-center">
+                                                            // You can add a loading spinner here if desired
+                                                            <div class="loader"></div>
+                                                        </div>
+                                                    }
+                                                } else {
+                                                    view! { <div></div> }
+                                                }
+                                            }}
+                                        </button>
+                                    </div>
                                 </Show>
 
                                 <Show when=show_confirmation.clone() fallback=|| ()>
@@ -351,5 +362,255 @@ pub fn ConcludeSaleAdminComponent(
                 })}
         </Suspense>
     }
+}
+
+
+
+#[component]
+pub fn TransferAmountFromAnnonymousToInvestor(
+    token_canister_id: Principal,
+) -> impl IntoView {
+    let loading = create_rw_signal(false);
+    let is_updated = create_rw_signal(false);
+    let err = create_rw_signal(Some(String::new()));
+    let fallback_principal = create_rw_signal(String::new());
+    let amount = create_rw_signal(0.0);
+    let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
+        .expect("Canisters ReadWriteSignal must be provided");
+    let call_api =create_action(move|&()|  {
+
+        
+            let token_canister_id = token_canister_id.clone();
+            let principal = fallback_principal.get();
+            let amount_icp = amount.get();
+            let canisters_signal = canisters_signal.clone();
+            err.set(None);
+           async move {
+
+
+
+                if let Some(canisters) = canisters_signal.get() {
+
+                   let principal = match Principal::from_text(principal) {
+                    Ok(p) => p, 
+                    Err(_) => {
+                        err.set(Some("Invalid principal".into()));
+                        return;
+                    }
+                   };
+                   let icp_amount = match f64::try_from(amount_icp) {
+                    Ok(p) => p, 
+                    Err(_) => {
+                        err.set(Some("Invalid amount".into()));
+                        return;
+                    }
+                   };
+                   loading.set(true);
+
+                   let res = match transfer_amount_from_annonymous_to_investor(&canisters, token_canister_id, icp_amount ,principal).await {
+                    Ok(f) => Ok(f),
+                    Err(e) => {
+                        err.set(Some(e.clone()));
+                        Err(e)
+                    } 
+                   };
+
+                   is_updated.set(res.is_ok());
+                   loading.set(false);
+                }else {
+                    err.set(Some("Local canisters error".into()));
+                }
+            }
+    });
+
+
+
+
+    
+   view! {
+       <label class="flex flex-col gap-4 w-full border border-primary p-2 border-dotted">
+            Transfer from Annonymous
+           <div>Fallback Principal ID for Annonymous</div>
+           <input
+               type="text"
+               placeholder="Enter a valid principal id"
+               disabled=move || loading.get()
+               on:input=move |e| fallback_principal.set(event_target_value(&e))
+               class="mt-1 block w-full border border-gray-300 rounded-md p-2"
+           /> 
+           <div>{move || fallback_principal.get()}</div>
+           <div>Refund amount for Annonymous</div>
+           <input
+               type="number"
+               placeholder="Enter anount in decimal"
+               disabled=move || loading.get()
+               on:input=move |e| amount.set(event_target_value(&e).parse().unwrap_or_default())
+               class="mt-1 block w-full border border-gray-300 rounded-md p-2"
+           /> <div>Amount: {move || amount.get()}</div>
+           
+           <div class="text-red-600">
+               {move || if err.get().is_some() { err.get().unwrap() } else { String::new() }}
+           </div>
+           <button
+               class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
+               on:click=move |_| call_api.dispatch(())
+               disabled=loading.get()
+           >
+               {move || if loading.get() { "Submitting..." } else { "Submit" }}
+           </button>
+       </label>
+   }
+}
+#[component]
+pub fn AddFallbackPrincipalForAnnonymousInvestor(
+    token_canister_id: Principal,
+) -> impl IntoView {
+    let loading = create_rw_signal(false);
+    let is_updated = create_rw_signal(false);
+    let err = create_rw_signal(Some(String::new()));
+    let fallback_principal = create_rw_signal(String::new());
+    let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
+        .expect("Canisters ReadWriteSignal must be provided");
+    let call_api =create_action(move|&()|  {
+
+        
+            let token_canister_id = token_canister_id.clone();
+            let principal = fallback_principal.get();
+            let canisters_signal = canisters_signal.clone();
+            err.set(None);
+           async move {
+
+
+
+                if let Some(canisters) = canisters_signal.get() {
+
+                   let principal = match Principal::from_text(principal) {
+                    Ok(p) => p, 
+                    Err(_) => {
+                        err.set(Some("Invalid principal".into()));
+                        return;
+                    }
+                   };
+                   loading.set(true);
+
+                   let res = match update_annonymous_principal(&canisters, token_canister_id, principal).await {
+                    Ok(f) => Ok(f),
+                    Err(e) => {
+                        err.set(Some(e.clone()));
+                        Err(e)
+                    } 
+                   };
+
+                   is_updated.set(res.is_ok());
+                   loading.set(false);
+                }else {
+                    err.set(Some("Local canisters error".into()));
+                }
+            }
+    });
+
+
+
+
+    
+   view! {
+       <label class="flex flex-col gap-4 w-full">
+           Fallback Principal ID for Annonymous
+           <input
+               type="text"
+               placeholder="Enter a valid principal id"
+               disabled=move || loading.get()
+               on:input=move |e| fallback_principal.set(event_target_value(&e))
+               class="mt-1 block w-full border border-gray-300 rounded-md p-2"
+           /> {move || fallback_principal.get()}
+           <div class="text-red-600">
+               {move || if err.get().is_some() { err.get().unwrap() } else { String::new() }}
+           </div>
+           <button
+               class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
+               on:click=move |_| call_api.dispatch(())
+               disabled=loading.get()
+           >
+               {move || if loading.get() { "Submitting..." } else { "Submit" }}
+           </button>
+       </label>
+   }
+}
+
+
+#[component]
+pub fn RefundICPsToAnnonymous(
+    token_canister_id: Principal,
+) -> impl IntoView {
+    let loading = create_rw_signal(false);
+    let is_updated = create_rw_signal(false);
+    let err = create_rw_signal(Some(String::new()));
+    let amount = create_rw_signal(0.0);
+    let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
+        .expect("Canisters ReadWriteSignal must be provided");
+    let call_api =create_action(move|&()|  {
+
+        
+            let token_canister_id = token_canister_id.clone();
+            let amount_icp = amount.get();
+            let canisters_signal = canisters_signal.clone();
+            err.set(None);
+           async move {
+
+
+
+                if let Some(canisters) = canisters_signal.get() {
+
+                   let icp_amount = match f64::try_from(amount_icp) {
+                    Ok(p) => p, 
+                    Err(_) => {
+                        err.set(Some("Invalid amount".into()));
+                        return;
+                    }
+                   };
+                   loading.set(true);
+
+                   let res = match refund_icps_to_annonymous(&canisters, token_canister_id, icp_amount).await {
+                    Ok(f) => Ok(f),
+                    Err(e) => {
+                        err.set(Some(e.clone()));
+                        Err(e)
+                    } 
+                   };
+
+                   is_updated.set(res.is_ok());
+                   loading.set(false);
+                }else {
+                    err.set(Some("Local canisters error".into()));
+                }
+            }
+    });
+
+
+
+
+    
+   view! {
+       <label class="flex flex-col gap-4 w-full">
+           Refund amount for Annonymous
+           <input
+               type="number"
+               placeholder="Enter anount in decimal"
+               disabled=move || loading.get()
+               on:input=move |e| amount.set(event_target_value(&e).parse().unwrap_or_default())
+               class="mt-1 block w-full border border-gray-300 rounded-md p-2"
+           /> Amount: {move || amount.get()}
+           <div class="text-red-600">
+               {move || if err.get().is_some() { err.get().unwrap() } else { String::new() }}
+           </div>
+           <button
+               class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
+               on:click=move |_| call_api.dispatch(())
+               disabled=loading.get()
+           >
+               {move || if loading.get() { "Submitting..." } else { "Submit" }}
+           </button>
+       </label>
+   }
 }
 

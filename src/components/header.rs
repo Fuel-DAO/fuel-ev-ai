@@ -141,6 +141,9 @@ fn TrailingButton() -> impl IntoView {
         <a href="https://fuelev.in" target="_blank">
             <span class="text-black font-medium">EV Rentals</span>
         </a>
+        <a href="/business">
+            <span class="text-black font-medium">Business Dashboard</span>
+        </a>
         <a href="/collections">
             <span class="text-black font-medium">Fleet Investments</span>
         </a>
@@ -181,11 +184,9 @@ fn UserPrincipal() -> impl IntoView {
             fallback=move || {
                 view! {
                     <a
-                        // on:click=move |_| handle_login.dispatch(())
                         href="/login"
                         class="bg-black text-white rounded-full p-2"
                     >
-                        // target="_blank"
 
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -205,16 +206,13 @@ fn UserPrincipal() -> impl IntoView {
                 }
             }
         >
-            // <div>{"user: "}{move || principal().map(|p| p.to_text()).unwrap_or_default()}</div>
 
             <div class="flex items-center space-x-2">
 
                 <a
-                    // on:click=move |_| handle_logout.dispatch(())
                     href="/login"
                     class="h-10 w-10 bg-black flex items-center text-xl select-none justify-center font-light text-white rounded-full uppercase"
                 >
-                    // target="_blank"
 
                     U
                 </a>

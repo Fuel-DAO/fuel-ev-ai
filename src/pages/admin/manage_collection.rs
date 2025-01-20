@@ -5,11 +5,10 @@ use crate::components::admin::manage_collection::{
 use crate::components::header2::Header2;
 use crate::{
     outbound::get_pending_collection_requests::{
-        approve_request, fetch_pending_requests_data, get_request_info_by_id, reject_request,
+        approve_request,  get_request_info_by_id, reject_request,
     },
     state::canisters::Canisters,
 };
-use candid::Nat;
 use leptos::*;
 use leptos_router::*;
 use serde_json::Value;

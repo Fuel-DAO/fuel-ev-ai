@@ -143,6 +143,9 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
             // Get Canisters from context
             if let Some(canisters_rc) = canisters_signal.get() {
                 if let Some(principal) = principall() {
+                    if principal == Principal::anonymous() {
+                        return ;
+                    }
                     let token_canister = canisters_rc
                         .token_canister(
                             Principal::from_text(minter_canister_id_clone.clone()).unwrap(),
@@ -158,6 +161,9 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
 },
     None => None,
 };
+
+
+
                         let current_investment_data =
                             token_canister.get_booked_tokens(Some(principal)).await;
 
@@ -167,6 +173,10 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
                                 .to_string()
                                 .parse::<u64>()
                                 .unwrap_or_default();
+
+                            if transfer_to_account.account.owner != principal {
+                                return ;
+                            }
 
                             payment_info.set(PaymentInfo {
                                 loaded: true,
@@ -205,7 +215,7 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
     let amount = move || {
         nft_to_buy.get().parse::<u64>().unwrap_or_default() as f64
             * from_e8s(payment_info().nft_price)
-            + from_e8s(transfer_price_e8s)
+            + if token_balance.get() >= 1 {from_e8s(0)} else {from_e8s(transfer_price_e8s)}
     };
 
 
@@ -250,7 +260,7 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
                                 min=0.0
                                 label="Number of NFTs to buy".to_string()
                                 input_type="number".to_string()
-                                placeholder="(in USD)".to_string()
+                                placeholder="(in ICP)".to_string()
                             />
                             <hr />
                             // Amount to pay display
@@ -346,11 +356,11 @@ fn LoginStep() -> impl IntoView {
     view! {
         <div class="flex flex-col gap-8 items-center">
             <div>"You need to login before you can invest"</div>
-            <button on:click= move|_| {
+            <a on:click= move|_| {
                 handle_login.dispatch(());
             } class="bg-green-500 hover:bg-green-700 text-white font-bold xl:text-2xl xl:px-8 xl:py-3 px-6 py-3 rounded-full shadow-lg">
                         "Click to Login"
-            </button>
+            </a>
         </div>
     }
 }
@@ -425,23 +435,8 @@ fn StepTwo(
 ) -> impl IntoView {
 
     view! {
-        <div class="flex w-full items-start justify-between text-sm gap-4">
-            <div>"Amount to pay:"</div>
-            <div class="flex items-center gap-2 justify-end">
-                <div class="font-bold whitespace-nowrap text-xs break-all text-right">
-                    <span class="select-all">{amount.to_string()}</span>
-                    <span class="opacity-50">" ICP"</span>
-                </div>
-                <button
-                    on:click=move |_| {
-                        copy_to_clipboard(&amount.to_string());
-                    }
-                    class="w-3 h-3"
-                >
-                    <img src="/public/icons/copy_to_clipboard.svg" alt="Copy to clipboard" />
-                </button>
-            </div>
-        </div>
+
+        <div class="flex flex-col gap-8">
 
         <div class="flex w-full items-start justify-between text-sm gap-4">
             <div class="text-nowrap">"Transferring to:"</div>
@@ -460,7 +455,27 @@ fn StepTwo(
             </div>
         </div>
 
+        <div class="flex w-full items-start justify-between text-sm gap-4">
+            <div>"Amount to pay:"</div>
+            <div class="flex items-center gap-2 justify-end">
+                <div class="font-bold whitespace-nowrap text-xs break-all text-right">
+                    <span class="select-all">{amount.to_string()}</span>
+                    <span class="opacity-50">" ICP"</span>
+                </div>
+                <button
+                    on:click=move |_| {
+                        copy_to_clipboard(&amount.to_string());
+                    }
+                    class="w-3 h-3"
+                >
+                    <img src="/public/icons/copy_to_clipboard.svg" alt="Copy to clipboard" />
+                </button>
+            </div>
+        </div>
+
         <hr />
+        </div>
+
         <Show when=move || payment_status.get().is_loading.get()>
             <div class="text-center mt-2 p-4 animate-pulse">Loading...</div>
         </Show>
@@ -468,15 +483,7 @@ fn StepTwo(
         <div class="text-red-500 mt-2 p-4 text-center">
             {move || payment_status.get().error.get()}
         </div>
-        <div class="mt-2 p-4 text-center text-sm">
-            <a
-                href="https://nns.ic0.app/wallet/?u=qoctq-giaaa-aaaaa-aaaea-cai"
-                target="_blank"
-                class="underline text-xs font-bold"
-            >
-                "Click here to invest via NNS"
-            </a>
-        </div>
+       
         <div class="text-center text-sm">
             <span>"Waiting for payment "</span>
             <button
@@ -489,6 +496,16 @@ fn StepTwo(
                 " Check now "
             </button>
         </div>
+
+        <div class="mt-2 p-4 text-center text-sm">
+        <a
+            href="https://nns.ic0.app/wallet/?u=qoctq-giaaa-aaaaa-aaaea-cai"
+            target="_blank"
+            class="underline text-xs font-bold"
+        >
+            "Click here to invest via NNS"
+        </a>
+    </div>
     }
 }
 
