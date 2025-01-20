@@ -1,9 +1,11 @@
+use candid::Principal;
 use leptos::*;
 use crate::components::specifications::SpecificationComponent;
 use crate::components::documents::DocumentList;
 use crate::components::collection_info_cards::CollectionInfoCards;
 use crate::components::tabs::Tabs;
 use crate::canister::token::GetMetadataRet;
+use crate::state::sale_status::SaleStatusState;
 use crate::utils::share::ShareButtonWithFallbackPopup;
 #[component]
 pub fn CollectionHeader(metadata: GetMetadataRet, collection_id: String) -> impl IntoView {
@@ -11,9 +13,10 @@ pub fn CollectionHeader(metadata: GetMetadataRet, collection_id: String) -> impl
     // Define tabs and selected tab state
     let tabs = vec!["specifications".to_string(), "documents".to_string()];
     let selected = create_rw_signal( "specifications".to_string());
-    let share_link_s =|| { format!("/collections/{}/{}", collection_id, metadata.asset_canister.to_text()) };
+    let share_link_s =|| { format!("/collections/{}/{}", collection_id.clone(), metadata.asset_canister.to_text()) };
     let share_message_s = || {format!("{}
 Take a look at this car at FuelEV!", metadata.name)};
+let token_canister = Principal::from_text(collection_id.clone()).unwrap();
 
 
     // Check if the user is logged in and is the collection owner
@@ -25,7 +28,7 @@ Take a look at this car at FuelEV!", metadata.name)};
                 <div class="flex flex-col lg:flex-row gap-8 items-start lg:items-center">
                     <div class="text-2xl lg:text-5xl font-bold">{ &metadata.name }</div>
                     <div class="py-2 px-4 text-xs bg-black rounded-full text-white font-light flex h-min items-center justify-center">
-                        Open
+                        {move || SaleStatusState::get_listing_status(token_canister)().humanize()}
                     </div>
                 </div>
                 <div class="flex items-center gap-2">

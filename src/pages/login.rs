@@ -1,12 +1,11 @@
 // src/components/login.rs
 
-use crate::{pages::admin::check_admin::AdminRoute, state::{
-    auth::AuthService,
-    auth_actions::{create_login_action, create_logout_action},
+use crate::{components::header::Header, state::{
+    auth_actions::{create_login_action, create_logout_action}, canisters::Canisters
 }};
 use leptos::*;
-use std::cell::RefCell;
-use std::rc::Rc;
+use crate::utils::web::copy_to_clipboard;
+
 
 /// The Login component handles user authentication.
 /// It displays login options when the user is not authenticated
@@ -14,32 +13,33 @@ use std::rc::Rc;
 #[component]
 pub fn Login() -> impl IntoView {
     // Obtain AuthService from the context
-    let auth_service =
-        use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
+    // let auth_service =
+    //     use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
 
-    // Reactive signal to track authentication state
-    let is_authenticated = create_memo({
-        let auth_service = Rc::clone(&auth_service);
-        move |_| auth_service.borrow().is_authenticated()
-    });
+    // // Reactive signal to track authentication state
+    // let is_authenticated = create_memo({
+    //     let auth_service = Rc::clone(&auth_service);
+    //     move |_| auth_service.borrow().is_authenticated()
+    // });
 
     // Reactive signal to track the user's principal ID
-    let principal = create_memo({
-        let auth_service = Rc::clone(&auth_service);
-        move |_| {
-            if is_authenticated() {
-                auth_service.borrow().get_principal().ok()
-            } else {
-                None
-            }
-        }
-    });
+    // let principal = create_memo({
+    //     let auth_service = Rc::clone(&auth_service);
+    //     move |_| {
+    //         if is_authenticated() {
+    //             auth_service.borrow().get_principal().ok()
+    //         } else {
+    //             None
+    //         }
+    //     }
+    // });
 
     // Create login and logout actions
-    let handle_login = create_login_action(Rc::clone(&auth_service));
-    let handle_logout = create_logout_action(Rc::clone(&auth_service));
+    let handle_login = create_login_action();
+    let handle_logout = create_logout_action();
 
     view! {
+        <Header />
         <div class="flex flex-col overflow-hidden h-screen w-full items-center justify-center pb-20 gap-4 relative">
             <div class="flex z-3 min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
                 <div class="bg-white/75 backdrop-blur-xl flex flex-col items-center gap-8 px-6 py-12 shadow-md rounded-lg sm:px-12 ">
@@ -49,7 +49,7 @@ pub fn Login() -> impl IntoView {
                     </a>
 
                     <Show
-                        when=move || is_authenticated()
+                        when=move || Canisters::is_authenticated()
                         fallback=move || {
                             view! {
                                 <>
@@ -61,7 +61,7 @@ pub fn Login() -> impl IntoView {
                                         role="presentation"
                                         type="button"
                                         on:click=move |_| { handle_login.dispatch(()) }
-                                        class="bg-white ring-1 ring-inset ring-gray-100 hover:bg-gray-50 outline-none active:bg-gray-200 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30 w-min"
+                                        class="bg-white ring-1 ring-inset ring-gray-100 hover:bg-gray-50 outline-none active:bg-gray-200 px-4 py-2 text-gray-900 inline-flex relative items-center h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30 w-min"
                                     >
                                         <div class="flex items-center justify-center gap-2">
                                             <svg
@@ -108,9 +108,21 @@ pub fn Login() -> impl IntoView {
                             </h2>
                             <div class="text-center text-sm text-gray-500">
                                 <div class="pb-2 text-base">Your principal ID:</div>
+                                <div class="flex flex-row gap-2 items-center">
                                 <div class=" font-mono bg-gray-200 p-2 rounded-md max-w-sm select-all leading-relaxed text-pretty">
 
-                                    {move || principal().map(|p| p.to_text()).unwrap_or_default()}
+                                    {move || Canisters::principal().map(|p| p.to_text()).unwrap_or_default()}
+                                </div>
+                                <button
+                                on:click=move |_| {
+                                    let text = &Canisters::principal().map(|p| p.to_text()).unwrap_or_default();
+                                    copy_to_clipboard(text);
+                                    
+                                }
+                                class="w-3 h-3"
+                            >
+                                <img src="/public/icons/copy_to_clipboard.svg" alt="Copy to clipboard" />
+                                    </button>
                                 </div>
                             </div>
 

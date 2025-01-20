@@ -1,13 +1,10 @@
 use crate::{
     pages::admin::check_admin::AdminRoute,
     state::{
-        auth::AuthService,
-        auth_actions::{create_login_action, create_logout_action},
+        auth_actions::{create_login_action, create_logout_action}, canisters::Canisters,
     },
 };
 use leptos::*;
-use std::cell::RefCell;
-use std::rc::Rc;
 #[component]
 pub fn Header() -> impl IntoView {
     let (menu_open, set_menu_open) = create_signal(false);
@@ -80,7 +77,7 @@ pub fn Header() -> impl IntoView {
                     )
                 }
             >
-                <div class="flex flex-col h-full p-6 space-y-6 h-screen bg-white">
+                <div class="flex flex-col h-full p-6 space-y-6 bg-white">
                     <button
                         class="self-end bg-gray-200 p-2 rounded-full"
                         on:click=move |_| set_menu_open.set(false)
@@ -141,6 +138,9 @@ fn TrailingButton() -> impl IntoView {
         <a href="https://fuelev.in" target="_blank">
             <span class="text-black font-medium">EV Rentals</span>
         </a>
+        <a href="/business">
+            <span class="text-black font-medium">Business Dashboard</span>
+        </a>
         <a href="/collections">
             <span class="text-black font-medium">Fleet Investments</span>
         </a>
@@ -150,42 +150,19 @@ fn TrailingButton() -> impl IntoView {
 
 #[component]
 fn UserPrincipal() -> impl IntoView {
-    // Obtain AuthService from the context
-    let auth_service =
-        use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
-
-    // Reactive signal for authentication state
-    let is_authenticated = create_memo({
-        let auth_service = Rc::clone(&auth_service);
-        move |_| auth_service.borrow().is_authenticated()
-    });
-
-    // Reactive signal for principal
-    let _ = create_memo({
-        let auth_service = Rc::clone(&auth_service);
-        move |_| {
-            if is_authenticated() {
-                auth_service.borrow().get_principal().ok()
-            } else {
-                None
-            }
-        }
-    });
 
     // Use the reusable actions from auth_actions.rs
-    let _handle_login = create_login_action(Rc::clone(&auth_service));
-    let _handle_logout = create_logout_action(Rc::clone(&auth_service));
+    let _handle_login = create_login_action();
+    let _handle_logout = create_logout_action();
     view! {
         <Show
-            when=move || is_authenticated()
+            when=move || Canisters::is_authenticated()
             fallback=move || {
                 view! {
                     <a
-                        // on:click=move |_| handle_login.dispatch(())
                         href="/login"
                         class="bg-black text-white rounded-full p-2"
                     >
-                        // target="_blank"
 
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -205,16 +182,13 @@ fn UserPrincipal() -> impl IntoView {
                 }
             }
         >
-            // <div>{"user: "}{move || principal().map(|p| p.to_text()).unwrap_or_default()}</div>
 
             <div class="flex items-center space-x-2">
 
                 <a
-                    // on:click=move |_| handle_logout.dispatch(())
                     href="/login"
                     class="h-10 w-10 bg-black flex items-center text-xl select-none justify-center font-light text-white rounded-full uppercase"
                 >
-                    // target="_blank"
 
                     U
                 </a>

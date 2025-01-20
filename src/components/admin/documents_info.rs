@@ -19,10 +19,6 @@ use web_sys::{Event, HtmlInputElement};
 #[component]
 pub fn DocumentsInfo(documents: RwSignal<Vec<(String, String)>>) -> impl IntoView {
     // Access the Canisters context as RwSignal<Option<Rc<Canisters>>>
-    let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
-        .expect("Canisters ReadWriteSignal must be provided");
-
-    // Local signals for upload state
     let uploading = create_rw_signal(false);
     let uploading_progress = create_rw_signal(0);
     let error_document = create_rw_signal(false);
@@ -38,7 +34,6 @@ pub fn DocumentsInfo(documents: RwSignal<Vec<(String, String)>>) -> impl IntoVie
         let documents = documents.clone();
         let error_document = error_document.clone();
         let error_message = error_message.clone();
-        let canisters_signal = canisters_signal.clone();
 
         Rc::new(move |event: Event| {
             // Reset error states
@@ -78,7 +73,6 @@ pub fn DocumentsInfo(documents: RwSignal<Vec<(String, String)>>) -> impl IntoVie
             let blob = Blob::from(file.clone());
 
             // Clone necessary variables for async task
-            let canisters_signal = canisters_signal.clone();
             let uploading = uploading.clone();
             let uploading_progress = uploading_progress.clone();
             let documents = documents.clone();
@@ -88,7 +82,7 @@ pub fn DocumentsInfo(documents: RwSignal<Vec<(String, String)>>) -> impl IntoVie
             // Perform the upload asynchronously
             spawn_local(async move {
                 // Check if canisters are available
-                let canisters_option = canisters_signal.get();
+                let canisters_option = Canisters::get();
                 if canisters_option.is_none() {
                     log::error!("Canisters not available.");
                     error_message.set("Canisters not available.".to_string());
@@ -160,17 +154,15 @@ pub fn DocumentsInfo(documents: RwSignal<Vec<(String, String)>>) -> impl IntoVie
     // Handler for removing documents
     let remove_document = {
         let documents = documents.clone();
-        let canisters_signal = canisters_signal.clone();
         let error_message = error_message.clone();
 
         Rc::new(move |name: String| {
             let documents = documents.clone();
-            let canisters_signal = canisters_signal.clone();
             let error_message = error_message.clone();
 
             spawn_local(async move {
                 // Check if canisters are available
-                let canisters_option = canisters_signal.get();
+                let canisters_option = Canisters::get();
                 if canisters_option.is_none() {
                     log::error!("Canisters not available.");
                     error_message.set("Canisters not available.".to_string());

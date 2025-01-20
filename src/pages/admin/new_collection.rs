@@ -1,12 +1,10 @@
-use crate::canister::{provision::CollectionRequest, ASSET_PROXY_ID};
+use crate::canister::provision::CollectionRequest;
 use crate::components::header2::Header2;
 use crate::outbound::add_collection_canister_calls::add_collection;
 use crate::state::canisters::Canisters;
-use crate::TEMP_ASSET_CANISTER_ID;
 use candid::{Nat, Principal};
 use leptos::logging::log;
 use leptos::*;
-use std::rc::Rc;
 use web_sys::MouseEvent;
 
 
@@ -69,10 +67,10 @@ pub fn NewCollectionForm() -> impl IntoView {
     let selected_tab = create_rw_signal("basic".to_string());
 
     // ==== Event Handlers ====
-    let asset_proxy =ASSET_PROXY_ID;
-    let asset_canister = TEMP_ASSET_CANISTER_ID;
-    let asset_proxy_canister_id: RwSignal<String> = create_rw_signal(asset_proxy.to_string());
-    let asset_canister_id: RwSignal<String> = create_rw_signal(asset_canister.to_string());
+    // let asset_proxy =ASSET_PROXY_ID;
+    // let asset_canister = TEMP_ASSET_CANISTER_ID;
+    // let asset_proxy_canister_id: RwSignal<String> = create_rw_signal(asset_proxy.to_string());
+    // let asset_canister_id: RwSignal<String> = create_rw_signal(asset_canister.to_string());
     // log!("asset_canister_id: {:?}", asset_canister_id.get());
     // log!(
     //     "asset_proxy_canister_id: {:?}",
@@ -96,8 +94,6 @@ pub fn NewCollectionForm() -> impl IntoView {
         // Clone all the signals used in the async block
         let loading = loading.clone();
         let success_message = success_message.clone();
-        let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
-            .expect("Canisters ReadWriteSignal must be provided");
         // Clone form data signals
         let name = name.clone();
         let treasury = treasury.clone();
@@ -138,7 +134,7 @@ pub fn NewCollectionForm() -> impl IntoView {
             loading.set(true);
 
             spawn_local(async move {
-                if let Some(canisters) = canisters_signal.get() {
+                if let Some(canisters) = Canisters::get_authenticated().ok() {
                     // Parse necessary fields
 
                     let treasury_principal = match Principal::from_text(&treasury.get()) {
@@ -191,7 +187,6 @@ pub fn NewCollectionForm() -> impl IntoView {
                                                                 // Note: Ensure all required fields are included
                                                                 // If there are more fields in AddCollectionRequestArg, include them here
                     };
-                    log!("collection_data1: {:?}", collection_data1);
 
                     // Call the add_collection function
                     match add_collection(&canisters, collection_data1).await {
@@ -245,15 +240,15 @@ pub fn NewCollectionForm() -> impl IntoView {
                                             fallback=|| ()
                                         >
                                             <div class="text-xs text-green-500 font-medium pr-4">
-                                                {success_message.get()}
+                                                {move || success_message.get()}
                                             </div>
                                         </Show>
                                         <button
-                                            class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 text-gray-900 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
+                                            class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
                                             on:click=on_submit
                                             disabled=loading.get()
                                         >
-                                            {if loading.get() { "Submitting..." } else { "Submit" }}
+                                            {move|| if loading.get() { "Submitting..." } else { "Submit" }}
                                         </button>
                                     </div>
                                 </div>

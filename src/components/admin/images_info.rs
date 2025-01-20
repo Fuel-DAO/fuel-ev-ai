@@ -25,9 +25,6 @@ pub fn ImagesInfo(
     // upload_canister_id: String,
     // asset_canister_id: String,
 ) -> impl IntoView {
-    // Access the Canisters context as RwSignal<Option<Rc<Canisters>>>
-    let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
-        .expect("Canisters ReadWriteSignal must be provided");
 
     // Local signals for upload state
     let uploading = create_rw_signal(false);
@@ -48,9 +45,6 @@ pub fn ImagesInfo(
         let error_asset = error_asset.clone();
         let error_logo = error_logo.clone();
         let error_message = error_message.clone();
-        let canisters_signal = canisters_signal.clone();
-        // let upload_canister_id = upload_canister_id.clone();
-        // let asset_canister_id = asset_canister_id.clone();
 
         Rc::new(move |event: Event, file_type: &'static str| {
             // Reset error states based on file type
@@ -86,7 +80,6 @@ pub fn ImagesInfo(
             uploading_progress.set(0);
 
             // Clone necessary variables for async task
-            let canisters_signal = canisters_signal.clone();
             let uploading = uploading.clone();
             let uploading_progress = uploading_progress.clone();
             let data = data.clone();
@@ -99,7 +92,7 @@ pub fn ImagesInfo(
             // Perform the upload asynchronously
             spawn_local(async move {
                 // Check if canisters are available
-                let canisters_option = canisters_signal.get();
+                let canisters_option = Canisters::get();
                 if canisters_option.is_none() {
                     log::error!("Canisters not available.");
                     error_message.set("Canisters not available.".to_string());
@@ -189,7 +182,6 @@ pub fn ImagesInfo(
         let error_asset = error_asset.clone();
         let error_logo = error_logo.clone();
         let error_message = error_message.clone();
-        let canisters_signal = canisters_signal.clone();
         // let upload_canister_id = upload_canister_id.clone();
         // let asset_canister_id = asset_canister_id.clone();
 
@@ -198,14 +190,13 @@ pub fn ImagesInfo(
             let error_asset = error_asset.clone();
             let error_logo = error_logo.clone();
             let error_message = error_message.clone();
-            let canisters_signal = canisters_signal.clone();
             // let upload_canister_id = upload_canister_id.clone();
             // let asset_canister_id = asset_canister_id.clone();
             let file_type = file_type.to_string();
 
             spawn_local(async move {
                 // Check if canisters are available
-                let canisters_option = canisters_signal.get();
+                let canisters_option = Canisters::get();
                 if canisters_option.is_none() {
                     log::error!("Canisters not available.");
                     error_message.set("Canisters not available.".to_string());
