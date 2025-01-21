@@ -1,112 +1,121 @@
-use ic_auth_client::AuthClient;
-use leptos::{prelude::*, task::spawn_local};
+use ic_auth_client::{AuthClient, AuthClientLoginOptions};
+use leptos::{leptos_dom::logging::console_warn, logging, prelude::*, task::spawn_local};
+use send_wrapper::SendWrapper;
+use web_sys::Url;
 
-use crate::state::{auth::AuthService, canisters::Canisters};
-
-
+use crate::{
+    canister::BACKEND_ID,
+    state::{auth::AuthService, auth_actions::send_wrap, canisters::Canisters},
+};
 
 /// Component that provides the AuthClient to the children components
 #[component]
 pub fn AuthClientProvider(children: Children) -> impl IntoView {
+    let auth_client= RwSignal::new(send_wrapper::SendWrapper::new(None));
+
     spawn_local(async move {
-        let auth = AuthClient::builder()
+        auth_client.set(SendWrapper::new(Some(
+            AuthClient::builder()
+                .on_idle(|| {
+                    spawn_local(async move {
+                        logout().await.unwrap();
+                        window().location().reload().unwrap();
+                    });
+                })
+                .idle_timeout(20 * 60 * 1000) // 20 minutes
+                .capture_scroll(true)
+                .build()
+                .await
+                .unwrap(),
+        )));
+    });
+
+    provide_context(auth_client);
+
+    children()
+}
+
+ async fn auth_client() -> Result<AuthClient, AuthClientError> {
+    logging::log!("Getting auth client");
+    let auth_client: RwSignal<SendWrapper<Option<AuthClient>>> = match use_context() {
+        Some(auth_client) => auth_client,
+        None => return  AuthClient::builder()
         .on_idle(|| {
             spawn_local(async move {
-                // logout().await.unwrap();
+                logout().await.unwrap();
+                window().location().reload().unwrap();
             });
         })
         .idle_timeout(20 * 60 * 1000) // 20 minutes
         .capture_scroll(true)
         .build()
-        .await;
-        
-        let canisters = match  Canisters::new(AuthService::from_client(auth)).await {
-            Ok(cans) => cans, 
-            Err(_) => return
-        };
-        Canisters::set_global(canisters);
-    });
-
-    children()
+        .await
+        .map_err(|_|AuthClientError::AuthClientNotInitialized),
+    };
+    logging::log!("Got auth client");
+    if let Some(auth_client) = &*auth_client.get_untracked().clone() {
+        logging::log!("Got Selected auth client");
+        Ok(auth_client.clone())
+    } else {
+        Err(AuthClientError::AuthClientNotInitialized)
+    }
 }
-
-// fn auth_client() -> Result<AuthClient, AuthClientError> {
-//     let auth_client = match use_context::<ReadSignal<Option<AuthClient>>>() {
-//         Some(auth_client) => auth_client,
-//         None => return Err(AuthClientError::AuthClientContextError),
-//     };
-//     if let Some(auth_client) = auth_client.get_untracked() {
-//         Ok(auth_client)
-//     } else {
-//         Err(AuthClientError::AuthClientNotInitialized)
-//     }
-// }
-
-// pub fn get_current_user_principal() -> Option<Principal> {
-//     auth_client().ok().map(|f| if f.is_authenticated() {
-//         Some( f.identity().sender().unwrap()) 
-//     } else {
-//         None
-//     } ).flatten()
-// }
 
 // pub fn get_identity() -> Arc<dyn Identity> {
 //     match auth_client() {
-//         Ok(auth_client) => auth_client.identity(),
+//         Ok(auth_client()) => auth_client.identity(),
 //         Err(_) => Arc::new(AnonymousIdentity),
 //     }
 // }
 
-// pub fn login() -> Result<(), AuthClientError> {
-//     // dotenv::dotenv().ok();
-//         let  dfx_network = "LIVE".to_string();
-//         // if dfx_network.is_empty() {
-//         //     dfx_network = env::var("BACKEND").unwrap_or("LIVE".to_owned());
-//         // }
+pub async fn login() -> Result<(), AuthClientError> {
+    let dfx_network = "ic".to_string();
 
-//     let identity_provider: Option<Url> = match dfx_network.as_str() {
-//         "LOCAL" => Some({
-//             let port = 4943;
-//             let canister_id = PROVISION_ID ;
-//             Url::new(&format!("http://{}.localhost:{}", canister_id, port)).unwrap()
-//         }),
-//         "LIVE" => None,
-//         _ => panic!("Unknown dfx network: {}", dfx_network),
-//     };
+    let identity_provider = match dfx_network.as_str() {
+        "local" => Some({
+            let port = 4943;
+            let canister_id = BACKEND_ID.to_text();
+            Url::new(&format!("http://{}.localhost:{}", canister_id, port)).unwrap()
+        }),
+        "ic" => None,
+        _ => panic!("Unknown dfx network: {}", dfx_network),
+    };
 
-//     let on_success = |_| {
-//         // window().location().reload().unwrap();
-//         go_back_and_come_back();
-//         set_up_auth_context();
+    let mut auth_client = auth_client().await?;
 
-//     };
-//     let on_error = |e| {
-//         if let Some(e) = e {
-//             console_warn(&format!("Failed to login: {:?}", e));
-//         } else {
-//             console_warn("Failed to login");
-//         }
-//     };
+    let on_success = move |_| {
+        // window().location().reload().unwrap();
+    };
+    let on_error = |e| {
+        if let Some(e) = e {
+            console_warn(&format!("Failed to login: {:?}", e));
+        } else {
+            console_warn("Failed to login");
+        }
+    };
 
-//     let options = match identity_provider {
-//         Some(identity_provider) => AuthClientLoginOptions::builder().identity_provider(identity_provider),
-//         None => AuthClientLoginOptions::builder(),
-//     };
-//     let options = options
-//         .on_success(on_success)
-//         .on_error(on_error)
-//         .build();
-    
-//     auth_client()?.login_with_options(options);
+    let options = match identity_provider {
+        Some(identity_provider) => {
+            AuthClientLoginOptions::builder().identity_provider(identity_provider)
+        }
+        None => AuthClientLoginOptions::builder(),
+    };
+    let options = options.on_success(on_success).on_error(on_error).build();
 
-//     Ok(())
-// }
+    auth_client.login_with_options(options);
 
-// pub async fn logout() -> Result<(), AuthClientError> {
-//     auth_client()?.logout(None).await;
-//     // clear_localstorage();
-//     Ok(())
-// }
+    if auth_client.is_authenticated() {
+        let _ = Canisters::new(AuthService::from_client(auth_client.clone())).await;
+        Ok(())
+    } else {
+        Err(AuthClientError::AuthClientContextError)
+    }
+}
+
+pub async fn logout() -> Result<(), AuthClientError> {
+    auth_client().await?.logout(Some(window().location())).await;
+    Ok(())
+}
 
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum AuthClientError {

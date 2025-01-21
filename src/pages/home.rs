@@ -1,5 +1,7 @@
 use crate::components::{
-    car_rental::CarRental, footer::Footer, header::Header, home_banner::HeroSection, powered_by::PoweredBySection, ride_sharing::DecentralizedRidesharing, trip_includes::TripIncludes
+    car_rental::CarRental, footer::Footer, header::Header, home_banner::HeroSection,
+    powered_by::PoweredBySection, ride_sharing::DecentralizedRidesharing,
+    trip_includes::TripIncludes,
 };
 use leptos::prelude::*;
 use leptos_meta::Title;
@@ -20,4 +22,3 @@ pub fn HomePage() -> impl IntoView {
         </main>
     }
 }
-

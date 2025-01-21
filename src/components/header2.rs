@@ -3,7 +3,6 @@ use web_sys::window;
 
 #[component]
 pub fn Header2() -> impl IntoView {
-
     let go_back = || {
         if let Some(win) = window() {
             win.history().unwrap().back().unwrap();

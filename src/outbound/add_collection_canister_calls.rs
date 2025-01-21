@@ -8,19 +8,12 @@ pub struct Document {
     pub url: String,
 }
 pub async fn add_collection(
-    canisters: &Canisters,
+    _: &Canisters,
     collection_data: CollectionRequest,
 ) -> Result<(), String> {
-    let auth_service = canisters.auth_service.borrow();
-    if !auth_service.is_authenticated() {
-        log!(" User is not authenticated. Please log in first.");
-        return Err("User is not authenticated. Please log in first.".to_string());
-    } else {
-        log!(" User is authenticated.");
-    }
-    log!("collection_data: {:?}", collection_data);
+    let canister = Canisters::get_authenticated()?;
 
-    let provision_canister = canisters.provision_canister().await;
+    let provision_canister = canister.provision_canister().await;
     match provision_canister
         .add_collection_request(collection_data)
         .await

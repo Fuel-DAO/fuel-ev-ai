@@ -1,22 +1,20 @@
 use leptos::prelude::window;
 use leptos_use::use_window;
 
-
 /// Share a URL with the Web Share API
 /// returns None if the API is not available
 pub fn share_url(url: &str) -> Option<()> {
-    
-        use wasm_bindgen::JsValue;
-        use web_sys::{js_sys::Reflect, ShareData};
-        let window = window();
-        let nav = window.navigator();
-        if !Reflect::has(&nav, &JsValue::from_str("share")).unwrap_or_default() {
-            return None;
-        }
-        let share_data = ShareData::new();
-        share_data.set_url(url);
-        _ = nav.share_with_data(&share_data);
-        Some(())
+    use wasm_bindgen::JsValue;
+    use web_sys::{js_sys::Reflect, ShareData};
+    let window = window();
+    let nav = window.navigator();
+    if !Reflect::has(&nav, &JsValue::from_str("share")).unwrap_or_default() {
+        return None;
+    }
+    let share_data = ShareData::new();
+    share_data.set_url(url);
+    _ = nav.share_with_data(&share_data);
+    Some(())
 }
 
 /// Copy text to clipboard

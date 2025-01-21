@@ -1,16 +1,25 @@
 use leptos::prelude::*;
 
-use crate::{canister::backend::CarTravelStats, state::canisters::Canisters, time::get_day_month_time};
+use crate::{
+    canister::backend::CarTravelStats,
+    state::{auth_actions::send_wrap, canisters::Canisters},
+    time::get_day_month_time,
+};
 #[component]
 pub fn InvestorsBookingDashboard() -> impl IntoView {
-
-    let stats = Resource::new(||(), |_| {
-        async move {
-            let backend = Canisters::get().ok_or(format!("Canisters not initialized"))?;
-            let backend = backend.backend_canister().await;
-            backend.car_stats().await.map_err(|f| format!("Failed to get stats {f:?}"))
-        }
-    });
+    let stats = Resource::new(
+        || (),
+        |_| {
+            send_wrap(async move {
+                let backend = Canisters::get().ok_or(format!("Canisters not initialized"))?;
+                let backend = backend.backend_canister().await;
+                backend
+                    .car_stats()
+                    .await
+                    .map_err(|f| format!("Failed to get stats {f:?}"))
+            })
+        },
+    );
 
     view! {
         <a href="/" class="flex items-center justify-between p-4 bg-white shadow">
@@ -78,7 +87,6 @@ pub fn InvestorsBookingDashboard() -> impl IntoView {
     }
 }
 
-
 #[component]
 pub fn Footer() -> impl IntoView {
     view! {
@@ -115,7 +123,6 @@ pub fn Footer() -> impl IntoView {
     }
 }
 
-
 #[component]
 fn Matrics(stats: CarTravelStats) -> impl IntoView {
     let total_revenue = stats.total_revenue / 84.0;
@@ -124,8 +131,8 @@ fn Matrics(stats: CarTravelStats) -> impl IntoView {
     } else {
         stats.total_distance_travelled
     };
-    let reduced_carbon_emissions = (0.285)*total_distance - (0.103) * total_distance;
-    let yield_percentage = (stats.total_revenue /stats.total_investment) * 100.0;
+    let reduced_carbon_emissions = (0.285) * total_distance - (0.103) * total_distance;
+    let yield_percentage = (stats.total_revenue / stats.total_investment) * 100.0;
     view! {
         <section class="grid grid-cols-2 gap-6 p-8 text-center">
             <div class="border rounded p-4 shadow">
@@ -146,12 +153,10 @@ fn Matrics(stats: CarTravelStats) -> impl IntoView {
             </div>
         </section>
     }
-
 }
 
 #[component]
 fn Bookings(stats: CarTravelStats) -> impl IntoView {
-
     view! {
         <section class="p-8">
                                         <h2 class="text-2xl font-bold mb-4 text-center">
@@ -204,5 +209,4 @@ fn Bookings(stats: CarTravelStats) -> impl IntoView {
                                         </table>
                                     </section>
     }
-
 }

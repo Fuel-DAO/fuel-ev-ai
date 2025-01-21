@@ -89,7 +89,7 @@ impl Set for ShowOverlay {
 #[component]
 pub fn ShadowOverlay(#[prop(into)] show: ShowOverlay, children: ChildrenFn) -> impl IntoView {
     let children_s = store_value(children);
-   
+
     view! {
         <Show when=move || show.get()>
             // Portal is necessary
@@ -108,8 +108,6 @@ pub fn ShadowOverlay(#[prop(into)] show: ShowOverlay, children: ChildrenFn) -> i
         </Show>
     }
 }
-
-
 
 #[component]
 fn ActionRunningOverlay(message: String) -> impl IntoView {

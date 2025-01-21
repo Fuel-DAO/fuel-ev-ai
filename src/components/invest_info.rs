@@ -1,5 +1,6 @@
 use crate::canister::token::{GetMetadataRet, SaleStatus};
 use crate::outbound::collection_canister_calls::{get_sale_status, get_total_booked_tokens};
+use crate::state::auth_actions::send_wrap;
 use crate::state::canisters::Canisters;
 use crate::utils::button::ButtonComponent;
 use crate::utils::invest_popup::InvestPopup;
@@ -22,11 +23,11 @@ pub fn InvestInfo(metadata: GetMetadataRet, token_canister_id: Principal) -> imp
             let token_canister_id = token_canister_id.clone();
             // let canisters_signal = canisters_signal.clone();
 
-            async move {
+            send_wrap(async move {
                 if let Some(canisters) = Canisters::get() {
-                    let status = get_sale_status( &canisters,token_canister_id).await?;
+                    let status = get_sale_status(&canisters, token_canister_id).await?;
                     let booked_tokens =
-                        get_total_booked_tokens( &canisters,token_canister_id).await?;
+                        get_total_booked_tokens(&canisters, token_canister_id).await?;
                     Ok::<InvestInfoMetaProps, String>(InvestInfoMetaProps {
                         metadata,
                         booked_tokens,
@@ -35,7 +36,7 @@ pub fn InvestInfo(metadata: GetMetadataRet, token_canister_id: Principal) -> imp
                 } else {
                     Err("Canisters instance not available.".to_string())
                 }
-            }
+            })
         },
     );
     view! {
@@ -79,8 +80,6 @@ fn InvenstInfoInner(props: InvestInfoMetaProps, token_canister_id: Principal) ->
             "0".to_string()
         }
     };
-    
-    
 
     let invested_percentage_clone = invested_percentage.clone();
 

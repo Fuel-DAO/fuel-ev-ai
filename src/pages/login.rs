@@ -1,11 +1,15 @@
 // src/components/login.rs
 
-use crate::{components::header::Header, state::{
-    auth_actions::{create_login_action, create_logout_action}, canisters::Canisters
-}};
-use leptos::prelude::*;
 use crate::utils::web::copy_to_clipboard;
-
+use crate::{
+    components::header::Header,
+    state::{
+        auth_actions::{create_login_action, create_logout_action},
+        canisters::Canisters,
+    },
+};
+use candid::Principal;
+use leptos::prelude::*;
 
 /// The Login component handles user authentication.
 /// It displays login options when the user is not authenticated
@@ -55,6 +59,9 @@ pub fn Login() -> impl IntoView {
                                 <>
                                     <h2 class="text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
                                         "Sign in or join"
+                                    </h2>
+                                    <h2 class="text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
+                                        {move || Canisters::principal().map(|f| f.to_text()).unwrap_or(Principal::anonymous().to_text()) }
                                     </h2>
 
                                     <button
@@ -117,7 +124,7 @@ pub fn Login() -> impl IntoView {
                                 on:click=move |_| {
                                     let text = &Canisters::principal().map(|p| p.to_text()).unwrap_or_default();
                                     copy_to_clipboard(text);
-                                    
+
                                 }
                                 class="w-3 h-3"
                             >
@@ -158,10 +165,10 @@ pub fn Login() -> impl IntoView {
                                         />
                                     </svg>
                                     <span class="whitespace-nowrap">"Logout"</span>
-                                    
+
                                 </div>
                             </button>
-                            
+
                                 // <div class="flex items-center justify-center gap-2">
                                 //     <AdminRoute />
                                 // </div>

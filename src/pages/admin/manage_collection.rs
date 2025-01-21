@@ -3,19 +3,20 @@ use crate::components::admin::manage_collection::{
     form_header::FormHeader, info_section::InfoSection, item_info::ItemInfo,
 };
 use crate::components::header2::Header2;
+use crate::state::auth_actions::send_wrap;
 use crate::{
     outbound::get_pending_collection_requests::{
-        approve_request,  get_request_info_by_id, reject_request,
+        approve_request, get_request_info_by_id, reject_request,
     },
     state::canisters::Canisters,
 };
 use hooks::use_params;
-use leptos::{logging, prelude::*};
 use leptos::task::spawn_local;
+use leptos::{logging, prelude::*};
+use leptos_router::params::Params;
 use leptos_router::*;
 use params::ParamsError;
 use serde_json::Value;
-use leptos_router::params::Params;
 /// Converts Metadata to key-value pairs
 fn metadata_to_key_value_pairs(metadata: &CollectionRequest) -> Vec<(String, String)> {
     // Serialize `Metadata` to a JSON-compatible Value
@@ -64,23 +65,26 @@ pub fn ManageCollectionPage() -> impl IntoView {
     // let query = use_query::<ContactSearch>();
 
     // Define a closure to extract the id parameter
-    let id =
-        move || params.with(|params: &Result<ContactParams, ParamsError>| params.as_ref().map(|params| params.id).unwrap_or_default());
+    let id = move || {
+        params.with(|params: &Result<ContactParams, ParamsError>| {
+            params.as_ref().map(|params| params.id).unwrap_or_default()
+        })
+    };
 
     // Create a resource to fetch collection details
     let collection_details = Resource::new(
         move || Canisters::get_authenticated().ok().clone(),
-        move |cans_option| async move {
-            if let Some(cans) = cans_option {
-                match get_request_info_by_id(&cans, id().unwrap()).await {
-                    Ok(data) => {
-                        Ok(data)
+        move |cans_option| {
+            send_wrap(async move {
+                if let Some(cans) = cans_option {
+                    match get_request_info_by_id(&cans, id().unwrap()).await {
+                        Ok(data) => Ok(data),
+                        Err(e) => Err(e),
                     }
-                    Err(e) => Err(e),
+                } else {
+                    Err("Canisters not available. Please log in.".to_string())
                 }
-            } else {
-                Err("Canisters not available. Please log in.".to_string())
-            }
+            })
         },
     );
     // Function to handle approval
@@ -89,14 +93,11 @@ pub fn ManageCollectionPage() -> impl IntoView {
             let collection_id = id();
             spawn_local(async move {
                 match approve_request(&canisters, collection_id.unwrap()).await {
-                    Ok((id, token_canister, asset_canister)) => {
-                        
-                    }
-                    Err(err) => {
-                    }
+                    Ok((id, token_canister, asset_canister)) => {}
+                    Err(err) => {}
                 }
             });
-        } 
+        }
     };
     let reject_action = move || {
         if let Some(canisters) = Canisters::get_authenticated().ok() {

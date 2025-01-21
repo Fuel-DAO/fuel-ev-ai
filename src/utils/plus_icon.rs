@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 
 #[component]
-pub fn PlusIcon( #[prop(optional)] class: Option<String>) -> impl IntoView {
+pub fn PlusIcon(#[prop(optional)] class: Option<String>) -> impl IntoView {
     view! {
         <svg
             xmlns="http://www.w3.org/2000/svg"

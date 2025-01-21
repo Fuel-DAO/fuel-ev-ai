@@ -8,9 +8,8 @@ use serde::Serialize;
 
 use crate::canister::provision::{self, Result2};
 
-
 pub struct AssetManager<'a> {
-//    pub asset_proxy_canister: AssetProxy<'a>,
+    //    pub asset_proxy_canister: AssetProxy<'a>,
     upload_canister_id: Principal,
     // asset_canister_id: Principal,
     agent: &'a Agent,
@@ -25,11 +24,11 @@ struct StoreResponse {
 
 #[derive(CandidType, Deserialize, serde::Serialize, Debug, Clone)]
 pub struct StoreArg {
-  pub key: String,
-  pub content: Vec<u8>,
-  pub sha256: Option<Vec<u8>>,
-  pub content_type: String,
-  pub content_encoding: String,
+    pub key: String,
+    pub content: Vec<u8>,
+    pub sha256: Option<Vec<u8>>,
+    pub content_type: String,
+    pub content_encoding: String,
 }
 
 impl<'a> AssetManager<'a> {
@@ -49,7 +48,12 @@ impl<'a> AssetManager<'a> {
     /// Uploads a file to the upload canister and returns its URL.
     pub async fn store(&self, arg0: StoreArg) -> Result<provision::Result2, ic_agent::AgentError> {
         let args = Encode!(&arg0)?;
-        let bytes = self.agent.update(&self.upload_canister_id, "store").with_arg(args).call_and_wait().await?;
+        let bytes = self
+            .agent
+            .update(&self.upload_canister_id, "store")
+            .with_arg(args)
+            .call_and_wait()
+            .await?;
         Ok(Decode!(&bytes, Result2)?)
     }
     pub async fn delete(&self, url: String) -> Result<(), String> {

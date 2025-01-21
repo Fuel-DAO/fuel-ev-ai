@@ -1,14 +1,11 @@
 use crate::components::header2::Header2;
 use crate::outbound::admin_check::is_admin;
+use crate::state::auth_actions::{create_login_action, send_wrap};
 use crate::state::canisters::Canisters;
-use crate::state::
-    auth_actions::create_login_action
-;
 use leptos::prelude::*;
 
 #[component]
 pub fn AdminComponent() -> impl IntoView {
-    
     // Use the reusable actions from auth_actions.rs
     let handle_login = create_login_action();
     // Create a resource to fetch admin status
@@ -18,12 +15,14 @@ pub fn AdminComponent() -> impl IntoView {
             let maybe_principal = Canisters::principal();
             (maybe_canisters, maybe_principal)
         },
-        move |(maybe_canisters, maybe_principal)| async move {
-            if let Some(rc_canisters) = maybe_canisters {
-                is_admin(&rc_canisters, maybe_principal).await
-            } else {
-                Err("Canisters are not available".to_string())
-            }
+        move |(maybe_canisters, maybe_principal)| {
+            send_wrap(async move {
+                if let Some(rc_canisters) = maybe_canisters {
+                    is_admin(&rc_canisters, maybe_principal).await
+                } else {
+                    Err("Canisters are not available".to_string())
+                }
+            })
         },
     );
 

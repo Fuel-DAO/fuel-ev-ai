@@ -1,13 +1,10 @@
 use candid::Principal;
 use leptos::prelude::*;
 
-
-
-
 #[derive(Default, Clone)]
 pub struct Admin {
-    pub is_admin: RwSignal<bool>, 
-    pub principal: RwSignal<Option<Principal>>
+    pub is_admin: RwSignal<bool>,
+    pub principal: RwSignal<Option<Principal>>,
 }
 
 impl Admin {

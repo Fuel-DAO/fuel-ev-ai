@@ -1,7 +1,9 @@
 pub mod admin;
+pub mod car_rental;
 pub mod collection_header;
 pub mod collection_images;
 pub mod collection_info_cards;
+pub mod documents;
 pub mod footer;
 pub mod header;
 pub mod header2;
@@ -13,5 +15,3 @@ pub mod ridesharing_info;
 pub mod specifications;
 pub mod tabs;
 pub mod trip_includes;
-pub mod documents;
-pub mod car_rental;

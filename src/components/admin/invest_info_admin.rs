@@ -1,19 +1,23 @@
+use crate::canister::token::GetMetadataRet;
+use crate::outbound::accept_or_reject_sale::{accept_sale, reject_sale};
+use crate::outbound::collection_canister_calls::{
+    get_total_booked_tokens, refund_excess_after_sale, refund_icps_to_annonymous,
+    transfer_amount_from_annonymous_to_investor, update_annonymous_principal,
+};
+use crate::state::auth_actions::send_wrap;
+use crate::state::canisters::Canisters;
+use candid::{Nat, Principal};
+use leptos::logging::log;
 use leptos::prelude::*;
 use leptos::task::spawn_local;
-use crate::canister::token::GetMetadataRet;
-use crate::state::canisters::Canisters;
-use crate::outbound::accept_or_reject_sale::{accept_sale, reject_sale};
-use crate::outbound::collection_canister_calls::{get_total_booked_tokens, refund_excess_after_sale, refund_icps_to_annonymous, transfer_amount_from_annonymous_to_investor, update_annonymous_principal};
-use candid::{Principal, Nat};
-use leptos::logging::log;
 use num_bigint::BigUint;
-use num_traits::{Zero, ToPrimitive};
+use num_traits::{ToPrimitive, Zero};
 
 #[component]
 pub fn ConcludeSaleAdminComponent(
     metadata: GetMetadataRet,
     token_canister_id: Principal,
-    is_active: bool
+    is_active: bool,
 ) -> impl IntoView {
     // Reactive signals for loading states
     let loading_accept = RwSignal::new(false);
@@ -35,14 +39,15 @@ pub fn ConcludeSaleAdminComponent(
         move |_| {
             let token_canister_id = token_canister_id.clone();
 
-            async move {
+            send_wrap(async move {
                 if let Some(canisters) = Canisters::get_authenticated().ok() {
-                    let booked_tokens = get_total_booked_tokens(&canisters, token_canister_id).await?;
+                    let booked_tokens =
+                        get_total_booked_tokens(&canisters, token_canister_id).await?;
                     Ok::<Nat, String>(booked_tokens)
                 } else {
                     Err("Canisters instance not available.".to_string())
                 }
-            }
+            })
         },
     );
 
@@ -357,319 +362,280 @@ pub fn ConcludeSaleAdminComponent(
     }
 }
 
-
-
 #[component]
-pub fn TransferAmountFromAnnonymousToInvestor(
-    token_canister_id: Principal,
-) -> impl IntoView {
+pub fn TransferAmountFromAnnonymousToInvestor(token_canister_id: Principal) -> impl IntoView {
     let loading = RwSignal::new(false);
     let is_updated = RwSignal::new(false);
     let err = RwSignal::new(Some(String::new()));
     let fallback_principal = RwSignal::new(String::new());
     let amount = RwSignal::new(0.0);
-    let call_api =Action::new(move|&()|  {
-
-        
-            let token_canister_id = token_canister_id.clone();
-            let principal = fallback_principal.get();
-            let amount_icp = amount.get();
-            err.set(None);
-           async move {
-
-
-
-                if let Some(canisters) = Canisters::get_authenticated().ok() {
-
-                   let principal = match Principal::from_text(principal) {
-                    Ok(p) => p, 
+    let call_api = Action::new(move |&()| {
+        let token_canister_id = token_canister_id.clone();
+        let principal = fallback_principal.get();
+        let amount_icp = amount.get();
+        err.set(None);
+        send_wrap(async move {
+            if let Some(canisters) = Canisters::get_authenticated().ok() {
+                let principal = match Principal::from_text(principal) {
+                    Ok(p) => p,
                     Err(_) => {
                         err.set(Some("Invalid principal".into()));
                         return;
                     }
-                   };
-                   let icp_amount = match f64::try_from(amount_icp) {
-                    Ok(p) => p, 
+                };
+                let icp_amount = match f64::try_from(amount_icp) {
+                    Ok(p) => p,
                     Err(_) => {
                         err.set(Some("Invalid amount".into()));
                         return;
                     }
-                   };
-                   loading.set(true);
+                };
+                loading.set(true);
 
-                   let res = match transfer_amount_from_annonymous_to_investor(&canisters, token_canister_id, icp_amount ,principal).await {
+                let res = match transfer_amount_from_annonymous_to_investor(
+                    &canisters,
+                    token_canister_id,
+                    icp_amount,
+                    principal,
+                )
+                .await
+                {
                     Ok(f) => Ok(f),
                     Err(e) => {
                         err.set(Some(e.clone()));
                         Err(e)
-                    } 
-                   };
+                    }
+                };
 
-                   is_updated.set(res.is_ok());
-                   loading.set(false);
-                }else {
-                    err.set(Some("Local canisters error".into()));
-                }
+                is_updated.set(res.is_ok());
+                loading.set(false);
+            } else {
+                err.set(Some("Local canisters error".into()));
             }
+        })
     });
 
+    view! {
+        <label class="flex flex-col gap-4 w-full border border-primary p-2 border-dotted">
+             Transfer from Annonymous
+            <div>Fallback Principal ID for Annonymous</div>
+            <input
+                type="text"
+                placeholder="Enter a valid principal id"
+                disabled=move || loading.get()
+                on:input=move |e| fallback_principal.set(event_target_value(&e))
+                class="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            />
+            <div>{move || fallback_principal.get()}</div>
+            <div>Refund amount for Annonymous</div>
+            <input
+                type="number"
+                placeholder="Enter anount in decimal"
+                disabled=move || loading.get()
+                on:input=move |e| amount.set(event_target_value(&e).parse().unwrap_or_default())
+                class="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            /> <div>Amount: {move || amount.get()}</div>
 
-
-
-    
-   view! {
-       <label class="flex flex-col gap-4 w-full border border-primary p-2 border-dotted">
-            Transfer from Annonymous
-           <div>Fallback Principal ID for Annonymous</div>
-           <input
-               type="text"
-               placeholder="Enter a valid principal id"
-               disabled=move || loading.get()
-               on:input=move |e| fallback_principal.set(event_target_value(&e))
-               class="mt-1 block w-full border border-gray-300 rounded-md p-2"
-           /> 
-           <div>{move || fallback_principal.get()}</div>
-           <div>Refund amount for Annonymous</div>
-           <input
-               type="number"
-               placeholder="Enter anount in decimal"
-               disabled=move || loading.get()
-               on:input=move |e| amount.set(event_target_value(&e).parse().unwrap_or_default())
-               class="mt-1 block w-full border border-gray-300 rounded-md p-2"
-           /> <div>Amount: {move || amount.get()}</div>
-           
-           <div class="text-red-600">
-               {move || if err.get().is_some() { err.get().unwrap() } else { String::new() }}
-           </div>
-           <button
-               class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
-               on:click=move |_| { call_api.dispatch(()); }
-               disabled=loading.get()
-           >
-               {move || if loading.get() { "Submitting..." } else { "Submit" }}
-           </button>
-       </label>
-   }
+            <div class="text-red-600">
+                {move || if err.get().is_some() { err.get().unwrap() } else { String::new() }}
+            </div>
+            <button
+                class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
+                on:click=move |_| { call_api.dispatch(()); }
+                disabled=loading.get()
+            >
+                {move || if loading.get() { "Submitting..." } else { "Submit" }}
+            </button>
+        </label>
+    }
 }
 #[component]
-pub fn RefundExcessAfterSale(
-    token_canister_id: Principal,
-) -> impl IntoView {
+pub fn RefundExcessAfterSale(token_canister_id: Principal) -> impl IntoView {
     let loading = RwSignal::new(false);
     let is_updated = RwSignal::new(false);
     let err = RwSignal::new(Some(String::new()));
     let fallback_principal = RwSignal::new(String::new());
-    let call_api =Action::new(move|&()|  {
-
-        
-            let token_canister_id = token_canister_id.clone();
-            let principal = fallback_principal.get();
-            err.set(None);
-           async move {
-
-
-
-                if let Some(canisters) = Canisters::get_authenticated().ok() {
-
-                   let principal = match Principal::from_text(principal) {
-                    Ok(p) => p, 
+    let call_api = Action::new(move |&()| {
+        let token_canister_id = token_canister_id.clone();
+        let principal = fallback_principal.get();
+        err.set(None);
+        send_wrap(async move {
+            if let Some(canisters) = Canisters::get_authenticated().ok() {
+                let principal = match Principal::from_text(principal) {
+                    Ok(p) => p,
                     Err(_) => {
                         err.set(Some("Invalid principal".into()));
                         return;
                     }
-                   };
-                   loading.set(true);
+                };
+                loading.set(true);
 
-                   let res = match refund_excess_after_sale(&canisters, token_canister_id, principal).await {
+                let res = match refund_excess_after_sale(&canisters, token_canister_id, principal)
+                    .await
+                {
                     Ok(f) => Ok(f),
                     Err(e) => {
                         err.set(Some(e.clone()));
                         Err(e)
-                    } 
-                   };
+                    }
+                };
 
-                   is_updated.set(res.is_ok());
-                   loading.set(false);
-                }else {
-                    err.set(Some("Local canisters error".into()));
-                }
+                is_updated.set(res.is_ok());
+                loading.set(false);
+            } else {
+                err.set(Some("Local canisters error".into()));
             }
+        })
     });
 
-
-
-
-    
-   view! {
-       <label class="flex flex-col gap-4 w-full">
-           Refund excess after sale
-           <input
-               type="text"
-               placeholder="Enter a valid principal id"
-               disabled=move || loading.get()
-               on:input=move |e| fallback_principal.set(event_target_value(&e))
-               class="mt-1 block w-full border border-gray-300 rounded-md p-2"
-           /> {move || fallback_principal.get()}
-           <div class="text-red-600">
-               {move || if err.get().is_some() { err.get().unwrap() } else { String::new() }}
-           </div>
-           <button
-               class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
-               on:click=move |_| { call_api.dispatch(()); }
-               disabled=loading.get()
-           >
-               {move || if loading.get() { "Submitting..." } else { "Submit" }}
-           </button>
-       </label>
-   }
+    view! {
+        <label class="flex flex-col gap-4 w-full">
+            Refund excess after sale
+            <input
+                type="text"
+                placeholder="Enter a valid principal id"
+                disabled=move || loading.get()
+                on:input=move |e| fallback_principal.set(event_target_value(&e))
+                class="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            /> {move || fallback_principal.get()}
+            <div class="text-red-600">
+                {move || if err.get().is_some() { err.get().unwrap() } else { String::new() }}
+            </div>
+            <button
+                class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
+                on:click=move |_| { call_api.dispatch(()); }
+                disabled=loading.get()
+            >
+                {move || if loading.get() { "Submitting..." } else { "Submit" }}
+            </button>
+        </label>
+    }
 }
 
-
 #[component]
-pub fn AddFallbackPrincipalForAnnonymousInvestor(
-    token_canister_id: Principal,
-) -> impl IntoView {
+pub fn AddFallbackPrincipalForAnnonymousInvestor(token_canister_id: Principal) -> impl IntoView {
     let loading = RwSignal::new(false);
     let is_updated = RwSignal::new(false);
     let err = RwSignal::new(Some(String::new()));
     let fallback_principal = RwSignal::new(String::new());
-    let call_api =Action::new(move|&()|  {
-
-        
-            let token_canister_id = token_canister_id.clone();
-            let principal = fallback_principal.get();
-            err.set(None);
-           async move {
-
-
-
-                if let Some(canisters) = Canisters::get_authenticated().ok() {
-
-                   let principal = match Principal::from_text(principal) {
-                    Ok(p) => p, 
+    let call_api = Action::new(move |&()| {
+        let token_canister_id = token_canister_id.clone();
+        let principal = fallback_principal.get();
+        err.set(None);
+        send_wrap(async move {
+            if let Some(canisters) = Canisters::get_authenticated().ok() {
+                let principal = match Principal::from_text(principal) {
+                    Ok(p) => p,
                     Err(_) => {
                         err.set(Some("Invalid principal".into()));
                         return;
                     }
-                   };
-                   loading.set(true);
+                };
+                loading.set(true);
 
-                   let res = match update_annonymous_principal(&canisters, token_canister_id, principal).await {
-                    Ok(f) => Ok(f),
-                    Err(e) => {
-                        err.set(Some(e.clone()));
-                        Err(e)
-                    } 
-                   };
+                let res =
+                    match update_annonymous_principal(&canisters, token_canister_id, principal)
+                        .await
+                    {
+                        Ok(f) => Ok(f),
+                        Err(e) => {
+                            err.set(Some(e.clone()));
+                            Err(e)
+                        }
+                    };
 
-                   is_updated.set(res.is_ok());
-                   loading.set(false);
-                }else {
-                    err.set(Some("Local canisters error".into()));
-                }
+                is_updated.set(res.is_ok());
+                loading.set(false);
+            } else {
+                err.set(Some("Local canisters error".into()));
             }
+        })
     });
 
-
-
-
-    
-   view! {
-       <label class="flex flex-col gap-4 w-full">
-           Fallback Principal ID for Annonymous
-           <input
-               type="text"
-               placeholder="Enter a valid principal id"
-               disabled=move || loading.get()
-               on:input=move |e| fallback_principal.set(event_target_value(&e))
-               class="mt-1 block w-full border border-gray-300 rounded-md p-2"
-           /> {move || fallback_principal.get()}
-           <div class="text-red-600">
-               {move || if err.get().is_some() { err.get().unwrap() } else { String::new() }}
-           </div>
-           <button
-               class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
-               on:click=move |_| { call_api.dispatch(()); }
-               disabled=loading.get()
-           >
-               {move || if loading.get() { "Submitting..." } else { "Submit" }}
-           </button>
-       </label>
-   }
+    view! {
+        <label class="flex flex-col gap-4 w-full">
+            Fallback Principal ID for Annonymous
+            <input
+                type="text"
+                placeholder="Enter a valid principal id"
+                disabled=move || loading.get()
+                on:input=move |e| fallback_principal.set(event_target_value(&e))
+                class="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            /> {move || fallback_principal.get()}
+            <div class="text-red-600">
+                {move || if err.get().is_some() { err.get().unwrap() } else { String::new() }}
+            </div>
+            <button
+                class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
+                on:click=move |_| { call_api.dispatch(()); }
+                disabled=loading.get()
+            >
+                {move || if loading.get() { "Submitting..." } else { "Submit" }}
+            </button>
+        </label>
+    }
 }
 
-
 #[component]
-pub fn RefundICPsToAnnonymous(
-    token_canister_id: Principal,
-) -> impl IntoView {
+pub fn RefundICPsToAnnonymous(token_canister_id: Principal) -> impl IntoView {
     let loading = RwSignal::new(false);
     let is_updated = RwSignal::new(false);
     let err = RwSignal::new(Some(String::new()));
     let amount = RwSignal::new(0.0);
-    
-    let call_api =Action::new(move|&()|  {
 
-        
-            let token_canister_id = token_canister_id.clone();
-            let amount_icp = amount.get();
-            err.set(None);
-           async move {
-
-
-
-                if let Some(canisters) = Canisters::get_authenticated().ok() {
-
-                   let icp_amount = match f64::try_from(amount_icp) {
-                    Ok(p) => p, 
+    let call_api = Action::new(move |&()| {
+        let token_canister_id = token_canister_id.clone();
+        let amount_icp = amount.get();
+        err.set(None);
+        send_wrap(async move {
+            if let Some(canisters) = Canisters::get_authenticated().ok() {
+                let icp_amount = match f64::try_from(amount_icp) {
+                    Ok(p) => p,
                     Err(_) => {
                         err.set(Some("Invalid amount".into()));
                         return;
                     }
-                   };
-                   loading.set(true);
+                };
+                loading.set(true);
 
-                   let res = match refund_icps_to_annonymous(&canisters, token_canister_id, icp_amount).await {
+                let res = match refund_icps_to_annonymous(&canisters, token_canister_id, icp_amount)
+                    .await
+                {
                     Ok(f) => Ok(f),
                     Err(e) => {
                         err.set(Some(e.clone()));
                         Err(e)
-                    } 
-                   };
+                    }
+                };
 
-                   is_updated.set(res.is_ok());
-                   loading.set(false);
-                }else {
-                    err.set(Some("Local canisters error".into()));
-                }
+                is_updated.set(res.is_ok());
+                loading.set(false);
+            } else {
+                err.set(Some("Local canisters error".into()));
             }
+        })
     });
 
-
-
-
-    
-   view! {
-       <label class="flex flex-col gap-4 w-full">
-           Refund amount for Annonymous
-           <input
-               type="number"
-               placeholder="Enter anount in decimal"
-               disabled=move || loading.get()
-               on:input=move |e| amount.set(event_target_value(&e).parse().unwrap_or_default())
-               class="mt-1 block w-full border border-gray-300 rounded-md p-2"
-           /> Amount: {move || amount.get()}
-           <div class="text-red-600">
-               {move || if err.get().is_some() { err.get().unwrap() } else { String::new() }}
-           </div>
-           <button
-               class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
-               on:click=move |_| { call_api.dispatch(()); }
-               disabled=loading.get()
-           >
-               {move || if loading.get() { "Submitting..." } else { "Submit" }}
-           </button>
-       </label>
-   }
+    view! {
+        <label class="flex flex-col gap-4 w-full">
+            Refund amount for Annonymous
+            <input
+                type="number"
+                placeholder="Enter anount in decimal"
+                disabled=move || loading.get()
+                on:input=move |e| amount.set(event_target_value(&e).parse().unwrap_or_default())
+                class="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            /> Amount: {move || amount.get()}
+            <div class="text-red-600">
+                {move || if err.get().is_some() { err.get().unwrap() } else { String::new() }}
+            </div>
+            <button
+                class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex relative items-center w-fit h-fit rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
+                on:click=move |_| { call_api.dispatch(()); }
+                disabled=loading.get()
+            >
+                {move || if loading.get() { "Submitting..." } else { "Submit" }}
+            </button>
+        </label>
+    }
 }
-

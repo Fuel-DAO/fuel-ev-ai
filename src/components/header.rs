@@ -1,7 +1,8 @@
 use crate::{
     pages::admin::check_admin::AdminRoute,
     state::{
-        auth_actions::{create_login_action, create_logout_action}, canisters::Canisters,
+        auth_actions::{create_login_action, create_logout_action},
+        canisters::Canisters,
     },
 };
 use leptos::prelude::*;
@@ -10,26 +11,78 @@ pub fn Header() -> impl IntoView {
     let (menu_open, set_menu_open) = signal(false);
 
     view! {
-        <div class="w-full fixed z-50 h-20 shadow-sm flex items-center justify-between px-8 font-light transition-all bg-white/90 backdrop-blur-md">
-            // Logo Section
-            <div class="flex items-center justify-between space-x-2">
-                <a href="/">
-                    <img src="/public/img/app.svg" alt="Fuel DAO Logo" class="h-8" />
-                </a>
-            </div>
+            <div class="w-full fixed z-50 h-20 shadow-sm flex items-center justify-between px-8 font-light transition-all bg-white/90 backdrop-blur-md">
+                // Logo Section
+                <div class="flex items-center justify-between space-x-2">
+                    <a href="/">
+                        <img src="/public/img/app.svg" alt="Fuel DAO Logo" class="h-8" />
+                    </a>
+                </div>
 
-            // Hamburger Button
-            <div class="lg:hidden flex  gap-2 items-center justify-end">
-            <UserPrincipal />
+                // Hamburger Button
+                <div class="lg:hidden flex  gap-2 items-center justify-end">
+                <UserPrincipal />
 
-            <button
-                class=" text-black rounded-full h-8 "
-                on:click=move |_| set_menu_open.update(|open| *open = !*open)
-            >
-                {move || {
-                    if menu_open() {
-                        view! {
-                            // Close icon when the menu is open
+                <button
+                    class=" text-black rounded-full h-8 "
+                    on:click=move |_| set_menu_open.update(|open| *open = !*open)
+                >
+                    {move || {
+                        if menu_open() {
+                            view! {
+                                // Close icon when the menu is open
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="h-6 w-6"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
+                                </svg>
+                            }.into_any()
+                        } else {
+                            view! {
+                                // Hamburger icon when the menu is closed
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="h-6 w-6"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M4 6h16M4 12h16M4 18h16"
+                                    />
+                                </svg>
+                            }.into_any()
+                        }
+                    }}
+                </button>
+                </div>
+
+                // Drawer Menu
+                <div
+                    class=move || {
+                        format!(
+                            "fixed top-0 right-0 h-full w-64 bg-white shadow-lg z-40 transition-transform transform {}",
+                            if menu_open.get() { "translate-x-0" } else { "translate-x-full" }
+                        )
+                    }
+                >
+                    <div class="flex flex-col h-full p-6 space-y-6 bg-white">
+                        <button
+                            class="self-end bg-gray-200 p-2 rounded-full"
+                            on:click=move |_| set_menu_open.set(false)
+                        >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 class="h-6 w-6"
@@ -44,90 +97,38 @@ pub fn Header() -> impl IntoView {
                                     d="M6 18L18 6M6 6l12 12"
                                 />
                             </svg>
-                        }.into_any()
-                    } else {
-                        view! {
-                            // Hamburger icon when the menu is closed
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="h-6 w-6"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                stroke-width="2"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M4 6h16M4 12h16M4 18h16"
-                                />
-                            </svg>
-                        }.into_any()
-                    }
-                }}
-            </button>
-            </div>
+                        </button>
+                        <div class="flex flex-col items-start space-y-4">
+        <TrailingButton />
+    </div>
+                    </div>
+                </div>
 
-            // Drawer Menu
-            <div
-                class=move || {
-                    format!(
-                        "fixed top-0 right-0 h-full w-64 bg-white shadow-lg z-40 transition-transform transform {}",
-                        if menu_open.get() { "translate-x-0" } else { "translate-x-full" }
-                    )
-                }
-            >
-                <div class="flex flex-col h-full p-6 space-y-6 bg-white">
-                    <button
-                        class="self-end bg-gray-200 p-2 rounded-full"
-                        on:click=move |_| set_menu_open.set(false)
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="h-6 w-6"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            stroke-width="2"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M6 18L18 6M6 6l12 12"
-                            />
-                        </svg>
-                    </button>
-                    <div class="flex flex-col items-start space-y-4">
-    <TrailingButton />
-</div>
+                // Overlay (optional)
+                {move || if menu_open() {
+                    view! {
+                        <div
+                            class="fixed inset-0 bg-black bg-opacity-50 z-30"
+                            on:click=move |_| set_menu_open.set(false)
+                        ></div>
+                    }.into_any()
+                } else {
+                    view! { <div class="hidden lg:flex gap-8 items-center">
+                        </div> }.into_any()
+                }}
+
+
+
+
+
+                // Desktop Navigation
+                <div class="hidden lg:flex gap-8 items-center">
+                    <TrailingButton />
+                    <UserPrincipal />
+
                 </div>
             </div>
-
-            // Overlay (optional)
-            {move || if menu_open() {
-                view! {
-                    <div
-                        class="fixed inset-0 bg-black bg-opacity-50 z-30"
-                        on:click=move |_| set_menu_open.set(false)
-                    ></div>
-                }.into_any()
-            } else {
-                view! { <div class="hidden lg:flex gap-8 items-center">
-                    </div> }.into_any()
-            }}
-
-
-
-
-
-            // Desktop Navigation
-            <div class="hidden lg:flex gap-8 items-center">
-                <TrailingButton />
-                <UserPrincipal />
-
-            </div>
-        </div>
-    }
+        }
 }
 
 #[component]
@@ -147,10 +148,8 @@ fn TrailingButton() -> impl IntoView {
     }
 }
 
-
 #[component]
 fn UserPrincipal() -> impl IntoView {
-
     // Use the reusable actions from auth_actions.rs
     let _handle_login = create_login_action();
     let _handle_logout = create_logout_action();

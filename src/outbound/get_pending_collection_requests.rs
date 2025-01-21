@@ -122,11 +122,9 @@ pub async fn get_request_info_by_id(
 
             Ok(CollectionData {
                 collection_id, // Use the input collection_id
-                name: request_info.name
-                    ,
-                status: "Pending"
-                .to_string(),
-                metadata:  Some(metadata),
+                name: request_info.name,
+                status: "Pending".to_string(),
+                metadata: Some(metadata),
             })
         }
         Ok(None) => {
@@ -162,11 +160,11 @@ pub async fn approve_request(
     // Handle the response
     match response_result {
         Ok(response) => match response {
-            Result1::Ok( provision::ListCollection{
+            Result1::Ok(provision::ListCollection {
                 id,
                 token_canister,
                 asset_canister,
-            } )=> {
+            }) => {
                 log!(
                     "Request approved: id={}, token_canister={}, asset_canister={}",
                     id,
@@ -192,7 +190,7 @@ pub async fn reject_request(canisters: &Canisters, collection_id: u64) -> Result
     let provision_canister = canisters.provision_canister().await;
 
     // Call the reject_request method on the canister
-    let response:Result2 = provision_canister
+    let response: Result2 = provision_canister
         .reject_request(collection_id.clone())
         .await
         .map_err(|e| format!("Failed to call reject_request: {:?}", e))?;

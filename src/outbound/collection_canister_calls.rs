@@ -42,38 +42,49 @@ pub async fn fetch_collections_data(canisters: &Canisters) -> Result<Vec<Collect
 
         let collection_meta_data =
             get_collection_metadata_from_token_canister(canisters, collection.token_canister).await;
-        let sale_status =
-            canisters.token_canister(collection.token_canister).await.get_sale_status().await.ok();
+        let sale_status = canisters
+            .token_canister(collection.token_canister)
+            .await
+            .get_sale_status()
+            .await
+            .ok();
 
-        SaleStatusState::set_listing_satatus(collection.token_canister, sale_status.clone().unwrap_or(SaleStatus::Rejected));
+        SaleStatusState::set_listing_satatus(
+            collection.token_canister,
+            sale_status.clone().unwrap_or(SaleStatus::Rejected),
+        );
 
-        let status = sale_status.map(|f| match f {
-            SaleStatus::Live => "Open",
-            _ => "Closed",
-        } ).unwrap_or("Open").to_string() ;
+        let status = sale_status
+            .map(|f| match f {
+                SaleStatus::Live => "Open",
+                _ => "Closed",
+            })
+            .unwrap_or("Open")
+            .to_string();
 
         match collection_meta_data {
-            Ok(metadata)  => {
+            Ok(metadata) => {
                 match metadata {
                     token::Result4::Ok(metadata) => {
-                        SaleStatusState::set_listing_metadata(collection.token_canister, metadata.clone());
+                        SaleStatusState::set_listing_metadata(
+                            collection.token_canister,
+                            metadata.clone(),
+                        );
                         collections.push(CollectionData {
                             id: collection_id.clone(),
                             name: metadata.name.clone(),
                             status: status, // Adjust as needed based on actual status
                             metadata: Some(metadata),
                         });
-                    },
-                    token::Result4::Err(e) =>  {
+                    }
+                    token::Result4::Err(e) => {
                         log::error!(
                             "Failed to fetch metadata for collection {:?}: {}",
                             collection_id,
                             e
                         );
-                    },
+                    }
                 }
-
-                
             }
             Err(e) => {
                 log::error!(
@@ -93,8 +104,8 @@ pub async fn fetch_collections_data(canisters: &Canisters) -> Result<Vec<Collect
 pub async fn get_collection_metadata_from_token_canister(
     canisters: &Canisters,
     token_canister_id: Principal,
-) -> Result<token::Result4, String>{
-    let token_canister = canisters.token_canister(token_canister_id,).await;
+) -> Result<token::Result4, String> {
+    let token_canister = canisters.token_canister(token_canister_id).await;
 
     token_canister
         .get_metadata()
@@ -106,7 +117,7 @@ pub async fn get_total_booked_tokens(
     canisters: &Canisters,
     token_canister_id: Principal,
 ) -> Result<Nat, String> {
-    let token_canister = canisters.token_canister(token_canister_id, ).await;
+    let token_canister = canisters.token_canister(token_canister_id).await;
 
     token_canister
         .get_total_booked_tokens()
@@ -117,9 +128,9 @@ pub async fn get_total_booked_tokens(
 pub async fn update_annonymous_principal(
     canisters: &Canisters,
     token_canister_id: Principal,
-    principal: Principal
+    principal: Principal,
 ) -> Result<(), String> {
-    let token_canister = canisters.token_canister(token_canister_id, ).await;
+    let token_canister = canisters.token_canister(token_canister_id).await;
 
     let res = token_canister
         .update_annonymous_investor(principal)
@@ -130,15 +141,14 @@ pub async fn update_annonymous_principal(
         token::Result5::Ok => Ok(()),
         token::Result5::Err(e) => Err(e),
     }
-
 }
 
 pub async fn refund_excess_after_sale(
     canisters: &Canisters,
     token_canister_id: Principal,
-    principal: Principal
+    principal: Principal,
 ) -> Result<(), String> {
-    let token_canister = canisters.token_canister(token_canister_id, ).await;
+    let token_canister = canisters.token_canister(token_canister_id).await;
 
     let res = token_canister
         .refund_excess_after_sale(principal)
@@ -149,15 +159,14 @@ pub async fn refund_excess_after_sale(
         token::Result_::Ok(_) => Ok(()),
         token::Result_::Err(e) => Err(e),
     }
-
 }
 
 pub async fn refund_icps_to_annonymous(
     canisters: &Canisters,
     token_canister_id: Principal,
-    icp: f64
+    icp: f64,
 ) -> Result<(), String> {
-    let token_canister = canisters.token_canister(token_canister_id, ).await;
+    let token_canister = canisters.token_canister(token_canister_id).await;
 
     let res = token_canister
         .refund_icp_amount_after_sale_from_annonymous(icp)
@@ -168,15 +177,14 @@ pub async fn refund_icps_to_annonymous(
         token::Result_::Ok(_) => Ok(()),
         token::Result_::Err(e) => Err(e),
     }
-
 }
 pub async fn transfer_amount_from_annonymous_to_investor(
     canisters: &Canisters,
     token_canister_id: Principal,
     icp: f64,
-    investor: Principal
+    investor: Principal,
 ) -> Result<(), String> {
-    let token_canister = canisters.token_canister(token_canister_id, ).await;
+    let token_canister = canisters.token_canister(token_canister_id).await;
 
     let res = token_canister
         .transfer_icp_amount_from_annonymous_to_investor(icp, investor)
@@ -187,14 +195,13 @@ pub async fn transfer_amount_from_annonymous_to_investor(
         token::Result_::Ok(_) => Ok(()),
         token::Result_::Err(e) => Err(e),
     }
-
 }
 
 pub async fn get_sale_status(
     canisters: &Canisters,
     token_canister_id: Principal,
 ) -> Result<SaleStatus, String> {
-    let token_canister = canisters.token_canister(token_canister_id,).await;
+    let token_canister = canisters.token_canister(token_canister_id).await;
 
     token_canister
         .get_sale_status()

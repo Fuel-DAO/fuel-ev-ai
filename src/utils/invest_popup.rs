@@ -1,14 +1,14 @@
-use candid::Principal;
-use leptos::prelude::*;
 use crate::canister::token::BookTokensArg;
-use crate::state::auth_actions::create_login_action;
+use crate::components::invest_info::from_e8s;
+use crate::state::auth_actions::{create_login_action, send_wrap};
 use crate::state::canisters::Canisters;
 use crate::utils::button::ButtonComponent;
 use crate::utils::go_back_and_come_back::go_back_and_come_back;
 use crate::utils::input::InputComponent;
 use crate::utils::plus_icon::PlusIcon;
 use crate::utils::web::copy_to_clipboard;
-use crate::components::invest_info::from_e8s;
+use candid::Principal;
+use leptos::prelude::*;
 
 // Struct for PaymentStatus
 #[derive(Default, Clone)]
@@ -27,7 +27,11 @@ struct PaymentInfo {
 }
 
 #[component]
-pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: String) -> impl IntoView {
+pub fn InvestPopup(
+    show: RwSignal<bool>,
+    minter_can_id: String,
+    asset_can_id: String,
+) -> impl IntoView {
     const TRANSFER_PRICE: u64 = 10_000;
 
     let nft_to_buy = RwSignal::new(1u64.to_string());
@@ -44,7 +48,7 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
     let current_investment = move || {
         metadata()
             .as_ref()
-            .map_or(0.0, |m:&Option<crate::canister::token::GetMetadataRet>| {
+            .map_or(0.0, |m: &Option<crate::canister::token::GetMetadataRet>| {
                 from_e8s(
                     m.as_ref()
                         .unwrap()
@@ -67,8 +71,7 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
         let buy = nft_to_buy.get().parse::<u64>().unwrap_or_default();
         let payment_status = payment_details.get().status.clone();
         let payment_error = payment_details.get().error.clone();
-
-        async move {
+        send_wrap(async move {
             // Retrieve Canisters from context
             if let Some(canisters_rc) = Canisters::get_authenticated().ok() {
                 // Check if user is authenticated and get principal
@@ -88,7 +91,7 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
                     payment_details.get().is_loading.set(false);
                 }
             }
-        }
+        })
     };
 
     // Create payment action
@@ -98,12 +101,12 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
     let get_payment_info = move |_| {
         let minter_canister_id_clone = minter_canister_id.clone();
 
-        async move {
+        send_wrap(async move {
             // Get Canisters from context
             if let Some(canisters_rc) = Canisters::get_authenticated().ok() {
                 if let Some(principal) = Canisters::principal() {
                     if principal == Principal::anonymous() {
-                        return ;
+                        return;
                     }
                     let token_canister = canisters_rc
                         .token_canister(
@@ -114,19 +117,23 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
                     // Use `token_canister` directly
                     if let Ok(transfer_to_account) = token_canister.get_escrow_account().await {
                         let metadata_data = match token_canister.get_metadata().await.ok() {
-    Some(res) => match res {
-    crate::canister::token::Result4::Ok(get_metadata_ret) => Some(get_metadata_ret),
-    crate::canister::token::Result4::Err(_) => None,
-},
-    None => None,
-};
-
-
+                            Some(res) => match res {
+                                crate::canister::token::Result4::Ok(get_metadata_ret) => {
+                                    Some(get_metadata_ret)
+                                }
+                                crate::canister::token::Result4::Err(_) => None,
+                            },
+                            None => None,
+                        };
 
                         let current_investment_data =
                             token_canister.get_booked_tokens(Some(principal)).await;
 
-                        if let (Ok(current_investment), crate::canister::token::Result2::Ok(transfer_to_account) ) = (current_investment_data, transfer_to_account) {
+                        if let (
+                            Ok(current_investment),
+                            crate::canister::token::Result2::Ok(transfer_to_account),
+                        ) = (current_investment_data, transfer_to_account)
+                        {
                             let token_count = current_investment
                                 .0
                                 .to_string()
@@ -134,12 +141,12 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
                                 .unwrap_or_default();
 
                             if transfer_to_account.account.owner != principal {
-                                return ;
+                                return;
                             }
 
                             payment_info.set(PaymentInfo {
                                 loaded: true,
-                                transfer_to:  transfer_to_account.account_id,
+                                transfer_to: transfer_to_account.account_id,
                                 nft_price: metadata_data
                                     .as_ref()
                                     .map(|metadata| {
@@ -154,11 +161,11 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
 
                             metadata.set(Some(metadata_data.clone()));
                             token_balance.set(token_count);
-                        } 
-                    } 
-                } 
+                        }
+                    }
+                }
             }
-        }
+        })
     };
     let get_payment_info_resource = Resource::new(|| (), get_payment_info);
 
@@ -166,12 +173,13 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
     let amount = move || {
         nft_to_buy.get().parse::<u64>().unwrap_or_default() as f64
             * from_e8s(payment_info().nft_price)
-            + if token_balance.get() >= 1 {from_e8s(0)} else {from_e8s(transfer_price_e8s)}
+            + if token_balance.get() >= 1 {
+                from_e8s(0)
+            } else {
+                from_e8s(transfer_price_e8s)
+            }
     };
 
-
-
-    
     // Derived view based on step
     let main_content = move || {
         let show = show.clone();
@@ -297,10 +305,8 @@ pub fn InvestPopup(show: RwSignal<bool>, minter_can_id: String, asset_can_id: St
     }
 }
 
-
-#[component] 
+#[component]
 fn LoginStep() -> impl IntoView {
-
     let handle_login = create_login_action();
     view! {
         <div class="flex flex-col gap-8 items-center">
@@ -335,14 +341,14 @@ fn LoginStep() -> impl IntoView {
 //         }) as Box<dyn Fn()>);
 
 //         win.set_timeout_with_callback_and_timeout_and_arguments_0(closure.as_ref().unchecked_ref(), 1000).unwrap();
-//         closure.forget(); 
+//         closure.forget();
 
-//         } 
-    
+//         }
+
 //         // Prevent the closure from being dropped immediately
 //     }
 // }
- 
+
 // Updated check_payment_status function
 async fn check_payment_status(
     canisters: &Canisters,
@@ -353,7 +359,7 @@ async fn check_payment_status(
 ) {
     // Retrieve the token canister actor
     let actor = canisters
-        .token_canister(Principal::from_text(token_can_id.clone()).unwrap(),)
+        .token_canister(Principal::from_text(token_can_id.clone()).unwrap())
         .await;
 
     // Use `actor` directly
@@ -370,7 +376,6 @@ async fn check_payment_status(
             crate::canister::token::Result_::Err(error) => {
                 payment_error.set(error);
             }
-           
         }
     } else {
         payment_error.set("Failed to book tokens.".to_string());
@@ -384,7 +389,6 @@ fn StepTwo(
     payment_status: RwSignal<PaymentStatus>,
     on_click: impl Fn() + 'static,
 ) -> impl IntoView {
-
     view! {
         <div class="flex flex-col gap-8">
 
@@ -458,4 +462,3 @@ fn StepTwo(
         </div>
     }
 }
-

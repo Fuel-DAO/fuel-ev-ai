@@ -9,4 +9,3 @@ pub fn ItemInfo(title: String, value: String) -> impl IntoView {
         </div>
     }
 }
-

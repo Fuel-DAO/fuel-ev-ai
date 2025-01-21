@@ -1,81 +1,87 @@
-
-use candid::Principal;
-use leptos::prelude::*;
-use crate::components::specifications::SpecificationComponent;
-use crate::components::documents::DocumentList;
-use crate::components::collection_info_cards::CollectionInfoCards;
-use crate::components::tabs::{Tabs, Tab};
 use crate::canister::token::GetMetadataRet;
+use crate::components::collection_info_cards::CollectionInfoCards;
+use crate::components::documents::DocumentList;
+use crate::components::specifications::SpecificationComponent;
+use crate::components::tabs::{Tab, Tabs};
 use crate::state::sale_status::SaleStatusState;
 use crate::utils::share::ShareButtonWithFallbackPopup;
-
-
+use candid::Principal;
+use leptos::prelude::*;
 
 #[component]
 pub fn CollectionHeader(metadata: GetMetadataRet, collection_id: String) -> impl IntoView {
-
     let tabs = vec![Tab::Specifications, Tab::Documents];
-    let selected = RwSignal::new( Tab::Specifications);
-    let share_link_s =|| { format!("/collections/{}/{}", collection_id.clone(), metadata.asset_canister.to_text()) };
-    let share_message_s = || {format!("{}
-Take a look at this car at FuelEV!", metadata.name)};
-let token_canister = Principal::from_text(collection_id.clone()).unwrap();
-let name = metadata.name.clone();
+    let selected = RwSignal::new(Tab::Specifications);
+    let share_link_s = || {
+        format!(
+            "/collections/{}/{}",
+            collection_id.clone(),
+            metadata.asset_canister.to_text()
+        )
+    };
+    let share_message_s = || {
+        format!(
+            "{}
+Take a look at this car at FuelEV!",
+            metadata.name
+        )
+    };
+    let token_canister = Principal::from_text(collection_id.clone()).unwrap();
+    let name = metadata.name.clone();
 
     // Check if the user is logged in and is the collection owner
     // let is_owner = move || false;
 
-    view! { 
-        <div class="flex flex-col grow gap-4">
-            <div class="flex flex-col sm:flex-row gap-4 lg:justify-between lg:items-center">
-                <div class="flex flex-col lg:flex-row gap-8 items-start lg:items-center">
-                    <div class="text-2xl lg:text-5xl font-bold"> { name }</div>
-                    <div class="py-2 px-4 text-xs bg-black rounded-full text-white font-light flex h-min items-center justify-center">
-                        {move || SaleStatusState::get_listing_status(token_canister)().humanize()}
-                    </div>
+    view! {
+    <div class="flex flex-col grow gap-4">
+        <div class="flex flex-col sm:flex-row gap-4 lg:justify-between lg:items-center">
+            <div class="flex flex-col lg:flex-row gap-8 items-start lg:items-center">
+                <div class="text-2xl lg:text-5xl font-bold"> { name }</div>
+                <div class="py-2 px-4 text-xs bg-black rounded-full text-white font-light flex h-min items-center justify-center">
+                    {move || SaleStatusState::get_listing_status(token_canister)().humanize()}
                 </div>
-                <div class="flex items-center gap-2">
-                    <ShareButtonWithFallbackPopup  
-                    share_link=share_link_s()
-                    message=share_message_s()
-                    style="w-12 h-12".into()
-                    />
-                </div>
-                
-                // Conditional rendering for the edit button or actions
-                // {move || if is_owner() {
-                //     view! {  
-                //         <Button secondary=true href=format!("/admin/edit-collection/{}", collection_id)>
-                //             "Edit"
-                //         </Button>
-                //     }
-                // } else {
-                //     view! {  
-                //         <Actions title=props.metadata.name.clone() />
-                //     }
-                // }}
+            </div>
+            <div class="flex items-center gap-2">
+                <ShareButtonWithFallbackPopup
+                share_link=share_link_s()
+                message=share_message_s()
+                style="w-12 h-12".into()
+                />
             </div>
 
-            <CollectionInfoCards props=metadata.clone() />
-            
-            <Tabs tabs=tabs.clone() selected=selected />
-
-            // Conditional rendering for Specifications or Documents based on selected tab
-            { if selected() == Tab::Specifications {
-                view! {  
-                    <div>
-                    <SpecificationComponent metadata=metadata.clone() />
-                    </div>
-                }.into_any()
-            } else  {
-                view! {
-                    <div>
-                    <DocumentList metadata=metadata.clone() />
-                    </div>
-                }.into_any()
-            } 
-        }
+            // Conditional rendering for the edit button or actions
+            // {move || if is_owner() {
+            //     view! {
+            //         <Button secondary=true href=format!("/admin/edit-collection/{}", collection_id)>
+            //             "Edit"
+            //         </Button>
+            //     }
+            // } else {
+            //     view! {
+            //         <Actions title=props.metadata.name.clone() />
+            //     }
+            // }}
         </div>
-            }
-}
 
+        <CollectionInfoCards props=metadata.clone() />
+
+        <Tabs tabs=tabs.clone() selected=selected />
+
+        // Conditional rendering for Specifications or Documents based on selected tab
+        { if selected() == Tab::Specifications {
+            view! {
+                <div>
+                <SpecificationComponent metadata=metadata.clone() />
+                </div>
+            }.into_any()
+        } else  {
+            view! {
+                <div>
+                <DocumentList metadata=metadata.clone() />
+                </div>
+            }.into_any()
+        }
+    }
+    </div>
+        }
+}

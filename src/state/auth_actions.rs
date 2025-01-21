@@ -1,48 +1,46 @@
-// src/state/auth/auth_actions.rs
-use crate::utils::go_back_and_come_back::go_to_home;
-use leptos::{leptos_dom, prelude::*};
-use leptos_dom::logging::{console_error, console_log};
+use std::future::Future;
 
-use super::{auth::AuthService, canisters::Canisters};
+
+use leptos::{leptos_dom, logging, prelude::*};
+
+use super::canisters::Canisters;
+
 
 /// Creates a login action.
 pub fn create_login_action() -> Action<(), ()> {
-    
     Action::new(move |_: &()| {
-        let auth_service = AuthService::new().map(|f| f.login());
-        async move {
-            match  auth_service {
-                Ok(ref mut f) => {
-                    match f.await {
-                        Ok(()) => {
-                            window().location().reload().unwrap();
-                            console_log("Login successful.")
-                        },
-                        Err(e) => console_error(&format!("Login failed: {:?}", e)),
-                    }
-                    
+        send_wrap(async move {
+            match Canisters::login().await {
+                Ok(()) => {
+                    logging::log!("Login successful.")
                 }
-                Err(e) => console_error(&format!("Login failed: {:?}", e)),
+                Err(e) => logging::log!("Login failed: {:?}", e),
             }
-        }
+        })
     })
 }
 
 /// Creates a logout action.
-pub fn create_logout_action() -> Action<(), ()> {
-    Action::new(move |_: &()| {
-        let auth_service = Canisters::get_authenticated().unwrap().auth_service;
-        async move {
-            match auth_service.borrow_mut().logout().await {
-                Ok(_) => {
-                    console_log("Logout successful.");
-                        go_to_home();
-                        // clear_localstorage();
-
-                    window().location().reload().unwrap();
-                }
-                Err(e) => console_error(&format!("Logout failed: {:?}", e)),
-            }
-        }
+pub fn create_logout_action() -> Action<(), Result<(), ()>> {
+    Action::new(|_: &()| {
+        send_wrap(async {
+            let _ = Canisters::logout().await;
+            Ok(())
+        })
     })
+}
+
+// pub fn send_wrap<Fut: Future + Send>(
+//     t: Fut,
+// ) -> impl Future<Output = <Fut as Future>::Output> + Send {
+//     t
+// }
+
+// Wraps a specific future that is not Send when hydrate feature is enabled
+// the future must be Send when ssr is enabled
+// use only when necessary (usually inside resources)
+// if you get a Send related error inside an Action, it probably makes more
+// sense to use Action::new_local or Action::new_unsync
+pub fn send_wrap<Fut: Future>(t: Fut) -> impl Future<Output = <Fut as Future>::Output> + Send {
+    Box::pin(send_wrapper::SendWrapper::new(t))
 }

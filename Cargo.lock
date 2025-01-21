@@ -83,6 +83,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7d5a26814d8dcb93b0e5a0ff3c6d80a8843bafb21b39e8e18a6f05471870e110"
 
 [[package]]
+name = "arc-swap"
+version = "1.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "69f7f8c3906b62b754cd5326047894316021dcfe5a194c8ea52bdd94934a3457"
+
+[[package]]
 name = "arrayvec"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -98,12 +104,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-channel"
+version = "1.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "81953c529336010edd6d8e358f886d9581267795c61b19475b71314bffa46d35"
+dependencies = [
+ "concurrent-queue",
+ "event-listener 2.5.3",
+ "futures-core",
+]
+
+[[package]]
 name = "async-lock"
 version = "3.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ff6e472cdea888a4bd64f342f09b3f50e1886d32afe8df3d663c01140b811b18"
 dependencies = [
- "event-listener",
+ "event-listener 5.3.1",
  "event-listener-strategy",
  "pin-project-lite",
 ]
@@ -117,6 +134,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.96",
+]
+
+[[package]]
+name = "async-watch"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a078faf4e27c0c6cc0efb20e5da59dcccc04968ebf2801d8e0b2195124cdcdb2"
+dependencies = [
+ "event-listener 2.5.3",
 ]
 
 [[package]]
@@ -872,6 +898,12 @@ checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 
 [[package]]
 name = "event-listener"
+version = "2.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0206175f82b8d6bf6652ff7d71a1e27fd2e4efde587fd368662814d6ec1d9ce0"
+
+[[package]]
+name = "event-listener"
 version = "5.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6032be9bd27023a771701cc49f9f053c751055f71efb2e0ae5c15809093675ba"
@@ -887,7 +919,7 @@ version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0f214dc438f977e6d4e3500aaa277f5ad94ca83fbbd9b1a15713ce2344ccc5a1"
 dependencies = [
- "event-listener",
+ "event-listener 5.3.1",
  "pin-project-lite",
 ]
 
@@ -952,6 +984,8 @@ dependencies = [
  "log",
  "num-bigint",
  "num-traits",
+ "reactive_stores",
+ "send_wrapper",
  "serde",
  "serde-wasm-bindgen",
  "serde_json",
@@ -1503,16 +1537,22 @@ dependencies = [
 
 [[package]]
 name = "ic-agent"
-version = "0.38.2"
+version = "0.39.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "17a656d3b25007f59ba0700e65b332efd56d5dbfc6014994000ab3dbb221f54a"
+checksum = "1ba408987ca48fc3eee6a613e760d076a9046cccbbb5ba29efbada339ab28ed9"
 dependencies = [
+ "arc-swap",
+ "async-channel",
  "async-lock",
  "async-trait",
+ "async-watch",
  "backoff",
  "cached",
  "candid",
+ "der",
+ "ecdsa",
  "ed25519-consensus",
+ "elliptic-curve",
  "futures-util",
  "getrandom",
  "hex",
@@ -1530,8 +1570,6 @@ dependencies = [
  "rand",
  "rangemap",
  "reqwest",
- "ring",
- "rustls-webpki",
  "sec1",
  "serde",
  "serde_bytes",
@@ -1539,7 +1577,8 @@ dependencies = [
  "serde_repr",
  "sha2 0.10.8",
  "simple_asn1",
- "thiserror 1.0.65",
+ "stop-token",
+ "thiserror 2.0.11",
  "time",
  "tokio",
  "tower-service",
@@ -1551,21 +1590,23 @@ dependencies = [
 
 [[package]]
 name = "ic-auth-client"
-version = "0.2.1"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5daa2948059b45f891a42711f7c4d3c7a8d5e554c65f171892baf7109b2ff086"
+checksum = "f8928c0bfd591a2b311c69fb8f91c708a3c2d3297e24f88aa8dffb393c09b39c"
 dependencies = [
  "base64",
- "gloo-console",
+ "ed25519-consensus",
+ "getrandom",
  "gloo-events",
  "gloo-timers",
  "gloo-utils",
  "ic-agent",
- "ring",
+ "rand",
  "serde",
  "serde-wasm-bindgen",
  "serde_json",
- "wasm-bindgen",
+ "thiserror 1.0.65",
+ "tokio",
  "wasm-bindgen-futures",
  "wasm-timer",
  "web-sys",
@@ -1573,9 +1614,9 @@ dependencies = [
 
 [[package]]
 name = "ic-certification"
-version = "2.6.0"
+version = "3.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e64ee3d8b6e81b51f245716d3e0badb63c283c00f3c9fb5d5219afc30b5bf821"
+checksum = "9eae40f26fcac9c141cad54d9aa5f423efffde78ac371057c53d275ebbcad443"
 dependencies = [
  "hex",
  "serde",
@@ -1585,9 +1626,9 @@ dependencies = [
 
 [[package]]
 name = "ic-transport-types"
-version = "0.38.2"
+version = "0.39.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "894b183f280e87b29aac98e7de0972cf632435e1f0a462969d9f5e0ccacc4d25"
+checksum = "21e2418868dd5857d2a5bac3f1cb6de1aecf2316d380997ef842aec3d8a79d4e"
 dependencies = [
  "candid",
  "hex",
@@ -1598,7 +1639,7 @@ dependencies = [
  "serde_cbor",
  "serde_repr",
  "sha2 0.10.8",
- "thiserror 1.0.65",
+ "thiserror 2.0.11",
 ]
 
 [[package]]
@@ -3471,6 +3512,18 @@ dependencies = [
  "libc",
  "psm",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "stop-token"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af91f480ee899ab2d9f8435bfdfc14d08a5754bd9d3fef1f1a1c23336aad6c8b"
+dependencies = [
+ "async-channel",
+ "cfg-if",
+ "futures-core",
+ "pin-project-lite",
 ]
 
 [[package]]

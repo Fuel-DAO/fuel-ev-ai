@@ -1,8 +1,8 @@
 // documents_info.rs
 
+use crate::state::canisters::Canisters;
 use crate::utils::file_type::get_content_type;
 use crate::{canister::ASSET_PROXY_ID, state::asset_manager::*};
-use crate::state::canisters::Canisters;
 use candid::Principal;
 use gloo::file::futures::read_as_bytes;
 use gloo_file::Blob;
@@ -97,16 +97,16 @@ pub fn DocumentsInfo(documents: RwSignal<Vec<(String, String)>>) -> impl IntoVie
 
                 // Parse canister ID
                 let upload_principal = ASSET_PROXY_ID; // Replace with actual ID or pass as prop
-                // let upload_principal = match Principal::from_text(upload_canister_id) {
-                //     Ok(principal) => principal,
-                //     Err(_) => {
-                //         log::error!("Invalid upload canister ID");
-                //         error_message.set("Invalid upload canister ID.".to_string());
-                //         error_document.set(true);
-                //         uploading.set(false);
-                //         return;
-                //     }
-                // };
+                                                       // let upload_principal = match Principal::from_text(upload_canister_id) {
+                                                       //     Ok(principal) => principal,
+                                                       //     Err(_) => {
+                                                       //         log::error!("Invalid upload canister ID");
+                                                       //         error_message.set("Invalid upload canister ID.".to_string());
+                                                       //         error_document.set(true);
+                                                       //         uploading.set(false);
+                                                       //         return;
+                                                       //     }
+                                                       // };
 
                 // Initialize the AssetManager
                 let manager = AssetManager::new(upload_principal, agent); // Adjust if different
@@ -124,21 +124,27 @@ pub fn DocumentsInfo(documents: RwSignal<Vec<(String, String)>>) -> impl IntoVie
                     }
                 };
 
-                let future =  manager.store(StoreArg{key: format!("/{}", &file_name), content: file_data, sha256: None, content_type: get_content_type(&file_name).to_string(), content_encoding: "identity".to_string() });
+                let future = manager.store(StoreArg {
+                    key: format!("/{}", &file_name),
+                    content: file_data,
+                    sha256: None,
+                    content_type: get_content_type(&file_name).to_string(),
+                    content_encoding: "identity".to_string(),
+                });
                 // Upload the file
-                match  future.await {
-                    Ok(ret) => {
-                        match ret {
-    crate::canister::provision::Result2::Ok(_) => {
-        documents.update(|docs| docs.push((format!("/{}", &file_name), format!("/{}", &file_name))));
-                        uploading_progress.set(100);
-    },
-    crate::canister::provision::Result2::Err(e) => {
-        error_message.set(format!("Upload failed: {}", e));
-        error_document.set(true);
-    },
-}
-                    } 
+                match future.await {
+                    Ok(ret) => match ret {
+                        crate::canister::provision::Result2::Ok(_) => {
+                            documents.update(|docs| {
+                                docs.push((format!("/{}", &file_name), format!("/{}", &file_name)))
+                            });
+                            uploading_progress.set(100);
+                        }
+                        crate::canister::provision::Result2::Err(e) => {
+                            error_message.set(format!("Upload failed: {}", e));
+                            error_document.set(true);
+                        }
+                    },
                     Err(e) => {
                         log::error!("Upload failed: {}", e);
                         error_message.set(format!("Upload failed: {}", e));

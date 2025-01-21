@@ -2,27 +2,25 @@ use leptos::prelude::*;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Tab {
-    Specifications, 
-    Documents
+    Specifications,
+    Documents,
 }
 
 #[derive(Clone, Debug)]
- struct TabsMetaProps {
-     tabs: Vec<Tab>,
-     selected: RwSignal<Tab>,
+struct TabsMetaProps {
+    tabs: Vec<Tab>,
+    selected: RwSignal<Tab>,
 }
 
 #[component]
-pub fn Tabs(tabs: Vec<Tab>,selected: RwSignal<Tab>) -> impl IntoView {
+pub fn Tabs(tabs: Vec<Tab>, selected: RwSignal<Tab>) -> impl IntoView {
     // Function to set the selected tab
 
-    let tab_props = TabsMetaProps {
-        tabs, selected
-    };
+    let tab_props = TabsMetaProps { tabs, selected };
 
     let tabs = tab_props.tabs.clone();
 
-    view! { 
+    view! {
         <div class="pt-12 flex items-center justify-center gap-4">
             {
                  tabs.into_iter().map(|tab| {
@@ -30,9 +28,9 @@ pub fn Tabs(tabs: Vec<Tab>,selected: RwSignal<Tab>) -> impl IntoView {
                     let current_tab = tab.clone();
                     let selected_tab = tab.clone();
                     let selected_str = format!("{selected_tab:?}");
-                   
+
                     let is_selected = move || tab_props.selected.get() == current_tab.clone();
-                    view! { 
+                    view! {
                         <button
                             on:click=move |_| tab_props.selected.set(tab.clone())
                             class=move || format!(

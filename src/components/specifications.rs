@@ -1,5 +1,5 @@
-use leptos::prelude::*;
 use crate::canister::token::GetMetadataRet;
+use leptos::prelude::*;
 // #[derive(Clone, Debug)]
 // pub struct CollectionMetadata {
 //     pub name: Option<String>,
@@ -71,29 +71,32 @@ use crate::canister::token::GetMetadataRet;
 pub fn SpecificationComponent(metadata: GetMetadataRet) -> impl IntoView {
     // Default values for optional fields
     let description = metadata.description;
-let weight = metadata.weight;
-let drive_type = metadata.drive_type;
-let displays = metadata.displays;
-let seating = metadata.seating;
-let cargo = metadata.cargo;
-let overall_height = metadata.overall_height;
-let overall_width = metadata.overall_width;
-let overall_length = metadata.overall_length;
-let track_rear = metadata.track_rear;
-let track_front = metadata.track_front;
-let ground_clearance = metadata.ground_clearance;
-let key_features = metadata.key_features;
-let range_per_charge = metadata.range_per_charge;
-let acceleration = metadata.acceleration;
-let charging_speed = metadata.charging_speed;
-let wheels = metadata.wheels;
-let purchase_price = format!("₹ {}/ $ {}", metadata.purchase_price.0.to_string(), metadata.purchase_price.0 / 84u64);
-let price_in_icp = format!("{}", metadata.price / 1e8);
-let total_supply = format!("{}", metadata.supply_cap).replace("_", ",");
-let brochure_url = metadata.brochure_url.clone();
-let battery = metadata.battery;
-let disclaimer  = format!("Thank you for your continued support of the FuelEV ecosystem! Please note that you are investing in the city network of Mumbai, India. Your ownership will be calculated as a percentage of the total investment value of the city network. Your ownership will be subject to dilution as we expand the fleet size in your city network.");
-
+    let weight = metadata.weight;
+    let drive_type = metadata.drive_type;
+    let displays = metadata.displays;
+    let seating = metadata.seating;
+    let cargo = metadata.cargo;
+    let overall_height = metadata.overall_height;
+    let overall_width = metadata.overall_width;
+    let overall_length = metadata.overall_length;
+    let track_rear = metadata.track_rear;
+    let track_front = metadata.track_front;
+    let ground_clearance = metadata.ground_clearance;
+    let key_features = metadata.key_features;
+    let range_per_charge = metadata.range_per_charge;
+    let acceleration = metadata.acceleration;
+    let charging_speed = metadata.charging_speed;
+    let wheels = metadata.wheels;
+    let purchase_price = format!(
+        "₹ {}/ $ {}",
+        metadata.purchase_price.0.to_string(),
+        metadata.purchase_price.0 / 84u64
+    );
+    let price_in_icp = format!("{}", metadata.price / 1e8);
+    let total_supply = format!("{}", metadata.supply_cap).replace("_", ",");
+    let brochure_url = metadata.brochure_url.clone();
+    let battery = metadata.battery;
+    let disclaimer  = format!("Thank you for your continued support of the FuelEV ecosystem! Please note that you are investing in the city network of Mumbai, India. Your ownership will be calculated as a percentage of the total investment value of the city network. Your ownership will be subject to dilution as we expand the fleet size in your city network.");
 
     view! {
         <div class="flex flex-col gap-8 py-4">

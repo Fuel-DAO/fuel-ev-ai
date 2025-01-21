@@ -91,9 +91,7 @@ pub async fn get_sale_status(
 
     // Handle the response
     match response_result {
-        Ok(status) => {
-            Ok(status)
-        }
+        Ok(status) => Ok(status),
         Err(e) => {
             let error_msg = format!("Agent error during get_sale_status: {}", e);
             log!("{}", error_msg);

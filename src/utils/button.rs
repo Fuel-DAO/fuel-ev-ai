@@ -1,6 +1,6 @@
+use crate::utils::plus_icon::PlusIcon;
 use leptos::prelude::*;
 use leptos_router::components::A;
-use crate::utils::plus_icon::PlusIcon;
 
 #[component]
 pub fn ButtonComponent(
@@ -14,10 +14,7 @@ pub fn ButtonComponent(
     #[prop(optional)] classes: Option<String>,
     #[prop(into)] on_click: Callback<()>,
     children: Children,
-)  -> impl IntoView
-
-{
-
+) -> impl IntoView {
     let button_classes = {
         let base_classes = if secondary {
             "bg-white ring-1 ring-inset ring-gray-100 hover:bg-gray-50 outline-none active:bg-gray-200"
@@ -43,7 +40,7 @@ pub fn ButtonComponent(
                     <A
                         href=link
                         target=target.unwrap_or("_self".to_string())
-                        
+
                         // role="presentation"
                         on:click=move |_| {on_click.run(())}
                     >

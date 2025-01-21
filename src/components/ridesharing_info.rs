@@ -2,7 +2,7 @@ use leptos::prelude::*;
 
 #[component]
 pub fn RideSharingInfo() -> impl IntoView {
-    view! { 
+    view! {
         <section class="flex h-screen lg:flex-row flex-col-reverse lg:items-stretch">
             <div class="lg:w-1/2 w-full h-1/2 lg:h-full">
                 <img src="/public/img/info.webp" alt="Car on the road" class="w-full h-full object-cover" />

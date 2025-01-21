@@ -23,7 +23,8 @@ pub struct AuthService {
 
 impl AuthService {
     pub fn new() -> Result<Self, String> {
-        let auth_client = block_on(AuthClient::builder().build());
+        let auth_client =
+            block_on(AuthClient::builder().build()).expect("Failed to get auth client".into());
         Ok(AuthService {
             auth_client,
             agent: None,
@@ -39,7 +40,7 @@ impl AuthService {
 
     pub async fn login(&mut self) -> Result<(), String> {
         // dotenv::dotenv().ok();
-        let  dfx_network = "LIVE".to_string();
+        let dfx_network = "LIVE".to_string();
         // if dfx_network.is_empty() {
         //     dfx_network = env::var("BACKEND").unwrap_or("LIVE".to_owned());
         // }
@@ -59,13 +60,12 @@ impl AuthService {
             .on_success(|_| {
                 // Handle successful login
                 info!("Login successful");
-                window().location().reload().unwrap();
-                go_back_and_come_back();
+                // go_back_and_come_back();
                 set_up_auth_context();
             })
             .on_error(|error| {
                 // Handle login error
-                logging::log!("Login failed: {:?}", error);
+                logging::log!("Login failed inner: {:?}", error);
             });
 
         // Only set the identity_provider if it's Some
@@ -73,22 +73,24 @@ impl AuthService {
             builder = builder.identity_provider(provider);
         }
 
-        let options = builder.on_success(|_| {
-            info!("Login successful");
-            window().location().reload().unwrap();
-            go_back_and_come_back();
-            set_up_auth_context();
-        }).build();
+        let options = builder
+            .on_success(|_| {
+                info!("Login successful");
+                // go_back_and_come_back();
+                set_up_auth_context();
+            })
+            .build();
 
         // Initiate the login process
         self.auth_client.login_with_options(options);
 
-        // Verify authentication after login
-        if self.auth_client.is_authenticated() {
-            Ok(())
-        } else {
-            Err("Authentication failed".to_string())
-        }
+        // // Verify authentication after login
+        // if self.auth_client.is_authenticated() {
+        //     Ok(())
+        // } else {
+        //     Err("Authentication failed".to_string())
+        // }
+        Ok(())
     }
     pub async fn get_agent(&mut self) -> Result<Arc<Agent>, String> {
         if self.agent.is_none() {
@@ -110,16 +112,12 @@ impl AuthService {
 
     pub async fn logout(&mut self) -> Result<(), String> {
         // Call the logout method on the AuthClient
-        self.auth_client
-            .logout(None)
-            .await;
+        self.auth_client.logout(None).await;
 
         // Clear the agent
         self.agent = None;
 
-
         // go_back_and_come_back();
-
 
         // Reload the page
         // web_sys::window()
@@ -138,7 +136,7 @@ impl AuthService {
 async fn create_agent(auth_client: &AuthClient) -> Result<Agent, String> {
     let identity = auth_client.identity();
     // dotenv::dotenv().ok();
-    let  dfx_network = "LIVE".to_string();
+    let dfx_network = "LIVE".to_string();
     // if dfx_network.is_empty() {
     //     dfx_network = env::var("BACKEND").unwrap_or("LIVE".to_owned());
     // }
@@ -152,7 +150,7 @@ async fn create_agent(auth_client: &AuthClient) -> Result<Agent, String> {
     let agent = Agent::builder()
         .with_url(url)
         .with_arc_identity(identity)
-        .with_ingress_expiry(Some(TIMEOUT))
+        .with_ingress_expiry(TIMEOUT)
         .build()
         .map_err(|e| format!("Failed to build agent: {}", e))?;
 

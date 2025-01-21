@@ -3,10 +3,9 @@ use crate::components::header2::Header2;
 use crate::outbound::add_collection_canister_calls::add_collection;
 use crate::state::canisters::Canisters;
 use candid::{Nat, Principal};
-use leptos::{logging::log, task::spawn_local};
 use leptos::prelude::*;
+use leptos::{logging::log, task::spawn_local};
 use web_sys::MouseEvent;
-
 
 // Import the subcomponents and ImagesInfoData
 use crate::components::admin::{
@@ -177,7 +176,7 @@ pub fn NewCollectionForm() -> impl IntoView {
                         wheels: wheels.get() as f64,
                         brochure_url: brochure_url.get(),
                         battery: battery.get(),
-                        price: price.get() * 100_000_000.0 , // To e8s
+                        price: price.get() * 100_000_000.0, // To e8s
                         symbol: symbol.get(),
                         treasury: Principal::from_text(&treasury_principal)
                             .expect("Invalid token principal"),
