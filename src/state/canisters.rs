@@ -34,9 +34,9 @@ impl Canisters {
     pub async fn login() -> Result<(), String> {
         let mut auth_service = AuthService::new()?;
         auth_service.login().await?;
-        // let state = Self::new(auth_service).await?;
-        // Self::set_global(state);
-        Self::reload();
+        let state = Self::new(auth_service).await?;
+        Self::set_global(state);
+        // Self::reload();
         Ok(())
     }
 
@@ -47,10 +47,7 @@ impl Canisters {
     }
 
     fn reload() {
-        let _ = web_sys::window()
-            .unwrap()
-            .location()
-            .reload();
+        let _ = window().location().reload().unwrap();
     }
 
     pub fn set_global(state: Self) {

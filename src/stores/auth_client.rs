@@ -5,7 +5,7 @@ use web_sys::Url;
 
 use crate::{
     canister::BACKEND_ID,
-    state::{auth::AuthService, auth_actions::send_wrap, canisters::Canisters},
+    state::{auth::AuthService, canisters::Canisters},
 };
 
 /// Component that provides the AuthClient to the children components
@@ -26,7 +26,7 @@ pub fn AuthClientProvider(children: Children) -> impl IntoView {
                 .capture_scroll(true)
                 .build()
                 .await
-                .unwrap(),
+                ,
         )));
     });
 

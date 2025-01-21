@@ -984,7 +984,6 @@ dependencies = [
  "log",
  "num-bigint",
  "num-traits",
- "reactive_stores",
  "send_wrapper",
  "serde",
  "serde-wasm-bindgen",
