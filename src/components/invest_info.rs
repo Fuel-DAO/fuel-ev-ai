@@ -6,7 +6,6 @@ use crate::utils::invest_popup::InvestPopup;
 use candid::{Nat, Principal};
 use leptos::*;
 use serde::{Deserialize, Serialize};
-use std::rc::Rc;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct InvestInfoMetaProps {
     pub metadata: GetMetadataRet,
@@ -16,18 +15,15 @@ pub struct InvestInfoMetaProps {
 
 #[component]
 pub fn InvestInfo(metadata: GetMetadataRet, token_canister_id: Principal) -> impl IntoView {
-    let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
-        .expect("Canisters ReadWriteSignal must be provided");
-
     let sale_and_tokens = create_resource(
         || (),
         move |_| {
             let metadata = metadata.clone();
             let token_canister_id = token_canister_id.clone();
-            let canisters_signal = canisters_signal.clone();
+            // let canisters_signal = canisters_signal.clone();
 
             async move {
-                if let Some(canisters) = canisters_signal.get() {
+                if let Some(canisters) = Canisters::get() {
                     let status = get_sale_status( &canisters,token_canister_id).await?;
                     let booked_tokens =
                         get_total_booked_tokens( &canisters,token_canister_id).await?;
@@ -66,8 +62,6 @@ fn InvenstInfoInner(props: InvestInfoMetaProps, token_canister_id: Principal) ->
     let booked_tokens_value = booked_tokens.clone();
 
     let show_invest_popup: RwSignal<bool> = RwSignal::new(false);
-
-    logging::log!("Booked tokens{:?} ", booked_tokens);
 
     let supply_cap = props.metadata.clone().supply_cap.clone();
     // Function to calculate invested percentage
@@ -114,7 +108,10 @@ fn InvenstInfoInner(props: InvestInfoMetaProps, token_canister_id: Principal) ->
     };
 
     view! {
-        <div class="shrink-0 bg-primary rounded-xl flex flex-col text-white gap-3 p-6 shadow-xl h-fit">
+        <div class=format!("shrink-0 {} rounded-xl flex flex-col text-white gap-3 p-6 shadow-xl h-fit", match props.status.clone() {
+            SaleStatus::Live => "bg-primary",
+            _ => "bg-black",
+        })>
             <div class="font-bold text-5xl">
                 {match props.status.clone() {
                     SaleStatus::Live => "Open",

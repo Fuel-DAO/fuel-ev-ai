@@ -5,15 +5,13 @@ use crate::components::admin::manage_collection::{
 use crate::components::header2::Header2;
 use crate::{
     outbound::get_pending_collection_requests::{
-        approve_request, fetch_pending_requests_data, get_request_info_by_id, reject_request,
+        approve_request,  get_request_info_by_id, reject_request,
     },
     state::canisters::Canisters,
 };
-use candid::Nat;
 use leptos::*;
 use leptos_router::*;
 use serde_json::Value;
-use std::rc::Rc;
 
 /// Converts Metadata to key-value pairs
 fn metadata_to_key_value_pairs(metadata: &CollectionRequest) -> Vec<(String, String)> {
@@ -60,21 +58,18 @@ struct ContactSearch {
 pub fn ManageCollectionPage() -> impl IntoView {
     // Signals for route parameters and state
     let params = use_params::<ContactParams>();
-    let query = use_query::<ContactSearch>();
+    // let query = use_query::<ContactSearch>();
 
     // Define a closure to extract the id parameter
     let id =
         move || params.with(|params: &Result<ContactParams, ParamsError>| params.as_ref().map(|params| params.id).unwrap_or_default());
-    let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
-        .expect("Canisters ReadWriteSignal must be provided");
-    let canisters_clone = canisters_signal.get().clone();
 
     // Create a resource to fetch collection details
     let collection_details = create_resource(
-        move || canisters_signal.get().clone(),
+        move || Canisters::get_authenticated().ok().clone(),
         move |cans_option| async move {
             if let Some(cans) = cans_option {
-                match get_request_info_by_id(cans.as_ref(), id()).await {
+                match get_request_info_by_id(&cans, id()).await {
                     Ok(data) => {
                         logging::log!("data: {:?}", data);
                         Ok(data)
@@ -88,10 +83,10 @@ pub fn ManageCollectionPage() -> impl IntoView {
     );
     // Function to handle approval
     let approve_action = move || {
-        if let Some(canisters) = canisters_signal.get().clone() {
+        if let Some(canisters) = Canisters::get_authenticated().ok() {
             let collection_id = id();
             spawn_local(async move {
-                match approve_request(canisters.as_ref(), collection_id).await {
+                match approve_request(&canisters, collection_id).await {
                     Ok((id, token_canister, asset_canister)) => {
                         logging::log!(
                             "Approval successful! ID: {}, Token Canister: {}, Asset Canister: {}",
@@ -110,10 +105,10 @@ pub fn ManageCollectionPage() -> impl IntoView {
         }
     };
     let reject_action = move || {
-        if let Some(canisters) = canisters_clone.clone() {
+        if let Some(canisters) = Canisters::get_authenticated().ok() {
             let collection_id = id();
             spawn_local(async move {
-                match reject_request(canisters.as_ref(), collection_id).await {
+                match reject_request(&canisters, collection_id).await {
                     Ok(_) => {
                         logging::log!("Rejection successful for ID: {}", id());
                     }

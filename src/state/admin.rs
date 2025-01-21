@@ -19,7 +19,7 @@ impl Admin {
         expect_context()
     }
 
-    pub fn is_admin(&self) -> bool {
-        self.is_admin.get()
-    }
+    // pub fn is_admin(&self) -> bool {
+    //     self.is_admin.get()
+    // }
 }

@@ -24,5 +24,7 @@ pub fn share_url(url: &str) -> Option<()> {
 pub fn copy_to_clipboard(text: &str) -> Option<()> {
     let navigator = use_window().navigator()?;
     _ = navigator.clipboard().write_text(text);
+    let toaster = leptoaster::expect_toaster();
+    toaster.success(&format!("Copied {text} to clipboard"));
     Some(())
 }

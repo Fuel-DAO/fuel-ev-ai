@@ -1,10 +1,9 @@
 // use crate::state::canisters::{fetch_collections_data, Canisters, CollectionData};
 use crate::components::header2::Header2;
+use crate::state::sale_status::SaleStatusState;
 use crate::{
     outbound::collection_canister_calls::fetch_collections_data, state::canisters::Canisters,
 };
-use std::rc::Rc;
-
 use candid::Principal;
 use leptos::*;
 use serde::{Deserialize, Serialize};
@@ -54,14 +53,16 @@ struct TokenMetadata {
 }
 #[component]
 pub fn Collections() -> impl IntoView {
-    let selected_tab = create_rw_signal(Tab::All);
-    // let canisters = use_context::<Rc<Canisters>>().expect("Canisters context must be provided");
-    let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
-        .expect("Canisters ReadWriteSignal must be provided");
+
+    
+
+    let selected_tab: RwSignal<Tab> = create_rw_signal(Tab::All);
+    provide_context(selected_tab);
+
 
     // Create a resource to fetch collection data and token metadata
     let collection_data = create_resource(
-        move || canisters_signal.get().clone(), // Access the signal value correctly
+        move || Canisters::get(), // Access the signal value correctly
         move |cans_option| async move {
             if let Some(cans) = cans_option {
                 log::info!("Fetching collections data.");
@@ -93,55 +94,46 @@ pub fn Collections() -> impl IntoView {
                         <Tabs selected_tab tab=Tab::Available label="Available".to_string() />
                         <Tabs selected_tab tab=Tab::Closed label="Closed".to_string() />
                     </div>
-
-                    // Sort Button (For future sorting functionality)
-                    // <div>
-                    //     <button class="flex items-center px-4 py-2 bg-white text-black rounded-full shadow-md font-medium">
-                    //         "Sort"
-                    //         <svg
-                    //             class="w-4 h-4 ml-2"
-                    //             fill="none"
-                    //             stroke="currentColor"
-                    //             viewBox="0 0 24 24"
-                    //             xmlns="http://www.w3.org/2000/svg"
-                    //         >
-                    //             <path
-                    //                 stroke-linecap="round"
-                    //                 stroke-linejoin="round"
-                    //                 stroke-width="2"
-                    //                 d="M19 9l-7 7-7-7"
-                    //             ></path>
-                    //         </svg>
-                    //     </button>
-                    // </div>
                 </div>
 
                 // Card Grid
-                <Suspense fallback=move || {
-                    view! { <div>"Loading collections..."</div> }
-                }>
-                    {move || match collection_data.get() {
-                        Some(Ok(collections)) => {
-                            let filtered_cars = collections
-                                .iter()
-                                .filter(|collection| {
-                                    logging::log!("{}", collection.status);
-                                    match selected_tab.get() {
-                                        Tab::All => true,
-                                        Tab::Available => collection.status == "Open",
-                                        Tab::Closed => collection.status == "Closed",
-                                    }
-                                })
-                                .collect::<Vec<_>>();
+                <Suspense >
+                
+                <div>
+                {move || collection_data.get().map(|_| {})}
+                </div>
+
+                </Suspense>
+               
+                <CollectionListings  />
+            </div>
+        </section>
+    }
+}
+
+#[component]
+fn CollectionListings() -> impl IntoView {
+
+    let selected_tab: RwSignal<Tab> = expect_context();
                             view! {
                                 <div class="flex py-12 items-center gap-8 justify-normal mx-auto flex-wrap ">
 
-                                    {filtered_cars
+                                    {move || SaleStatusState::collection_data()()
+                                        .iter()
+                                        .filter(|collection| {
+                                            match selected_tab.get() {
+                                                Tab::All => true,
+                                                Tab::Available => collection.status == "Open",
+                                                Tab::Closed => collection.status == "Closed",
+                                            }
+                                        })
+                                        .collect::<Vec<_>>()
                                         .into_iter()
                                         .map(|collection| {
+                                            let token_canister = collection.id.token_canister;
                                             let href = format!(
                                                 "/collections/{}/{}",
-                                                collection.id.token_canister.to_text(),
+                                                collection.id.token_canister.clone().to_text(),
                                                 collection.id.asset_canister.to_text(),
                                             );
                                             view! {
@@ -174,7 +166,7 @@ pub fn Collections() -> impl IntoView {
                                                                     }
                                                                 })}
                                                             <span class="absolute top-2 left-2 bg-white text-black font-semibold text-xs px-2 py-1 rounded-full">
-                                                                {collection.status.clone()}
+                                                                {move || SaleStatusState::get_listing_status(token_canister)().humanize()}
                                                             </span>
                                                         </div>
                                                         <div class="p-4">
@@ -206,16 +198,6 @@ pub fn Collections() -> impl IntoView {
                                         .collect::<Vec<_>>()}
                                 </div>
                             }
-                        }
-                        Some(Err(e)) => {
-                            view! { <div>{format!("Error fetching Fleet Investments: {}", e)}</div> }
-                        }
-                        None => view! { <div>"Loading..."</div> },
-                    }}
-                </Suspense>
-            </div>
-        </section>
-    }
 }
 
 #[component]

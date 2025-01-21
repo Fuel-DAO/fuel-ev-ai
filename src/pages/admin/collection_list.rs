@@ -7,35 +7,26 @@ use crate::{
 };
 use leptos::*;
 use log;
-use std::rc::Rc;
 /// Represents the metadata of a form.
 
 
 #[component]
 pub fn CollectionListPage() -> impl IntoView {
-    // Retrieve the canisters signal from the context
-    let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
-        .expect("Canisters ReadWriteSignal must be provided");
-
+   
     // Create a resource to fetch pending requests data
     let pending_requests = create_resource(
-        move || canisters_signal.get().clone(),
+        move || Canisters::get().clone(),
         move |cans_option| async move {
             if let Some(cans) = cans_option {
-                log::info!("Fetching pending requests data.");
                 match fetch_pending_requests_data(&cans).await {
                     Ok(data) => {
-                        log::info!("Successfully fetched pending requests data.");
-                        log::debug!("data: {:?}", data);
                         Ok(data)
                     }
                     Err(e) => {
-                        log::error!("Error fetching pending requests data: {}", e);
                         Err(e)
                     }
                 }
             } else {
-                log::warn!("Canisters not available. User needs to log in.");
                 Err("Canisters not available. Please log in.".to_string())
             }
         },
@@ -85,7 +76,7 @@ pub fn CollectionListPage() -> impl IntoView {
 fn CollectionTile(requests: Vec<CollectionData> ) -> impl IntoView {
     let filtered_requests = requests
                             .iter()
-                            .filter(|request| { true })
+                            .filter(|_| { true })
                             .collect::<Vec<_>>();
                         view! {
                             // Add your filtering logic here
