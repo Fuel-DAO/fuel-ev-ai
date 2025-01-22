@@ -105,7 +105,7 @@ pub fn ImagesInfo(
                 }
                 let canisters = canisters_option.unwrap();
 
-                let manager = canisters.asset_manager();
+                let manager = canisters.asset_manager().await;
 
                 // Iterate over each selected file
                 for i in 0..files.length() {
@@ -214,7 +214,7 @@ pub fn ImagesInfo(
                 let manager = canisters.asset_manager();
 
                 // Delete the asset
-                match manager.delete(path.clone()).await {
+                match manager.await.delete(path.clone()).await {
                     Ok(_) => {
                         if file_type == "logo" {
                             data.update(|d| d.logo.clear());

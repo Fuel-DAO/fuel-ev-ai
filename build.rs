@@ -49,6 +49,7 @@ mod build_common {
                 r#"
                 mod local {{
                     {local_canister_id_mod}
+                    pub const IS_LIVE: bool = false;
                 }}
         
                 pub use local::*;
@@ -60,6 +61,7 @@ mod build_common {
                 r#"
                 mod ic {{
                     {ic_canister_id_mod}
+                    pub const IS_LIVE: bool = true;
                 }}
         
                 pub use ic::*;
