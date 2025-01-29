@@ -135,6 +135,9 @@ fn TrailingButton() -> impl IntoView {
     view! {
         <AdminRoute />
 
+        <a href="https://nns.ic0.app/project/?project=nllv2-byaaa-aaaaq-aaema-cai" target="_blank">
+            <span class="text-black font-medium">SNS</span>
+        </a>
         <a href="https://fuelev.in" target="_blank">
             <span class="text-black font-medium">EV Rentals</span>
         </a>
