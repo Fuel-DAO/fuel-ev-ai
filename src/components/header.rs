@@ -1,7 +1,8 @@
 use crate::{
     pages::admin::check_admin::AdminRoute,
     state::{
-        auth_actions::{create_login_action, create_logout_action}, canisters::Canisters,
+        auth_actions::{create_login_action, create_logout_action},
+        canisters::Canisters,
     },
 };
 use leptos::*;
@@ -10,7 +11,7 @@ pub fn Header() -> impl IntoView {
     let (menu_open, set_menu_open) = create_signal(false);
 
     view! {
-        <div class="w-full fixed z-50 h-20 shadow-sm flex items-center justify-between px-8 font-light transition-all bg-white/90 backdrop-blur-md">
+        <div class="w-full fixed z-50 h-20 shadow-sm flex items-center justify-between px-8 font-light transition-all bg-white">
             // Logo Section
             <div class="flex items-center justify-between space-x-2">
                 <a href="/">
@@ -20,63 +21,65 @@ pub fn Header() -> impl IntoView {
 
             // Hamburger Button
             <div class="lg:hidden flex  gap-2 items-center justify-end">
-            <UserPrincipal />
+                <UserPrincipal />
 
-            <button
-                class=" text-black rounded-full h-8 "
-                on:click=move |_| set_menu_open.update(|open| *open = !*open)
-            >
-                {move || {
-                    if menu_open() {
-                        view! {
-                            // Close icon when the menu is open
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="h-6 w-6"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                stroke-width="2"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M6 18L18 6M6 6l12 12"
-                                />
-                            </svg>
+                <button
+                    class=" text-black rounded-full h-8 "
+                    on:click=move |_| set_menu_open.update(|open| *open = !*open)
+                >
+                    {move || {
+                        if menu_open() {
+                            view! {
+                                // Close icon when the menu is open
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="h-6 w-6"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
+                                </svg>
+                            }
+                        } else {
+                            view! {
+                                // Hamburger icon when the menu is closed
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="h-6 w-6"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M4 6h16M4 12h16M4 18h16"
+                                    />
+                                </svg>
+                            }
                         }
-                    } else {
-                        view! {
-                            // Hamburger icon when the menu is closed
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="h-6 w-6"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                stroke-width="2"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M4 6h16M4 12h16M4 18h16"
-                                />
-                            </svg>
-                        }
-                    }
-                }}
-            </button>
+                    }}
+                </button>
             </div>
 
             // Drawer Menu
             <div
                 class=move || {
                     format!(
-                        "fixed top-0 right-0 h-full w-64 bg-white shadow-lg z-40 transition-transform transform {}",
-                        if menu_open.get() { "translate-x-0" } else { "translate-x-full" }
+                        "fixed top-0 right-0 h-full w-64 shadow-lg z-50 transition-transform transform {}",
+                        if menu_open.get() { "translate-x-0" } else { "translate-x-full" },
                     )
                 }
+                style="background-color: white !important;"
             >
+
                 <div class="flex flex-col h-full p-6 space-y-6 bg-white">
                     <button
                         class="self-end bg-gray-200 p-2 rounded-full"
@@ -98,27 +101,21 @@ pub fn Header() -> impl IntoView {
                         </svg>
                     </button>
                     <div class="flex flex-col items-start space-y-4">
-    <TrailingButton />
-</div>
+                        <TrailingButton />
+                    </div>
                 </div>
             </div>
 
             // Overlay (optional)
-            {move || if menu_open() {
-                view! {
-                    <div
-                        class="fixed inset-0 bg-black bg-opacity-50 z-30"
-                        on:click=move |_| set_menu_open.set(false)
-                    ></div>
+            {move || {
+                if menu_open() {
+                    view! {
+                        <div class="fixed inset-0 bg-black bg-opacity-10 z-30" on:click=move |_| set_menu_open.set(false)></div>
+                    }
+                } else {
+                    view! { <div class="hidden lg:flex gap-8 items-center"></div> }
                 }
-            } else {
-                view! { <div class="hidden lg:flex gap-8 items-center">
-                    </div> }
             }}
-
-
-
-
 
             // Desktop Navigation
             <div class="hidden lg:flex gap-8 items-center">
@@ -150,10 +147,8 @@ fn TrailingButton() -> impl IntoView {
     }
 }
 
-
 #[component]
 fn UserPrincipal() -> impl IntoView {
-
     // Use the reusable actions from auth_actions.rs
     let _handle_login = create_login_action();
     let _handle_logout = create_logout_action();
@@ -162,10 +157,7 @@ fn UserPrincipal() -> impl IntoView {
             when=move || Canisters::is_authenticated()
             fallback=move || {
                 view! {
-                    <a
-                        href="/login"
-                        class="bg-black text-white rounded-full p-2"
-                    >
+                    <a href="/login" class="bg-black text-white rounded-full p-2">
 
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
