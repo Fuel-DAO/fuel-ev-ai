@@ -1,3 +1,4 @@
+use crate::components::collection_images::asset_path;
 use crate::components::header2::Header2;
 use crate::{
     outbound::get_pending_collection_requests::{
@@ -119,9 +120,8 @@ fn CollectionTile(requests: Vec<CollectionData> ) -> impl IntoView {
                                                                             <div>
                                                                                 <img
                                                                                     class="h-12 w-12 flex-none rounded-full bg-gray-50 object-cover"
-                                                                                    src=format!("https://{}.icp0.io{}", crate::TEMP_ASSET_CANISTER_ID.to_text(),logo_url.clone()) 
+                                                                                    src=asset_path( &crate::TEMP_ASSET_CANISTER_ID.to_text(),&logo_url.clone()) 
                                                                                     alt=name.clone()
-
                                                                                 />
                                                                             </div>
                                                                         }

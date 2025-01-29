@@ -1,5 +1,5 @@
 // images_info.rs
-use crate::utils::file_type::get_content_type;
+use crate::{canister::IS_LIVE, utils::file_type::get_content_type};
 use crate::state::asset_manager::*;
 use crate::state::canisters::Canisters;
 use crate::TEMP_ASSET_CANISTER_ID;
@@ -106,7 +106,7 @@ pub fn ImagesInfo(
                 }
                 let canisters = canisters_option.unwrap();
 
-                let manager = canisters.asset_manager();
+                let manager = canisters.asset_manager().await;
 
                 // Iterate over each selected file
                 for i in 0..files.length() {
@@ -209,7 +209,7 @@ pub fn ImagesInfo(
                 }
                 let canisters = canisters_option.unwrap();
 
-                let manager = canisters.asset_manager();
+                let manager = canisters.asset_manager().await;
 
                 // Delete the asset
                 match manager.delete(path.clone()).await {
@@ -236,7 +236,9 @@ pub fn ImagesInfo(
 
     // Function to construct the full asset path
     // let asset_path = move |path: &str| format!("{}/{}", asset_canister_id, path);
-    let asset_path = move |path: &str| format!("https://{}.icp0.io{}", TEMP_ASSET_CANISTER_ID.to_text(),  &path);
+    let asset_path = move |path: &str| if IS_LIVE { format!("https://{}.icp0.io{}", TEMP_ASSET_CANISTER_ID.to_text(),  &path)} else {
+        format!("http://{}.localhost:8080{}", TEMP_ASSET_CANISTER_ID.to_text(),  &path)
+    };
 
     // Clone necessary variables for rendering
     let data_clone = data.clone();

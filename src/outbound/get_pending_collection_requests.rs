@@ -34,7 +34,6 @@ pub async fn fetch_pending_requests_data(
         .get_pending_requests()
         .await
         .map_err(|e| format!("Failed to fetch pending request IDs: {:?}", e))?;
-    log!("Pending request IDs: {:?}", pending_request_ids);
 
     let mut collections = Vec::new();
 
@@ -42,7 +41,6 @@ pub async fn fetch_pending_requests_data(
         // Use `get_request_info_by_id` to fetch request info for each ID
         match get_request_info_by_id(canisters, request_id.clone()).await {
             Ok(collection_data) => {
-                log!("Fetched collection data: {:?}", collection_data);
                 collections.push(collection_data);
             }
             Err(e) => {
@@ -55,7 +53,6 @@ pub async fn fetch_pending_requests_data(
         }
     }
 
-    log!("Final collections: {:?}", collections);
     Ok(collections)
 }
 pub async fn get_request_info_by_id(
@@ -70,21 +67,6 @@ pub async fn get_request_info_by_id(
         .await
     {
         Ok(Some(request_info)) => {
-            log!(
-                "Request info for collection_id {:?}: {:?}",
-                collection_id,
-                request_info
-            );
-
-            // let collection_id_struct = CollectionId {
-            //     asset_canister: request_info
-            //         .asset_canister
-            //         .unwrap_or_else(Principal::anonymous),
-            //     token_canister: request_info
-            //         .token_canister
-            //         .unwrap_or_else(Principal::anonymous),
-            // };
-
             let metadata = request_info
                 .clone()
                /*  .map(|meta: Metadata| Metadata {

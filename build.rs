@@ -7,6 +7,7 @@ mod build_common {
     use anyhow::Result;
     use candid_parser::Principal;
     use convert_case::{Case, Casing};
+    use dotenv_codegen::dotenv;
     use serde::Deserialize;
 
     #[derive(Deserialize)]
@@ -34,7 +35,7 @@ mod build_common {
         canister_id_mod
     }
 
-    fn build_canister_ids(out_dir: &str, is_dev: bool) -> Result<()> {
+    fn build_canister_ids(out_dir: &str, is_dev: bool, ) -> Result<()> {
         let can_ids = read_candid_ids()?;
         let mut local_can_ids = Vec::<(String, Principal)>::new();
         let mut ic_can_ids = Vec::<(String, Principal)>::new();
@@ -49,6 +50,9 @@ mod build_common {
                 r#"
                 mod local {{
                     {local_canister_id_mod}
+                    pub const IS_LIVE:bool = false;
+                    pub const AGENT_URL: &str = "http://localhost:8080";
+
                 }}
         
                 pub use local::*;
@@ -60,6 +64,9 @@ mod build_common {
                 r#"
                 mod ic {{
                     {ic_canister_id_mod}
+                    pub const IS_LIVE:bool = true;
+                    pub const AGENT_URL: &str = "https://ic0.app";
+
                 }}
         
                 pub use ic::*;
@@ -76,9 +83,9 @@ mod build_common {
     fn build_did_intf() -> Result<()> {
         println!("cargo:rerun-if-changed=./did/*");
 
-        let is_dev =false;
-        // let is_dev = dotenv!("BACKEND") == "LOCAL";
-
+        // let is_dev =false;
+        let is_dev = dotenv!("BACKEND") == "LOCAL";
+        
         let mut candid_config: candid_parser::bindings::rust::Config = candid_parser::bindings::rust::Config::new();
         candid_config.set_target(candid_parser::bindings::rust::Target::Agent);
         candid_config.set_type_attributes(

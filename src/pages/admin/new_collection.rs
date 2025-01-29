@@ -1,4 +1,5 @@
-use crate::canister::provision::CollectionRequest;
+use crate::canister::ICP_LEDGER_INDEX_ID;
+use crate::canister::{provision::CollectionRequest, ICP_LEDGER_ID};
 use crate::components::header2::Header2;
 use crate::outbound::add_collection_canister_calls::add_collection;
 use crate::state::canisters::Canisters;
@@ -16,8 +17,8 @@ use crate::components::admin::{
     images_info::{ImagesInfo, ImagesInfoData},
 };
 
-const TOKEN_PRINCIPAL: &str = "ryjl3-tyaaa-aaaaa-aaaba-cai";
-const INDEX_PRINCIPAL: &str = "qhbym-qaaaa-aaaaa-aaafq-cai";
+// const TOKEN_PRINCIPAL: &str = "ryjl3-tyaaa-aaaaa-aaaba-cai";
+// const INDEX_PRINCIPAL: &str = "qhbym-qaaaa-aaaaa-aaafq-cai";
 
 #[component]
 pub fn NewCollectionForm() -> impl IntoView {
@@ -150,8 +151,7 @@ pub fn NewCollectionForm() -> impl IntoView {
                         weight: weight.get(),
                         drive_type: drive_type.get(),
                         purchase_price: Nat::from(purchase_price.get() as u64),
-                        token: Principal::from_text(TOKEN_PRINCIPAL)
-                            .expect("Invalid token principal"), // Adjust as necessary
+                        token:ICP_LEDGER_ID, // Adjust as necessary
                         documents: documents.get(),
                         supply_cap: Nat::from(supply_cap.get() as u64),
                         displays: displays.get(),
@@ -182,10 +182,7 @@ pub fn NewCollectionForm() -> impl IntoView {
                         treasury: Principal::from_text(&treasury_principal)
                             .expect("Invalid token principal"),
                         images: images_info_data.get().images.clone(),
-                        index: Principal::from_text(INDEX_PRINCIPAL)
-                            .expect("Invalid index principal"), // Adjust as necessary
-                                                                // Note: Ensure all required fields are included
-                                                                // If there are more fields in AddCollectionRequestArg, include them here
+                        index: ICP_LEDGER_INDEX_ID, // Adjust as necessary
                     };
 
                     // Call the add_collection function

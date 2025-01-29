@@ -1,6 +1,6 @@
 use leptos::*;
 
-use crate::canister::token::GetMetadataRet;
+use crate::canister::{token::GetMetadataRet, IS_LIVE};
 
 #[component]
 pub fn CollectionImages(
@@ -84,6 +84,8 @@ pub fn CollectionImages(
 }
 
 // Helper function to generate the asset path
-fn asset_path(canister_id: &String, img: &String) -> String {
-    format!("https://{canister_id}.icp0.io{img}")
+pub fn asset_path(canister_id: &String, img: &String) -> String {
+     if IS_LIVE { format!("https://{}.icp0.io{}", canister_id,  &img)} else {
+        format!("http://{}.localhost:4943{}", canister_id,  &img)
+    }
 }

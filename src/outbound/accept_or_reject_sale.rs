@@ -1,6 +1,6 @@
 use crate::{
     canister::token::{self, SaleStatus},
-    state::canisters::Canisters,
+    state::{canisters::Canisters, sale_status::SaleStatusState},
 };
 use candid::Principal;
 use leptos::logging::log;
@@ -25,6 +25,7 @@ pub async fn accept_sale(
             token::Result_::Ok(success) => {
                 if success {
                     log!("Sale accepted successfully.");
+                    SaleStatusState::set_listing_satatus(token_canister_id, SaleStatus::Accepted);
                     Ok(true)
                 } else {
                     let error_msg = "accept_sale returned Ok(false)".to_string();
@@ -60,6 +61,7 @@ pub async fn reject_sale(
             token::Result_::Ok(success) => {
                 if success {
                     log!("Sale rejected successfully.");
+                    SaleStatusState::set_listing_satatus(token_canister_id, SaleStatus::Rejected);
                     Ok(true)
                 } else {
                     let error_msg = "reject_sale returned Ok(false)".to_string();

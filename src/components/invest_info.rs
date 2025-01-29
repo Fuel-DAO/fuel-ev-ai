@@ -1,6 +1,7 @@
 use crate::canister::token::{GetMetadataRet, SaleStatus};
 use crate::outbound::collection_canister_calls::{get_sale_status, get_total_booked_tokens};
 use crate::state::canisters::Canisters;
+use crate::state::sale_status::SaleStatusState;
 use crate::utils::button::ButtonComponent;
 use crate::utils::invest_popup::InvestPopup;
 use candid::{Nat, Principal};
@@ -24,7 +25,7 @@ pub fn InvestInfo(metadata: GetMetadataRet, token_canister_id: Principal) -> imp
 
             async move {
                 if let Some(canisters) = Canisters::get() {
-                    let status = get_sale_status( &canisters,token_canister_id).await?;
+                    let status = SaleStatusState::get_listing_status(token_canister_id)() ;
                     let booked_tokens =
                         get_total_booked_tokens( &canisters,token_canister_id).await?;
                     Ok::<InvestInfoMetaProps, String>(InvestInfoMetaProps {

@@ -1,7 +1,7 @@
 use leptos::*;
 use web_sys::window;
 
-use crate::canister::token::GetMetadataRet;
+use crate::{canister::token::GetMetadataRet, components::collection_images::asset_path};
 
 #[component]
 pub fn DocumentList(metadata: GetMetadataRet) -> impl IntoView {
@@ -9,7 +9,8 @@ pub fn DocumentList(metadata: GetMetadataRet) -> impl IntoView {
     let documents = metadata.documents.clone();
 
     let view_doc = move |path: String| {
-        let url = format!("https://{}.icp0.io{}", asset_can_id, path);
+        let url = asset_path(&asset_can_id, &path);
+
         if let Some(win) = window() {
             let _ = win.open_with_url_and_target(&url, "_blank");
         }

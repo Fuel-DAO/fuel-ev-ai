@@ -71,7 +71,6 @@ pub fn ManageCollectionPage() -> impl IntoView {
             if let Some(cans) = cans_option {
                 match get_request_info_by_id(&cans, id()).await {
                     Ok(data) => {
-                        logging::log!("data: {:?}", data);
                         Ok(data)
                     }
                     Err(e) => Err(e),
@@ -81,10 +80,13 @@ pub fn ManageCollectionPage() -> impl IntoView {
             }
         },
     );
+
+    let is_loading = RwSignal::new(false);
     // Function to handle approval
     let approve_action = move || {
         if let Some(canisters) = Canisters::get_authenticated().ok() {
             let collection_id = id();
+            is_loading.set(true);
             spawn_local(async move {
                 match approve_request(&canisters, collection_id).await {
                     Ok((id, token_canister, asset_canister)) => {
@@ -99,7 +101,9 @@ pub fn ManageCollectionPage() -> impl IntoView {
                         logging::log!("Error approving request: {}", err);
                     }
                 }
+                
             });
+            is_loading.set(false);
         } else {
             logging::log!("Canisters not available. Please log in.");
         }
@@ -107,6 +111,8 @@ pub fn ManageCollectionPage() -> impl IntoView {
     let reject_action = move || {
         if let Some(canisters) = Canisters::get_authenticated().ok() {
             let collection_id = id();
+            is_loading.set(true);
+
             spawn_local(async move {
                 match reject_request(&canisters, collection_id).await {
                     Ok(_) => {
@@ -116,7 +122,10 @@ pub fn ManageCollectionPage() -> impl IntoView {
                         logging::log!("Error rejecting request: {}", err);
                     }
                 }
+                
             });
+            is_loading.set(false);
+
         } else {
             logging::log!("Canisters not available. Please log in.");
         }
@@ -129,13 +138,15 @@ pub fn ManageCollectionPage() -> impl IntoView {
 
                 <div class="flex space-x-2">
                     <button
-                        class="bg-primary hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex items-center rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
+                        disabled=move || is_loading.get()
+                        class=move ||"bg-primary disabled:bg-black hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-green-300 ring-0 px-4 py-2 inline-flex items-center rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
                         on:click=move |_| approve_action()
                     >
                         "Approve"
                     </button>
                     <button
-                        class="bg-primary hover:bg-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-black focus-visible:outline-red-300 ring-0 px-4 py-2 inline-flex items-center rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
+                        disabled=move || is_loading.get()
+                        class=move || "bg-primary disabled:bg-black hover:bg-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 text-white focus-visible:outline-red-300 ring-0 px-4 py-2 inline-flex items-center rounded-full transition-all text-sm font-semibold shadow-md active:translate-y-[1px] text-nowrap disabled:opacity-30"
                         on:click=move |_| reject_action()
                     >
                         "Decline"
@@ -153,7 +164,6 @@ pub fn ManageCollectionPage() -> impl IntoView {
                             Some(Ok(data)) => {
                                 view! {
                                     {if let Some(metadata) = &data.metadata {
-                                        logging::log!("metadata: {:?}", metadata);
                                         let metadata_items = metadata_to_key_value_pairs(metadata);
                                         view! {
                                             // Dynamically extract fields

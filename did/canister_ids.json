@@ -2,18 +2,26 @@
  
   "asset": {
     "ic": "4sc7j-7iaaa-aaaaj-qnfva-cai",
-    "local": "bd3sg-teaaa-aaaaa-qaaba-cai"
+    "local": "4sc7j-7iaaa-aaaaj-qnfva-cai"
   },
   "asset_proxy": {
     "ic": "43buv-jaaaa-aaaaj-qnfuq-cai",
-    "local": "bd3sg-teaaa-aaaaa-qaaba-cai"
+    "local": "43buv-jaaaa-aaaaj-qnfuq-cai"
   },
   "provision": {
     "ic": "44asb-eyaaa-aaaaj-qnfua-cai",
-    "local": "bw4dl-smaaa-aaaaa-qaacq-cai"
+    "local": "44asb-eyaaa-aaaaj-qnfua-cai"
   },
   "backend": {
       "ic": "ewirk-vqaaa-aaaaj-qa57q-cai",
       "local": "ewirk-vqaaa-aaaaj-qa57q-cai"
-    }
+  },
+  "icp_ledger": {
+      "ic": "ryjl3-tyaaa-aaaaa-aaaba-cai",
+      "local": "ryjl3-tyaaa-aaaaa-aaaba-cai"
+  },
+  "icp_ledger_index": {
+      "ic": "qhbym-qaaaa-aaaaa-aaafq-cai",
+      "local": "qhbym-qaaaa-aaaaa-aaafq-cai"
+  }
 }

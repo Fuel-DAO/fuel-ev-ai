@@ -10,6 +10,8 @@ use std::rc::Rc;
 use std::time::Duration;
 use web_sys::Url;
 
+use crate::canister::AGENT_URL;
+use crate::canister::IS_LIVE;
 use crate::canister::PROVISION_ID;
 use crate::set_up_auth_context;
 use crate::utils::go_back_and_come_back::*;
@@ -98,7 +100,7 @@ impl AuthService {
             .map_err(|_| "Unable to retrieve principal.".into())
     }
     pub fn is_authenticated(&self) -> bool {
-        self.auth_client.is_authenticated()
+        !IS_LIVE || self.auth_client.is_authenticated()
     }
 
     pub async fn logout(&mut self) -> Result<(), String> {
@@ -131,16 +133,16 @@ impl AuthService {
 async fn create_agent(auth_client: &AuthClient) -> Result<Agent, String> {
     let identity = auth_client.identity();
     // dotenv::dotenv().ok();
-    let  dfx_network = "LIVE".to_string();
-    // if dfx_network.is_empty() {
-    //     dfx_network = env::var("BACKEND").unwrap_or("LIVE".to_owned());
-    // }
-
-    let url = match dfx_network.as_str() {
-        "LOCAL" => "http://127.0.0.1:4943".to_string(),
-        "LIVE" => "https://ic0.app".to_string(),
-        _ => return Err(format!("Unknown DFX network: {}", dfx_network)),
+    let  dfx_network = if IS_LIVE { "LIVE".to_string() } else {
+            "LOCAL".into()
     };
+
+    let url = AGENT_URL;
+    // let url = match dfx_network.as_str() {
+    //     "LOCAL" => AGENT_URL,
+    //     "LIVE" => AGENT_URL,
+    //     _ => return Err(format!("Unknown DFX network: {}", dfx_network)),
+    // };
 
     let agent = Agent::builder()
         .with_url(url)

@@ -18,7 +18,9 @@ pub fn AdminProvider(children: Children) -> impl IntoView {
                     Admin::get().is_admin.set(is);
                     Admin::get().principal.set(principal);
                 }, 
-                Err(_) => {}
+                Err(_) => {
+                    logging::log!("Failed to get canisters for admin");
+                }
             }
         }
     });

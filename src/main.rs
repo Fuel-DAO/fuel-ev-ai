@@ -29,7 +29,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 mod canister;
 mod components;
-mod consts;
+// mod consts;
 mod outbound;
 mod pages;
 mod state;

@@ -2,7 +2,7 @@ use crate::canister::backend::Backend;
 // canisters.rs
 use crate::canister::provision::Provision;
 use crate::canister::token::Token;
-use crate::canister::{ASSET_PROXY_ID, BACKEND_ID, PROVISION_ID};
+use crate::canister::{ASSET_PROXY_ID, BACKEND_ID, IS_LIVE, PROVISION_ID};
 
 use crate::state::asset_manager::AssetManager;
 use crate::state::auth::AuthService;
@@ -58,7 +58,7 @@ impl Canisters {
     }
 
     pub fn get_authenticated() -> Result<Self, String> {
-        if Self::is_authenticated() {
+        if Self::is_authenticated() || !IS_LIVE  {
             Self::get().ok_or("User is not authenticated".into())
         } else {
             Err("User is not authenticated".into())
@@ -70,25 +70,38 @@ impl Canisters {
     }
     pub async  fn provision_canister(&self) -> Provision<'_> {
         let agent_ref: &Agent = &self.agent;
+        Self::fetch_root_key(agent_ref).await;
+
         Provision(self.provision_principal, agent_ref)
     }
 
     pub async fn backend_canister(&self) -> Backend<'_> {
         let agent_ref: &Agent = &self.agent;
+        Self::fetch_root_key(agent_ref).await;
+
         Backend(BACKEND_ID, agent_ref)
     }
 
     pub async fn token_canister(&self, canister_id: Principal) -> Token<'_> {
         let agent_ref: &Agent = &self.agent;
+        Self::fetch_root_key(agent_ref).await;
         Token(canister_id, agent_ref)
     }
 
-    pub fn asset_manager(&self) -> AssetManager<'_> {
+    async fn fetch_root_key(agent_ref: &Agent) {
+        let _ = agent_ref.fetch_root_key().await;
+    }
+
+    pub async fn asset_manager(&self) -> AssetManager<'_> {
         // let asset_canister_id = Principal::from_text(TEMP_ASSET_CANISTER_ID).unwrap();
         let asset_proxy_canister_id =
                 ASSET_PROXY_ID;
+        let agent_ref: &Agent = &self.agent;
 
-        AssetManager::new(asset_proxy_canister_id, &self.agent)
+        Self::fetch_root_key(agent_ref).await;
+
+
+        AssetManager::new(asset_proxy_canister_id, &agent_ref)
     }
 }
 
