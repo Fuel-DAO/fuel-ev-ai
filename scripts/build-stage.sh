@@ -1,8 +1,8 @@
 #!/bin/bash
 
 set -e
-cp .env.live .env
-export BACKEND="LIVE"
+cp .env.stage .env
+export BACKEND="STAGE"
 echo "Using BACKEND: $BACKEND"
 
 cargo clean

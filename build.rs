@@ -14,6 +14,7 @@ mod build_common {
     struct CanId {
         ic: Principal,
         local: Principal,
+        stage: Principal,
     }
 
     fn read_candid_ids() -> Result<HashMap<String, CanId>> {
@@ -39,9 +40,15 @@ mod build_common {
         let can_ids = read_candid_ids()?;
         let mut local_can_ids = Vec::<(String, Principal)>::new();
         let mut ic_can_ids = Vec::<(String, Principal)>::new();
+        let mut stage_can_ids = Vec::<(String, Principal)>::new();
+        let is_dev = dotenv!("BACKEND") == "LOCAL";
+        let is_stage = dotenv!("BACKEND") == "STAGE";
         for (canister, can_id) in can_ids {
             local_can_ids.push((canister.clone(), can_id.local));
-            ic_can_ids.push((canister, can_id.ic));
+
+            ic_can_ids.push((canister.clone(), can_id.ic));
+
+            stage_can_ids.push((canister, can_id.stage));
         }
 
         let canister_id_mod_contents = if is_dev {
@@ -58,7 +65,24 @@ mod build_common {
                 pub use local::*;
                 "#
             )
-        } else {
+        }
+         else if is_stage {
+            let ic_canister_id_mod = generate_canister_id_mod(stage_can_ids);
+            format!(
+                r#"
+                mod ic {{
+                    {ic_canister_id_mod}
+                    pub const IS_LIVE:bool = true;
+                    pub const AGENT_URL: &str = "https://ic0.app";
+
+                }}
+        
+                pub use ic::*;
+                "#
+            )
+        }
+    
+         else {
             let ic_canister_id_mod = generate_canister_id_mod(ic_can_ids);
             format!(
                 r#"
@@ -82,6 +106,8 @@ mod build_common {
 
     fn build_did_intf() -> Result<()> {
         println!("cargo:rerun-if-changed=./did/*");
+        println!("cargo:rerun-if-changed=.env");
+
 
         // let is_dev =false;
         let is_dev = dotenv!("BACKEND") == "LOCAL";

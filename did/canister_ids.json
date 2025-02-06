@@ -2,26 +2,32 @@
  
   "asset": {
     "ic": "4sc7j-7iaaa-aaaaj-qnfva-cai",
+    "stage": "6fz3l-gyaaa-aaaad-aajsa-cai",
     "local": "4sc7j-7iaaa-aaaaj-qnfva-cai"
   },
   "asset_proxy": {
     "ic": "43buv-jaaaa-aaaaj-qnfuq-cai",
+    "stage": "6q6kg-hqaaa-aaaad-aajrq-cai",
     "local": "43buv-jaaaa-aaaaj-qnfuq-cai"
   },
   "provision": {
     "ic": "44asb-eyaaa-aaaaj-qnfua-cai",
+    "stage": "6x7ms-kiaaa-aaaad-aajra-cai",
     "local": "44asb-eyaaa-aaaaj-qnfua-cai"
   },
   "backend": {
       "ic": "ewirk-vqaaa-aaaaj-qa57q-cai",
+      "stage": "664ho-4aaaa-aaaad-aajqq-cai",
       "local": "ewirk-vqaaa-aaaaj-qa57q-cai"
   },
   "icp_ledger": {
       "ic": "ryjl3-tyaaa-aaaaa-aaaba-cai",
+      "stage": "ryjl3-tyaaa-aaaaa-aaaba-cai",
       "local": "ryjl3-tyaaa-aaaaa-aaaba-cai"
   },
   "icp_ledger_index": {
       "ic": "qhbym-qaaaa-aaaaa-aaafq-cai",
+      "stage": "qhbym-qaaaa-aaaaa-aaafq-cai",
       "local": "qhbym-qaaaa-aaaaa-aaafq-cai"
   }
 }
