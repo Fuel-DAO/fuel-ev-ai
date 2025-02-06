@@ -1,3 +1,4 @@
+use crate::canister::AGENT_URL;
 // images_info.rs
 use crate::{canister::IS_LIVE, utils::file_type::get_content_type};
 use crate::state::asset_manager::*;
@@ -237,7 +238,8 @@ pub fn ImagesInfo(
     // Function to construct the full asset path
     // let asset_path = move |path: &str| format!("{}/{}", asset_canister_id, path);
     let asset_path = move |path: &str| if IS_LIVE { format!("https://{}.icp0.io{}", TEMP_ASSET_CANISTER_ID.to_text(),  &path)} else {
-        format!("http://{}.localhost:8080{}", TEMP_ASSET_CANISTER_ID.to_text(),  &path)
+        let port = AGENT_URL.split(":").last().unwrap_or("4943");
+        format!("http://{}.localhost:{}{}", TEMP_ASSET_CANISTER_ID.to_text(), port,  &path)
     };
 
     // Clone necessary variables for rendering
