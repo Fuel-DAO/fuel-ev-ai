@@ -42,20 +42,24 @@ dfx-env.overrideAttrs (old: {
 
   # Shell hooks (executed when the shell starts)
   shellHook = ''
-      # Add the wasm32 target to Rust
-      rustup target add wasm32-unknown-unknown
+    echo "Checking Node.js and npm..."
+    node -v
+    npm -v
 
-      # Install candid-extractor (needed for IC projects)
-      cargo install --root $out --force candid-extractor
-      ln -s $out/bin/candid-extractor $out/bin/candid-extractor
+    echo "Installing Tailwind CSS..."
+    npm install -g tailwindcss
 
-      # Add Node.js and npm binaries to PATH (ensuring they are available globally)
-      export PATH="$out/bin:$PATH"
+    # Add the wasm32 target to Rust
+    rustup target add wasm32-unknown-unknown
 
-      # Print installed versions of node, npm, and trunk to verify installation
-      echo "Node.js version: $(node -v)"
-      echo "npm version: $(npm -v)"
-      echo "Trunk version: $(trunk -V)"
+    # Install candid-extractor (needed for IC projects)
+    cargo install --root $out --force candid-extractor
+    ln -s $out/bin/candid-extractor $out/bin/candid-extractor
+
+    # Add Node.js and npm binaries to PATH
+    export PATH="$out/bin:$PATH"
+
+    echo "Trunk version: $(trunk -V)"
     '';
 })
 
