@@ -12,10 +12,10 @@ destination = "public"
 source = "static"
 destination = "static"
 
-[[hooks]]
-stage = "pre_build"
-command = "sh"
-command_arguments = ["-c", "npx tailwindcss -i style/tailwind.css -o style/output.css --minify"]
+# [[hooks]]
+# stage = "pre_build"
+# command = "sh"
+# command_arguments = ["-c", "npx tailwindcss -i style/tailwind.css -o style/output.css --minify"]
 # [[proxy]]
 # backend = "http://localhost:4943"
 # insecure = true
