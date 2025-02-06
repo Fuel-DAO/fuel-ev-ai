@@ -52,7 +52,9 @@ jobs:
         env:
           BACKEND: STAGE
         run: |
-         nix-shell --run "./scripts/build-stage.sh"
+         nix-shell --run "
+         npm install -g tailwindcss && \
+         ./scripts/build-stage.sh"
 
       - name: Import DFX Identity # Import DFX identity using secret key
         run: |
