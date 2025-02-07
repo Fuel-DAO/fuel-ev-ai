@@ -26,6 +26,10 @@ mkdir -p "$BUILD_DIR"
 echo "Building the Leptos CSR project with Trunk..."
 trunk build --release || { echo "Trunk build failed"; exit 1; }
 
+echo "Generating env.js..."
+ENV_JS_PATH="$BUILD_DIR/env.js"
+echo "export const BACKEND = '$BACKEND';" > "$ENV_JS_PATH"
+
 # Step 2: Check if the build succeeded
 WASM_FILE=$(find "$BUILD_DIR" -type f -name "*.wasm")
 if [ -z "$WASM_FILE" ]; then
