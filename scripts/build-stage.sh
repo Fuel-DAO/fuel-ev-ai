@@ -2,6 +2,7 @@
 
 set -e
 cp .env.stage .env
+cp canister_ids_staging.json canister_ids.json
 export BACKEND="STAGE"
 echo "Using BACKEND: $BACKEND"
 
@@ -13,6 +14,14 @@ if ! command -v wasm-opt &> /dev/null; then
     cargo install wasm-opt
 else
     echo "wasm-opt is already installed."
+fi
+
+# Step 0: Ensure wasm-opt is installed
+if ! command -v trunk &> /dev/null; then
+    echo "Installing trunk..."
+    cargo install --locked trunk
+else
+    echo "trunk is already installed."
 fi
 
 

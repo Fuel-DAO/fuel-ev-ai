@@ -34,7 +34,6 @@ dfx-env.overrideAttrs (old: {
       libiconv            # Text conversion library
       wget                # Tool to download files from the web
       nodejs              # Node.js runtime (includes npm)
-      trunk               # Trunk for managing front-end assets
     ] ++ (if pkgs.stdenv.isDarwin then [
       darwin.apple_sdk.frameworks.Foundation
       pkgs.darwin.libiconv
@@ -52,10 +51,9 @@ dfx-env.overrideAttrs (old: {
       # Add Node.js and npm binaries to PATH (ensuring they are available globally)
       export PATH="$out/bin:$PATH"
 
-      # Print installed versions of node, npm, and trunk to verify installation
+      # Print installed versions of node, npm, 
       echo "Node.js version: $(node -v)"
       echo "npm version: $(npm -v)"
-      echo "Trunk version: $(trunk -V)"
     '';
 })
 

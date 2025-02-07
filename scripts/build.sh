@@ -2,6 +2,7 @@
 
 set -e
 cp .env.live .env
+cp canister_ids_live.json canister_ids.json
 export BACKEND="LIVE"
 echo "Using BACKEND: $BACKEND"
 
