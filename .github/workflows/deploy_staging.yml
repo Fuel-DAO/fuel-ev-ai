@@ -54,6 +54,12 @@ jobs:
         run: |
          nix-shell --run "./scripts/build-stage.sh"
 
+      - name: Copy env file
+        env:
+          BACKEND: STAGE
+        run: |
+         nix-shell --run "cp env.js dist/env.js"
+
       - name: Import DFX Identity # Import DFX identity using secret key
         run: |
           touch actions_identity.pem
