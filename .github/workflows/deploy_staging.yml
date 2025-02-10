@@ -54,11 +54,11 @@ jobs:
       #   run: |
       #    nix-shell --run "./scripts/build-stage.sh"
 
-      # - name: Copy env file
-      #   env:
-      #     BACKEND: STAGE
-      #   run: |
-      #    nix-shell --run "cp env.js dist/env.js"
+      - name: Copy canister_ids.json file
+        env:
+          BACKEND: STAGE
+        run: |
+         nix-shell --run "cp dist/canister_ids_staging.json canister_ids.json"
 
       - name: Import DFX Identity # Import DFX identity using secret key
         run: |

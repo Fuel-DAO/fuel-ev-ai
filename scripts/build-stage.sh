@@ -2,7 +2,7 @@
 
 set -e
 cp .env.stage .env
-cp canister_ids_staging.json canister_ids.json
+
 export BACKEND="STAGE"
 echo "Using BACKEND: $BACKEND"
 
@@ -60,3 +60,5 @@ echo "Final WASM file size:"
 ls -lh "$WASM_FILE"
 
 echo "Build and optimization process completed successfully."
+
+cp canister_ids_staging.json dist/canister_ids_staging.json
