@@ -24,7 +24,7 @@ pub fn Header() -> impl IntoView {
                 <UserPrincipal />
 
                 <button
-                    class=" text-black rounded-full h-8 "
+                    class="hidden text-black rounded-full h-8 "
                     on:click=move |_| set_menu_open.update(|open| *open = !*open)
                 >
                     {move || {
@@ -131,20 +131,23 @@ pub fn Header() -> impl IntoView {
 fn TrailingButton() -> impl IntoView {
     view! {
         <AdminRoute />
-
-        <a href="https://nns.ic0.app/project/?project=nllv2-byaaa-aaaaq-aaema-cai" target="_blank">
-            <span class="text-black font-medium">SNS</span>
-        </a>
-        <a href="https://fuelev.in" target="_blank">
-            <span class="text-black font-medium">EV Rentals</span>
-        </a>
-        <a href="/business">
-            <span class="text-black font-medium">Business Dashboard</span>
-        </a>
-        <a href="/collections">
-            <span class="text-black font-medium">Fleet Investments</span>
-        </a>
     }
+    // view! {
+    //     <AdminRoute />
+
+    //     <a href="https://nns.ic0.app/project/?project=nllv2-byaaa-aaaaq-aaema-cai" target="_blank">
+    //         <span class="text-black font-medium">SNS</span>
+    //     </a>
+    //     <a href="https://fuelev.in" target="_blank">
+    //         <span class="text-black font-medium">EV Rentals</span>
+    //     </a>
+    //     <a href="/business">
+    //         <span class="text-black font-medium">Business Dashboard</span>
+    //     </a>
+    //     <a href="/collections">
+    //         <span class="text-black font-medium">Fleet Investments</span>
+    //     </a>
+    // }
 }
 
 #[component]

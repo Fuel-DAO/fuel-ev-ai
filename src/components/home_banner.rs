@@ -11,11 +11,11 @@ pub fn HeroSection() -> impl IntoView {
                     "Mobility Forward," <br />
                     "Clean & Decentralized"
                 </div>
-                <a href="/collections">
-                    <button class="bg-green-500 hover:bg-green-700 text-white font-bold xl:text-2xl xl:px-8 xl:py-3 px-6 py-3 rounded-full shadow-lg">
-                        "Invest Now"
-                    </button>
-                </a>
+                // <a href="/collections">
+                //     <button class="bg-green-500 hover:bg-green-700 text-white font-bold xl:text-2xl xl:px-8 xl:py-3 px-6 py-3 rounded-full shadow-lg">
+                //         "Invest Now"
+                //     </button>
+                // </a>
             </div>
 
             // Background Image
