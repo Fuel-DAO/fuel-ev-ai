@@ -1,0 +1,187 @@
+name: Release and Submit SNS Asset Canister Proposal
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  upgrade_asset:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: read
+      contents: write
+    env:
+      # Use the secret for prepare principals.
+      PREPARE_PRINCIPALS: ${{ secrets.PREPARE_PRINCIPALS }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dfx
+        uses: dfinity/setup-dfx@main
+        with:
+          dfx-version: "0.24.3"
+
+      - name: Confirm DFX installation
+        run: dfx --version
+
+      - name: Install quill from GitHub Releases
+        run: |
+          curl -LJO https://github.com/dfinity/quill/releases/download/v0.4.2/quill-linux-x86_64-musl
+          mv quill-linux-x86_64-musl quill
+          chmod +x quill
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+            .dfx/cache/
+          key: sns-asset-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Copy production canister IDs
+        run: cp canister_ids_prod.json sns_canister_ids.json
+
+      - name: Import DFX Identity
+        run: |
+          touch actions_identity.pem
+          echo "${{ secrets.FUEL_DAO_CANISTER_CONTROLLER_PRIVATE_KEY }}" > actions_identity.pem
+          dfx identity import --storage-mode=plaintext actions actions_identity.pem
+          dfx identity use actions
+
+      - name: Get Principal and Create/Use Neuron ID using quill neuron-stake
+        id: get_neuron
+        run: |
+          set -e
+          echo "==> Getting current principal..."
+          PRINCIPAL=$(dfx identity get-principal)
+          echo "Current principal: $PRINCIPAL"
+          # Export the principal for later steps.
+          echo "principal=$PRINCIPAL" >> $GITHUB_OUTPUT
+
+          # Extract the governance canister from sns_canister_ids.json.
+          GOVERNANCE_CANISTER=$(jq -r '.governance' sns_canister_ids.json)
+          echo "Using governance canister: $GOVERNANCE_CANISTER"
+
+          # Query for existing neurons for this principal.
+          NEURON_JSON=$(dfx canister call "$GOVERNANCE_CANISTER" list_neurons "(record { of_principal = opt \"$PRINCIPAL\" })")
+          echo "Neuron JSON: $NEURON_JSON"
+          NEURON_COUNT=$(echo "$NEURON_JSON" | jq '.neurons | length')
+          echo "Neuron count: $NEURON_COUNT"
+
+          if [ "$NEURON_COUNT" -eq 0 ]; then
+            echo "No neurons found for principal $PRINCIPAL. Checking token balance before staking..."
+            # Define stake amount in ICP (example: 50 ICP).
+            STAKE_AMOUNT_ICP=50
+
+            # Extract the ledger canister ID (assumes a "ledger" key in sns_canister_ids.json).
+            TOKEN_LEDGER=$(jq -r '.ledger' sns_canister_ids.json)
+            echo "Using token ledger canister: $TOKEN_LEDGER"
+
+            # Query the ledger for the token balance.
+            TOKEN_BALANCE_RAW=$(dfx canister call "$TOKEN_LEDGER" account_balance "(record { account = record { owner = principal \"$PRINCIPAL\"; subaccount = null } })")
+            echo "Raw token balance response: $TOKEN_BALANCE_RAW"
+            # Extract numeric balance (in e8s; 1 ICP = 100,000,000 e8s).
+            TOKEN_BALANCE=$(echo "$TOKEN_BALANCE_RAW" | grep -o '[0-9]\+')
+            echo "FuelEv token balance: $TOKEN_BALANCE e8s"
+            REQUIRED_BALANCE=$((STAKE_AMOUNT_ICP * 100000000))
+            if [ "$TOKEN_BALANCE" -lt "$REQUIRED_BALANCE" ]; then
+              echo "Not enough FuelEv tokens to stake. Required: $REQUIRED_BALANCE e8s, available: $TOKEN_BALANCE e8s."
+              exit 1
+            fi
+
+            echo "Sufficient balance. Proceeding with staking using quill neuron-stake..."
+            STAKE_OUTPUT=$(./quill neuron-stake --amount $STAKE_AMOUNT_ICP --name primary)
+            echo "quill neuron-stake output:"
+            echo "$STAKE_OUTPUT"
+            # Pipe the signed staking request to quill send.
+            echo "$STAKE_OUTPUT" | ./quill send -
+            # Extract the neuron id from the output.
+            NEURON_ID=$(echo "$STAKE_OUTPUT" | grep -oP 'id = \K[0-9]+')
+            if [ -z "$NEURON_ID" ]; then
+              echo "Failed to extract neuron id from quill output."
+              exit 1
+            fi
+            echo "Created neuron with id: $NEURON_ID"
+          else
+            echo "Neuron(s) already exist. Using the first one."
+            NEURON_ID=$(echo "$NEURON_JSON" | jq -r '.neurons[0].id.id')
+          fi
+          echo "Final neuron id: $NEURON_ID"
+          echo "neuron_id=$NEURON_ID" >> $GITHUB_OUTPUT
+
+      - name: Build Asset Canister (fuel-ev-ai)
+        run: |
+          echo "Building asset canister (fuel-ev-ai)..."
+          dfx build fuel-ev-ai --network ic
+
+      - name: Prepare and Submit Upgrade Proposal for Asset Canister
+        env:
+          # Set the asset canister name to fuel-ev-ai.
+          ASSET_CANISTER_NAME: fuel-ev-ai
+          TITLE: "Update Frontend Canister Permissions"
+          SUMMARY: "Update the frontend canister permissions using SNS governance. This proposal grants Commit and ManagePermissions rights to the actions_identity principal and sets Prepare permissions as specified."
+          URL: "https://example.com"
+        run: |
+          echo "Preparing asset canister upgrade proposal..."
+          # Get the target canister id.
+          TARGET_CANISTER_ID=$(dfx canister id $ASSET_CANISTER_NAME --network ic)
+          echo "Target asset canister id: $TARGET_CANISTER_ID"
+          
+          # Determine the WASM path.
+          WASM_PATH=".dfx/ic/canisters/$ASSET_CANISTER_NAME/assetstorage.wasm.gz"
+          if [ ! -f "$WASM_PATH" ]; then
+            echo "WASM file not found at $WASM_PATH. Exiting."
+            exit 1
+          fi
+          echo "Using WASM file: $WASM_PATH"
+
+          # Retrieve the neuron id from the earlier step.
+          NEURON_ID="${{ steps.get_neuron.outputs.neuron_id }}"
+          echo "Using neuron id: $NEURON_ID"
+          
+          # Use the principal from actions_identity (captured earlier) for commit and manage permissions.
+          COMMIT_PRINCIPAL="${{ steps.get_neuron.outputs.principal }}"
+          MANAGE_PERMISSIONS_PRINCIPAL="${{ steps.get_neuron.outputs.principal }}"
+          echo "Using commit and manage permissions principal: $COMMIT_PRINCIPAL"
+          
+          # Construct the upgrade argument dynamically.
+          UPGRADE_ARG="(opt variant {
+            Upgrade = record {
+              set_permissions = opt record {
+                prepare = vec {"
+          IFS=',' read -ra PREP_ARRAY <<< "$PREPARE_PRINCIPALS"
+          for p in "${PREP_ARRAY[@]}"; do
+            p_trimmed=$(echo "$p" | xargs)
+            UPGRADE_ARG+=" principal \"$p_trimmed\";"
+          done
+          UPGRADE_ARG+=' },
+                commit = vec { principal "'"$COMMIT_PRINCIPAL"'" },
+                manage_permissions = vec { principal "'"$MANAGE_PERMISSIONS_PRINCIPAL"'" }
+              }
+            }
+          })'
+          echo "Upgrade argument: $UPGRADE_ARG"
+
+          # Create the upgrade proposal using quill.
+          ./quill sns \
+            --canister-ids-file sns_canister_ids.json \
+            --pem-file actions_identity.pem \
+            make-upgrade-canister-proposal \
+            --title "$TITLE" \
+            --url "$URL" \
+            --summary "$SUMMARY" \
+            $NEURON_ID \
+            --target-canister-id "$TARGET_CANISTER_ID" \
+            --wasm-path "$WASM_PATH" \
+            --canister-upgrade-arg "$UPGRADE_ARG" > proposal.json
+          
+          echo "Proposal JSON:"
+          cat proposal.json
+          
+          # Submit the proposal.
+          ./quill send proposal.json --yes
